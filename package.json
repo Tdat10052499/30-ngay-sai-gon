@@ -1,0 +1,14 @@
+{
+  "name": "30-ngay-sai-gon",
+  "version": "0.1.0",
+  "description": "Game mô phỏng chi tiêu có cốt truyện: 30 ngày thử việc ở Sài Gòn",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "check": "node --check src/game.js && node --check tools/simulate.js",
+    "sim": "node tools/simulate.js --runs 150",
+    "test": "npm run check && node tools/simulate.js --runs 40",
+    "serve": "python3 -m http.server 8080"
+  }
+}

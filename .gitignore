@@ -1,0 +1,16 @@
+# Hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Trình soạn thảo
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Bản xuất tạm
+*.pdf
+dist/
