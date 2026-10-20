@@ -27,6 +27,8 @@ Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất. Bố mẹ gử
 
 ## Chạy game
 
+**Chơi thử ngay:** https://tdat10052499.github.io/30-ngay-sai-gon/
+
 Game là một trang web tĩnh, không cần cài đặt hay build.
 
 **Cách 1: mở trực tiếp**

@@ -28,6 +28,7 @@ Cập nhật theo góp ý của khách hàng: đổi bối cảnh sang tân sinh
 
 - Xin thêm tiền bố mẹ (+500k, ảnh hưởng nhiệm vụ Tự lập); vay app và trả nợ chuyển về phòng trọ (qua điện thoại).
 - Đồng phục cửa hàng cho nhân vật khi đang ở chỗ làm.
+- Bản chơi thử trên GitHub Pages, tự xuất bản khi push nhánh `main`.
 
 ## [0.1.0] - 2026-10-20
 
