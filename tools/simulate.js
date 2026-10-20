@@ -55,23 +55,27 @@ function go(id){if(s.loc!==id&&!LOCS[id].open(s)){travel(id);resolveEvents(PRUDE
 function use(id){if(!itemReason(id))useItem(id)}
 function prudentSlot(){
   const wd=!isWE(s.day),sl=s.slot;
-  if(wd&&s.money<120000){go('office');act('advance')}
-  if(wd&&(sl===0||sl===2)){if(sl===0){go('home');use('nguyenlieu');if(!s.ateThisSlot)use('banhmi')}
-    go('office');if(!s.ateThisSlot)use('mi');act('work')||act('idle');return}
-  if(sl===1){if(wd){go('office');act('canteen');act('desknap')||act('idle')}else{
-      if(s.day>=15&&s.day<=21&&s.money>1500000&&s.savings<1e6){go('bank');act('dep')}
-      if(s.q.q4_mom==='active'&&s.money>800000){go('bank');act('sendmom')}
-      go('market');if(bagCount('nguyenlieu')<3)act('buy_nguyenlieu');go('street');act('comtam');act('trada')||act('idle')}return}
-  if(sl===2){if(s.q.q3_khoa==='active'&&(s.day===20||s.day===21)){go('cafe');if(act('khoa'))return}
-    go('park');act('walk')||act('idle');return}
-  if(sl===0){go('market');if(bagCount('nguyenlieu')<3)act('buy_nguyenlieu');go('home');use('nguyenlieu');go('park');act('run')||act('idle');return}
-  go('home');use('nguyenlieu');if(!s.ateThisSlot){go('street');act('comtam');go('home')}
-  act('net');
+  if(s.flags.hired&&s.money<100000){go('store');act('advance')}
+  if(sl===0){
+    if(wd){go('home');use('nguyenlieu');if(!s.ateThisSlot)use('banhmi');go('school');act('exam')||act('class')||act('idle');return}
+    go('market');if(bagCount('nguyenlieu')<3)act('buy_nguyenlieu');go('home');use('nguyenlieu');
+    go('store');act('interview')||act('shift')||act('idle');return}
+  if(sl===1){
+    if(wd){go('school');act('canteen');if(s.study<8||(s.day>=15&&s.day<=21))act('library')||act('campusnap')||act('idle');else act('campusnap')||act('idle')}
+    else{if(s.q.q4_gift==='active'&&s.money>500000){go('mall');act('gift')}go('street');act('comtam');act('trada')||act('idle')}
+    return}
+  if(sl===2){
+    if(s.q.q3_khoa==='active'&&(s.day===20||s.day===21)){go('cafe');if(act('khoa'))return}
+    go('store');if(act('interview'))return;
+    if(s.nl>30&&act('shift'))return;go('park');act('walk')||act('idle');return}
+  go('home');use('nguyenlieu');if(!s.ateThisSlot){go('store');act('boxmeal');go('home')}
+  if(isWE(s.day)&&s.nl>45){go('store');if(act('shift'))return;go('home')}
+  act('sleep')||act('net');
 }
 function randomSlot(){
   for(const x of bagStacks()){if(!itemReason(x.id)&&Math.random()<0.5)useItem(x.id)}
   if(Math.random()<0.4){const ids=Object.keys(LOCS).filter(id=>id!==s.loc&&!LOCS[id].open(s));if(ids.length)go(ids[Math.floor(Math.random()*ids.length)])}
-  const non=locActs().filter(a=>!reason(a)&&a.k!=='act'&&a.id!=='loan'&&a.id!=='dep');
+  const non=locActs().filter(a=>!reason(a)&&a.k!=='act'&&a.id!=='loan'&&a.id!=='askparents');
   if(non.length&&Math.random()<0.5){doAction(non[Math.floor(Math.random()*non.length)]);resolveEvents(false)}
   const acts=locActs().filter(a=>a.k==='act'&&!reason(a));doAction(acts[Math.floor(Math.random()*acts.length)]);resolveEvents(false);
 }
@@ -80,17 +84,17 @@ let failures=0;
 const summary=[];
 for(const [name,fn,prudent] of [['Thận trọng',prudentSlot,true],['Ngẫu nhiên',randomSlot,false]]){
   PRUDENT=prudent;
-  const sc=[],qd=[],pr=[],rate={};let stuck=0;
+  const sc=[],qd=[],pr=[],sh=[],as=[],rate={};let stuck=0;
   for(let r=0;r<${RUNS};r++){
     cmd('new');resolveEvents(prudent);let g=0;
     while(!s.over&&g++<3000){const d=s.day,sl=s.slot;fn();resolveEvents(prudent);if(!s.over&&s.day===d&&s.slot===sl){act('idle')||act('sleep');resolveEvents(prudent)}}
     if(!s.over){stuck++;continue}
-    sc.push(computeScore().score);pr.push(probation());
+    sc.push(computeScore().score);pr.push(studyScore());sh.push(s.shifts);as.push(computeScore().asset);
     const done=QUESTS.filter(q=>s.q[q.id]==='done');qd.push(done.length);done.forEach(q=>rate[q.id]=(rate[q.id]||0)+1);
     endHTML();tasksHTML();calHTML();bagHTML();mapHTML();renderTracker();
   }
   failures+=stuck;
-  summary.push({'Kiểu chơi':name,'Số ván':${RUNS},'Bị kẹt':stuck,'Điểm (trung vị)':med(sc),'Nhiệm vụ (trung vị)':med(qd)+'/'+QUESTS.length,'Điểm thử việc (trung vị)':med(pr)});
+  summary.push({'Kiểu chơi':name,'Số ván':${RUNS},'Bị kẹt':stuck,'Điểm (trung vị)':med(sc),'Nhiệm vụ (trung vị)':med(qd)+'/'+QUESTS.length,'Điểm học tập (trung vị)':med(pr),'Ca part-time':med(sh),'Tài sản cuối tháng':med(as)});
   console.log('\\nTỉ lệ hoàn thành từng nhiệm vụ · '+name);
   console.table(Object.fromEntries(QUESTS.map(q=>[q.id+' · '+q.t,Math.round((rate[q.id]||0)/${RUNS}*100)+'%'])));
 }

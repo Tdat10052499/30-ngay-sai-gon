@@ -1,4 +1,4 @@
-/* 30 Ngày Sài Gòn · v0.1.0
+/* 30 Ngày Sài Gòn · v0.2.0
  * Toàn bộ logic game: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện và cảnh pixel. */
 /* ============ Helpers ============ */
 const $=id=>document.getElementById(id);
@@ -12,10 +12,11 @@ const dowOf=d=>(d-1)%7, isWE=d=>dowOf(d)>=5;
 const chOf=d=>d<=7?1:d<=14?2:d<=21?3:4;
 const STATS=[{k:'no',n:'Độ no'},{k:'nl',n:'Năng lượng'},{k:'tt',n:'Tinh thần'},{k:'sk',n:'Sức khỏe'}];
 const SCOL={no:'#f5a742',nl:'#5cc8ff',tt:'#ff86b3',sk:'#72de90'};
-const BILLS={5:['Tiền nhà',1500000],10:['Điện, nước, internet',350000],20:['Trả góp điện thoại',400000]};
-const START_MONEY=3500000;
-const KEY='ba-muoi-ngay-sg-v3';
-const RELAX=['net','trada','oc','walk','bench','chill','movie','shop','window','stroll','pantry','khoa','clean'];
+const BILLS={5:['Tiền nhà',1200000],10:['Điện, nước, internet',200000],20:['Giáo trình và quỹ lớp',300000]};
+const START_MONEY=3000000;
+const CLASS_DAYS=22;
+const KEY='ba-muoi-ngay-sg-v4';
+const RELAX=['net','trada','oc','walk','bench','chill','movie','shop','window','stroll','club','khoa','clean'];
 
 let s, queue=[], curEvent=null, win=null, bagSel=null, calSel=1, toastTimer=0, menuCat=null, menuSel=null;
 
@@ -49,8 +50,9 @@ const ICON={
   p_minh:[["............","...hhhhhh...","..hhhhhhhh..",F3,F4,F5,F6,F7,F8,F9,F10,F10],{...FACE,h:'#2a1c14',c:'#eef2f7'}],
   p_me:[["....hhhh....","...hhhhhh...","..hhhhhhhh..",F3,F4,F5,F6,F7,F8,F9,F10,F10],{...FACE,s:'#e8b98f',h:'#4a4246',c:'#8a4f9e'}],
   p_tu:[["............",".hhhhhhhhhh.",".hhhhhhhhhh.",".hhsssssshh.",".hssssssssh.",F5,F6,F7,F8,F9,F10,F10],{...FACE,s:'#e8b98f',h:'#3a2a3a',c:'#d9534f'}],
-  p_quan:[["............","..hhhhhhhh..","..hhhhhhhh..",F3,F4,"..gegssgeg..",F6,F7,F8,F9,F10,F10],{...FACE,h:'#1a1a22',g:'#2b2f3a',c:'#3a78c2'}],
-  p_hanh:[["............","...hhhhhh...","..hhhhhhhh..",".hhsssssshh.",".hssssssssh.",".hsessssesh.",".hssssssssh.",".hsssmmsssh.",".hhsssssshh.",".hcccccccch.",F10,F10],{...FACE,h:'#2a1c14',c:'#ff86b3'}],
+  p_mai:[["....hhhh....","...hhhhhh...","..hhhhhhhh..",F3,F4,F5,F6,F7,F8,F9,F10,F10],{...FACE,h:'#3a2418',c:'#2e9c5a'}],
+  p_hai:[["............","..hhhhhhhh..","..hhhhhhhh..",F3,F4,"..gegssgeg..",F6,F7,F8,F9,F10,F10],{...FACE,s:'#e8b98f',h:'#8a8a94',g:'#2b2f3a',c:'#7a5a3a'}],
+  p_linh:[["............","...hhhhhh...","..hhhhhhhh..",".hhsssssshh.",".hssssssssh.",".hsessssesh.",".hssssssssh.",".hsssmmsssh.",".hhsssssshh.",".hcccccccch.",F10,F10],{...FACE,h:'#4a2a1a',c:'#3a78c2'}],
   p_khoa:[["............","..kkkkkkk...","..kkkkkkkkkk",F3,F4,F5,F6,F7,F8,F9,F10,F10],{...FACE,h:'#2a1c14',k:'#e2525c',c:'#4caf50'}],
 };
 const _ico={};
@@ -63,36 +65,38 @@ function ico(key){
 
 /* ============ Story ============ */
 const PEOPLE={
-  me:{n:'Mẹ',p:'p_me'},tu:{n:'Cô Tư · chủ nhà trọ',p:'p_tu'},quan:{n:'Anh Quân · trưởng nhóm',p:'p_quan'},
-  hanh:{n:'Chị Hạnh · phòng kế toán',p:'p_hanh'},khoa:{n:'Khoa · bạn thân',p:'p_khoa'},self:{n:'Minh',p:'p_minh'},
+  me:{n:'Mẹ',p:'p_me'},tu:{n:'Cô Tư · chủ nhà trọ',p:'p_tu'},mai:{n:'Chị Mai · quản lý cửa hàng',p:'p_mai'},
+  hai:{n:'Thầy Hải · cố vấn học tập',p:'p_hai'},linh:{n:'Chị Linh · trưởng CLB',p:'p_linh'},khoa:{n:'Khoa · bạn cùng phòng',p:'p_khoa'},self:{n:'Minh',p:'p_minh'},
 };
 const CHAPTERS={
-  1:{t:'Chân ướt chân ráo',from:1,to:7,txt:'Minh vừa tốt nghiệp, rời Tuy Hòa vào Sài Gòn nhận việc designer thử việc ở một agency Quận 1. Hành trang là chiếc xe máy cũ, 3,5 triệu trong ví và lời dặn của mẹ. Ba mươi ngày tới sẽ quyết định Minh có được ký hợp đồng chính thức hay không.'},
-  2:{t:'Guồng quay',from:8,to:14,txt:'Tuần thứ hai, việc dồn tới. Anh Quân giao dự án banner Trung Thu, hạn chót thứ Sáu. Cuối tuần là đám cưới chị Hạnh. Ví đang mỏng dần, còn lương phải đợi tới ngày 15.'},
-  3:{t:'Ngày lương',from:15,to:21,txt:'Lương kỳ đầu tiên đã về. Có tiền thì dễ chịu, và cũng dễ tiêu. Khoa, bạn thân từ hồi đại học, nhắn hẹn cà phê cuối tuần. Đây là lúc lập quỹ phòng thân trước khi tiền bay hết.'},
-  4:{t:'Về đích',from:22,to:30,txt:'Tuần cuối thử việc. Sáng thứ Hai ngày 29, Minh thuyết trình tổng kết trước anh Quân. Ngày 30 cũng là sinh nhật mẹ. Mẹ nói không cần quà, nhưng Minh muốn gửi chút gì đó về quê.'},
+  1:{t:'Tân sinh viên',from:1,to:7,txt:'Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất ngành Thiết kế. Bố mẹ gửi 3 triệu cho tháng đầu, đã gồm tiền nhà. Tuần này Minh phải làm quen trường lớp, ở ghép với Khoa và tìm một việc làm thêm để tự lo phần còn lại.'},
+  2:{t:'Vừa học vừa làm',from:8,to:14,txt:'Lịch kín dần: sáng lên lớp, chiều tối đứng quầy ở cửa hàng tiện lợi. Tối thứ Bảy là đêm nhạc chào tân sinh viên của CLB. Lương part-time phải đợi tới ngày 15, còn ví thì mỏng dần.'},
+  3:{t:'Lương part-time đầu tiên',from:15,to:21,txt:'Ngày 15, chị Mai trả lương part-time đầu tiên. Tự kiếm được tiền thật dễ chịu, và cũng dễ tiêu. Thầy Hải nhắc cả lớp ôn bài cho kiểm tra giữa kỳ, còn Khoa thì rủ đi cà phê cuối tuần.'},
+  4:{t:'Về đích',from:22,to:30,txt:'Tuần cuối tháng. Sáng thứ Hai ngày 29 là bài kiểm tra giữa kỳ đầu tiên. Ngày 30 là sinh nhật mẹ, và Minh muốn tự tay mua quà bằng tiền mình làm ra.'},
 };
 const QUESTS=[
-  {id:'q1_work',ch:1,who:'quan',t:'Ngày đầu đi làm',d:'Đến Công ty và làm ca sáng ngày 1.',hint:'Bản đồ → Công ty → Hoạt động → Làm việc',goal:'office',prog:s=>[Math.min(s.ca,1),1],due:1,rw:{tt:5},work:1},
-  {id:'q1_cook',ch:1,who:'tu',t:'Bữa cơm nhà đầu tiên',d:'Nấu một bữa ở Phòng trọ bằng nguyên liệu trong túi.',hint:'Về Phòng trọ → Túi đồ → Nguyên liệu → Nấu cơm',goal:'home',prog:s=>[Math.min(s.cooked,1),1],due:4,rw:{tt:6,sk:3}},
-  {id:'q1_rent',ch:1,who:'tu',t:'Tiền nhà cho cô Tư',d:'Giữ đủ 1.500.000đ trong ví đến sáng ngày 5.',hint:'Tiền nhà tự trừ sáng ngày 5. Đừng tiêu quá tay trước đó.',prog:s=>[s.flags.rentPaid?1:0,1],due:5,rw:{tt:4},item:['traicay',2],rwTxt:'Cô Tư tặng 2 phần trái cây'},
-  {id:'q1_week',ch:1,who:'quan',t:'Tuần đầu trọn vẹn',d:'Làm đủ 10 ca từ thứ Hai đến thứ Sáu tuần đầu.',hint:'Ca sáng và ca chiều mỗi ngày thường',goal:'office',prog:s=>[Math.min(s.caCh[1],10),10],unit:'ca',due:5,rw:{tt:8},work:1},
-  {id:'q2_banner',ch:2,who:'quan',t:'Dự án banner Trung Thu',d:'Làm đủ 8 ca từ ngày 8 đến ngày 12 để kịp hạn giao khách.',hint:'Tuần này chỉ được vắng tối đa 2 ca',goal:'office',prog:s=>[Math.min(s.caCh[2],8),8],unit:'ca',due:12,rw:{tt:6},bonus:200000,rwTxt:'Thưởng dự án 200k vào lương',work:1},
-  {id:'q2_wedding',ch:2,who:'hanh',t:'Đám cưới chị Hạnh',d:'Dự đám cưới chị Hạnh trưa thứ Bảy, ngày 13.',hint:'Chuẩn bị sẵn 300–500k tiền mừng',prog:s=>[s.flags.weddingGo?1:0,1],due:13,rw:{tt:6}},
-  {id:'q2_mood',ch:2,who:'self',t:'Đừng để mình kiệt quệ',d:'Giữ tinh thần từ 30 trở lên suốt ngày 8 đến ngày 14.',hint:'Xen kẽ việc thư giãn sau giờ làm',endCheck:1,fail:s=>!!s.flags.mood2Fail,pass:s=>!s.flags.mood2Fail,prog:s=>[s.day>14?1:0,1],label:s=>s.flags.mood2Fail?'Đã tụt dưới 30':`Giữ vững thêm ${Math.max(0,15-s.day)} ngày`,due:14,rw:{tt:5,sk:3}},
-  {id:'q3_save',ch:3,who:'self',t:'Quỹ khẩn cấp',d:'Gửi tiết kiệm ít nhất 1.000.000đ ở Ngân hàng.',hint:'Ngân hàng → Giao dịch → Gửi tiết kiệm',goal:'bank',prog:s=>[Math.min(s.savings,1e6),1e6],money:1,due:21,rw:{tt:6}},
-  {id:'q3_noloan',ch:3,who:'self',t:'Nói không với vay nóng',d:'Không vay qua app trong cả tháng.',hint:'Lãi app vay là 30% mỗi tháng',endCheck:1,fail:s=>s.loanCount>0,pass:s=>s.loanCount===0,prog:s=>[s.day>21?1:0,1],label:s=>s.loanCount?'Đã vay':'Giữ đến hết ngày 21',due:21,rw:{tt:5}},
-  {id:'q3_khoa',ch:3,who:'khoa',t:'Cà phê với Khoa',d:'Gặp Khoa ở Cà phê Gác Nhỏ vào buổi chiều ngày 20 hoặc 21.',hint:'Chiều thứ Bảy hoặc Chủ Nhật → Cà phê → Cà phê với Khoa',goal:'cafe',prog:s=>[s.flags.metKhoa?1:0,1],due:21,rw:{tt:8}},
-  {id:'q4_present',ch:4,who:'quan',t:'Chuẩn bị thuyết trình',d:'Làm đủ 10 ca từ ngày 22 đến ngày 29 để hoàn thiện bài thuyết trình.',hint:'Thuyết trình sáng thứ Hai, ngày 29',goal:'office',prog:s=>[Math.min(s.caCh[4],10),10],unit:'ca',due:29,rw:{tt:6},work:1},
-  {id:'q4_mom',ch:4,who:'me',t:'Quà sinh nhật mẹ',d:'Chuyển 500.000đ về quê trước hết ngày 30.',hint:'Ngân hàng → Giao dịch → Chuyển tiền về quê',goal:'bank',prog:s=>[s.flags.sentMom?1:0,1],due:30,rw:{tt:15}},
-  {id:'q4_health',ch:4,who:'self',t:'Về đích khỏe mạnh',d:'Kết thúc ngày 30 với sức khỏe từ 50 trở lên.',hint:'Ăn đủ, ngủ đủ, bớt tăng ca',endCheck:1,pass:s=>s.sk>=50,prog:s=>[s.sk>=50?1:0,1],label:s=>`Sức khỏe hiện tại ${s.sk}/50`,due:30,rw:{},rwTxt:'Điểm cuối tháng tốt hơn'},
+  {id:'q1_class',ch:1,who:'hai',t:'Buổi học đầu tiên',d:'Lên lớp buổi sáng ngày 1 ở Trường đại học.',hint:'Bản đồ → Trường → Hoạt động → Lên lớp',goal:'school',prog:s=>[Math.min(s.classes,1),1],due:1,rw:{tt:5},study:1},
+  {id:'q1_job',ch:1,who:'mai',t:'Tìm việc làm thêm',d:'Đến Cửa hàng tiện lợi phỏng vấn xin việc trước hết ngày 3.',hint:'Bản đồ → Cửa hàng → Hoạt động → Phỏng vấn xin việc',goal:'store',prog:s=>[s.flags.hired?1:0,1],due:3,rw:{tt:6}},
+  {id:'q1_cook',ch:1,who:'tu',t:'Bữa cơm tự nấu đầu tiên',d:'Nấu một bữa ở Phòng trọ bằng nguyên liệu trong túi.',hint:'Về Phòng trọ → Túi đồ → Nguyên liệu → Nấu cơm',goal:'home',prog:s=>[Math.min(s.cooked,1),1],due:4,rw:{tt:6,sk:3}},
+  {id:'q1_rent',ch:1,who:'tu',t:'Tiền nhà cho cô Tư',d:'Giữ đủ 1.200.000đ trong ví đến sáng ngày 5.',hint:'Tiền nhà tự trừ sáng ngày 5. Đừng tiêu quá tay trước đó.',prog:s=>[s.flags.rentPaid?1:0,1],due:5,rw:{tt:4},item:['traicay',2],rwTxt:'Cô Tư tặng 2 phần trái cây'},
+  {id:'q2_class',ch:2,who:'hai',t:'Không bỏ buổi học nào',d:'Lên lớp đủ 5 buổi sáng từ ngày 8 đến ngày 12.',hint:'Sáng thứ Hai đến thứ Sáu → Trường → Lên lớp',goal:'school',prog:s=>[Math.min(s.classCh[2],5),5],unit:'buổi',due:12,rw:{tt:6},study:1},
+  {id:'q2_shift',ch:2,who:'mai',t:'Quen việc ở cửa hàng',d:'Làm đủ 4 ca part-time từ ngày 8 đến ngày 14.',hint:'Ca chiều hoặc ca tối → Cửa hàng → Làm ca part-time',goal:'store',prog:s=>[Math.min(s.shiftCh[2],4),4],unit:'ca',due:14,rw:{tt:5},bonus:100000,rwTxt:'Chị Mai thưởng 100k vào lương'},
+  {id:'q2_club',ch:2,who:'linh',t:'Đêm nhạc chào tân sinh viên',d:'Dự đêm nhạc của CLB tối thứ Bảy, ngày 13.',hint:'Chuẩn bị 100k tiền vé; tối ngày 13 sẽ có lời mời',prog:s=>[s.flags.clubGo?1:0,1],due:13,rw:{tt:6}},
+  {id:'q2_mood',ch:2,who:'self',t:'Đừng để mình kiệt quệ',d:'Giữ tinh thần từ 30 trở lên suốt ngày 8 đến ngày 14.',hint:'Xen kẽ việc thư giãn giữa giờ học và giờ làm',endCheck:1,fail:s=>!!s.flags.mood2Fail,pass:s=>!s.flags.mood2Fail,prog:s=>[s.day>14?1:0,1],label:s=>s.flags.mood2Fail?'Đã tụt dưới 30':`Giữ vững thêm ${Math.max(0,15-s.day)} ngày`,due:14,rw:{tt:5,sk:3}},
+  {id:'q3_study',ch:3,who:'hai',t:'Ôn bài ở thư viện',d:'Học ở thư viện trường ít nhất 3 buổi từ ngày 15 đến ngày 21.',hint:'Buổi trưa hoặc chiều ngày thường → Trường → Học ở thư viện',goal:'school',prog:s=>[Math.min(s.studyCh[3],3),3],unit:'buổi',due:21,rw:{tt:5},study:1},
+  {id:'q3_indep',ch:3,who:'self',t:'Tự lập tài chính',d:'Không vay qua app và không xin thêm tiền bố mẹ trong cả tháng.',hint:'Kẹt tiền thì xin ứng lương ở cửa hàng',endCheck:1,fail:s=>s.loanCount>0||s.askCount>0,pass:s=>s.loanCount===0&&s.askCount===0,prog:s=>[s.day>21?1:0,1],label:s=>(s.loanCount||s.askCount)?'Đã vay hoặc xin thêm tiền':'Giữ đến hết ngày 21',due:21,rw:{tt:6}},
+  {id:'q3_khoa',ch:3,who:'khoa',t:'Cà phê với Khoa',d:'Đi cà phê với Khoa vào buổi chiều ngày 20 hoặc 21.',hint:'Chiều thứ Bảy hoặc Chủ Nhật → Cà phê → Cà phê với Khoa',goal:'cafe',prog:s=>[s.flags.metKhoa?1:0,1],due:21,rw:{tt:8}},
+  {id:'q4_exam',ch:4,who:'hai',t:'Kiểm tra giữa kỳ',d:'Có mặt làm bài kiểm tra sáng ngày 29 và đạt từ 55 điểm học tập.',hint:'Sáng thứ Hai ngày 29 → Trường → Làm bài kiểm tra giữa kỳ',goal:'school',fail:s=>!!s.flags.examTaken&&s.flags.examScore<55,prog:s=>[s.flags.examTaken&&s.flags.examScore>=55?1:0,1],label:s=>s.flags.examTaken?`Đạt ${s.flags.examScore} điểm`:`Điểm học tập hiện tại ${studyScore()}/55`,due:29,rw:{tt:8}},
+  {id:'q4_gift',ch:4,who:'me',t:'Quà sinh nhật mẹ',d:'Mua quà sinh nhật cho mẹ ở Trung tâm thương mại trước hết ngày 30.',hint:'Từ trưa → TTTM → Mua → Quà sinh nhật mẹ',goal:'mall',prog:s=>[s.flags.gift?1:0,1],due:30,rw:{tt:15}},
+  {id:'q4_health',ch:4,who:'self',t:'Về đích khỏe mạnh',d:'Kết thúc ngày 30 với sức khỏe từ 50 trở lên.',hint:'Ăn đủ, ngủ đủ, bớt ca tối',endCheck:1,pass:s=>s.sk>=50,prog:s=>[s.sk>=50?1:0,1],label:s=>`Sức khỏe hiện tại ${s.sk}/50`,due:30,rw:{},rwTxt:'Điểm cuối tháng tốt hơn'},
 ];
 const QBY=Object.fromEntries(QUESTS.map(q=>[q.id,q]));
 const DAILY={
-  work2:{t:'Đi làm đủ 2 ca',prog:s=>[Math.min(s.caToday,2),2]},
+  class1:{t:'Lên lớp buổi sáng',prog:s=>[s.classToday?1:0,1]},
   eat2:{t:'Ăn ít nhất 2 bữa',prog:s=>[Math.min(s.mealsToday,2),2]},
   cook:{t:'Nấu một bữa ở nhà',prog:s=>[s.cookedToday?1:0,1]},
   relax:{t:'Làm một việc thư giãn',prog:s=>[s.relaxToday?1:0,1]},
+  shift1:{t:'Làm ít nhất 1 ca part-time',prog:s=>[Math.min(s.shiftToday,1),1]},
   frugal:{t:'Tiêu dưới 100k hôm nay',eod:1,prog:s=>[s.spentToday<100000?1:0,1],label:s=>`đã tiêu ${fk(s.spentToday)}`},
 };
 
@@ -100,7 +104,7 @@ const DAILY={
 const ITEMS={
   banhmi:{n:'Bánh mì thịt',type:'food',d:'Pate, chả lụa, đồ chua. Ăn nhanh, no vừa.',eff:{no:22,tt:1},shelf:1},
   xoi:{n:'Xôi gà',type:'food',d:'Gói lá chuối, còn ấm. Chắc bụng hơn bánh mì.',eff:{no:28,tt:2},shelf:1},
-  mi:{n:'Mì gói',type:'food',d:'Rẻ, để lâu không hỏng. Từ gói thứ hai trong ngày sẽ hại sức khỏe gấp đôi.',eff:s=>({no:24,tt:-2,sk:s.noodleToday>=1?-8:-4}),shelf:null,where:['home','office'],whereTxt:'Cần nước sôi: dùng ở phòng trọ hoặc công ty',after:s=>{s.noodleToday++;s.noodleTotal++}},
+  mi:{n:'Mì gói',type:'food',d:'Rẻ, để lâu không hỏng. Từ gói thứ hai trong ngày sẽ hại sức khỏe gấp đôi.',eff:s=>({no:24,tt:-2,sk:s.noodleToday>=1?-8:-4}),shelf:null,where:['home','store'],whereTxt:'Cần nước sôi: dùng ở phòng trọ hoặc cửa hàng tiện lợi',after:s=>{s.noodleToday++;s.noodleTotal++}},
   nguyenlieu:{n:'Nguyên liệu nấu ăn',type:'food',d:'Rau, thịt, trứng đủ cho một bữa cơm nhà. Rẻ và tốt cho sức khỏe.',eff:{no:36,sk:3,tt:3,nl:-3},shelf:3,where:['home'],whereTxt:'Chỉ nấu được ở phòng trọ',verb:'Nấu cơm',after:s=>{s.cooked++;s.cookedToday=1}},
   traicay:{n:'Trái cây',type:'food',d:'Xoài, ổi cắt sẵn. Ít no nhưng bổ.',eff:{no:12,sk:5,tt:2},shelf:2},
   banhngot:{n:'Bánh ngọt',type:'food',d:'Bông lan kem dâu. Ngọt ngào nhưng mau đói.',eff:{no:15,tt:6},shelf:1},
@@ -125,8 +129,9 @@ function expText(exp){if(exp===null)return 'Không có hạn';const n=exp-s.day;
 
 /* ============ State ============ */
 function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',money:START_MONEY,no:70,nl:80,tt:65,sk:80,
-  savings:0,debt:0,loanCount:0,accrued:0,paid1:false,caHalf:0,absences:0,ca:0,ot:0,noodleToday:0,noodleTotal:0,cooked:0,
-  caToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,caCh:{1:0,2:0,3:0,4:0},
+  debt:0,loanCount:0,askCount:0,accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
+  classToday:0,shiftToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,
+  classCh:{1:0,2:0,3:0,4:0},shiftCh:{1:0,2:0,3:0,4:0},studyCh:{1:0,2:0,3:0,4:0},
   ateThisSlot:false,bikeBroken:0,lent:0,flags:{},log:[],hist:[],sumNo:0,sumTt:0,samples:0,
   q:{},pin:null,daily:[],
   bag:[{id:'mi',exp:null},{id:'mi',exp:null},{id:'mi',exp:null},{id:'nguyenlieu',exp:3},{id:'caphe',exp:null}]}}
@@ -136,16 +141,17 @@ function loadSaved(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r
 
 /* ============ Locations & actions ============ */
 const LOCS={
-  home:{name:'Phòng trọ',short:'Phòng trọ',sub:'Hẻm 42 · Bình Thạnh',cost:0,mx:14,my:62,open:()=>null},
+  home:{name:'Phòng trọ',short:'Phòng trọ',sub:'Hẻm 42 · ở ghép với Khoa',cost:0,mx:14,my:62,open:()=>null},
   street:{name:'Quán ăn đầu hẻm',short:'Quán ăn',sub:'Bánh mì, cơm tấm, phở',cost:0,mx:30,my:42,open:()=>null},
   market:{name:'Chợ phường',short:'Chợ',sub:'Nguyên liệu, mì gói, trái cây, thuốc',cost:0,mx:24,my:82,open:s=>s.slot<=2?null:'Chợ đã dọn hàng'},
   park:{name:'Công viên bờ kênh',short:'Công viên',sub:'Chạy bộ, đi dạo, hóng gió',cost:0,mx:51,my:24,open:()=>null},
-  cafe:{name:'Cà phê Gác Nhỏ',short:'Cà phê',sub:'Cà phê, ngồi chill, part-time cuối tuần',cost:5000,mx:47,my:58,open:()=>null},
-  office:{name:'Công ty',short:'Công ty',sub:'Agency Quận 1 · ca sáng và ca chiều',cost:8000,mx:78,my:36,open:s=>isWE(s.day)?'Cuối tuần công ty nghỉ':null},
-  bank:{name:'Ngân hàng',short:'Ngân hàng',sub:'Tiết kiệm, vay, chuyển tiền',cost:5000,mx:67,my:72,open:s=>s.slot<=2?null:'Ngân hàng đã đóng cửa lúc 17h'},
+  cafe:{name:'Cà phê Gác Nhỏ',short:'Cà phê',sub:'Cà phê, ngồi chill, gặp bạn bè',cost:5000,mx:47,my:58,open:()=>null},
+  school:{name:'Trường đại học',short:'Trường',sub:'Giảng đường, thư viện, căng tin',cost:6000,mx:78,my:36,open:s=>isWE(s.day)?'Cuối tuần trường nghỉ':s.slot===3?'Trường đóng cửa buổi tối':null},
+  store:{name:'Cửa hàng tiện lợi',short:'Cửa hàng',sub:'Nơi Minh làm thêm · mở 24 giờ',cost:0,mx:67,my:72,open:()=>null},
   mall:{name:'Trung tâm thương mại',short:'TTTM',sub:'Buffet, rạp phim, cửa hàng quần áo',cost:12000,mx:87,my:74,open:s=>s.slot>=1?null:'TTTM mở cửa từ 10h'},
 };
-const payPerCa=s=>s.nl<15?60000:(s.tt<25?90000:120000);
+const shiftPay=s=>{const base=s.slot===3?110000:90000;return s.nl<15?Math.round(base/2):s.tt<25?base-20000:base};
+const canShift=s=>(!isWE(s.day)&&s.slot===0)?'Buổi sáng ngày thường Minh đi học':s.slot===1?'Cửa hàng xếp ca sáng cuối tuần, ca chiều và ca tối':null;
 const IDLE={id:'idle',k:'act',n:'Ngồi nghỉ một lúc',d:'Không làm gì, để thời gian trôi sang buổi sau.',eff:{nl:3,tt:-1},free:true};
 const buy=(item,cost,qty,n)=>({id:'buy_'+item,k:'buy',n,d:ITEMS[item].d,cost,qty,eff:{},note:()=>`+${qty} vào túi`,run:s=>bagAdd(item,qty)});
 const A={
@@ -154,8 +160,11 @@ const A={
     {id:'nap',k:'act',n:'Ngủ một giấc',d:'Hồi năng lượng.',eff:{nl:22,tt:3},when:s=>s.slot===3?'Buổi tối thì đi ngủ luôn':null},
     {id:'net',k:'act',n:'Lướt mạng, xem phim',d:'Giải trí miễn phí.',eff:{tt:7,nl:-2,sk:-1}},
     {id:'clean',k:'act',n:'Dọn phòng, giặt đồ',d:'Phòng gọn thì đầu óc nhẹ.',eff:{tt:5,nl:-6}},
-    {id:'free',k:'act',n:'Nhận job freelance',d:'Thiết kế banner cho khách quen. Trả tiền ngay.',gain:110000,eff:{nl:-20,tt:-5},when:s=>s.slot>=2?null:'Khách chỉ gửi việc từ chiều'},
+    {id:'free',k:'act',n:'Nhận vẽ thuê',d:'Vẽ minh họa cho khách quen trên mạng. Trả tiền ngay.',gain:80000,eff:{nl:-18,tt:-4},when:s=>s.slot>=2?null:'Khách chỉ gửi việc từ chiều'},
     {id:'sleep',k:'act',n:'Đi ngủ sớm',d:'Kết thúc ngày, hồi thêm năng lượng khi ngủ.',eff:{},note:()=>'Năng lượng +15 khi ngủ',when:s=>s.slot===3?null:'Chỉ ngủ sớm vào buổi tối'},
+    {id:'askparents',k:'quick',n:'Gọi xin thêm tiền bố mẹ',d:'Bố mẹ gửi thêm 500.000đ, nhưng Minh thấy áy náy.',eff:{tt:-8},when:s=>s.askCount<2?null:'Đã xin 2 lần rồi',note:()=>'+500k · ảnh hưởng nhiệm vụ Tự lập',run:s=>{s.money+=500000;s.askCount++}},
+    {id:'loan',k:'quick',n:'Vay nhanh qua app',d:'Nhận ngay 1 triệu qua điện thoại. Cuối tháng phải trả 1,3 triệu.',eff:{tt:-3},when:s=>s.loanCount<2?null:'Đã vay tối đa 2 lần',note:()=>'+1tr · Nợ +1,3tr',run:s=>{s.money+=1000000;s.debt+=1300000;s.loanCount++}},
+    {id:'repay',k:'quick',n:'Trả nợ app',d:'Dùng tiền trong ví trả bớt nợ.',eff:{tt:3},show:s=>s.debt>0,when:s=>s.money>0?null:'Ví đang trống',run:s=>{const p=Math.min(s.money,s.debt);s.money-=p;s.debt-=p}},
   ],
   street:[
     {id:'comtam',k:'meal',n:'Cơm tấm sườn',d:'No lâu, giá vừa phải.',cost:40000,eff:{no:35,tt:4}},
@@ -184,27 +193,33 @@ const A={
     {id:'cfsd',k:'drink',n:'Cà phê sữa đá tại quán',d:'Tỉnh táo tức thì. Đồ uống không tính là bữa ăn.',cost:25000,eff:{nl:14,tt:3,no:3}},
     buy('caphe',18000,1,'Cà phê lon mang đi'),
     buy('banhngot',30000,1,'Bánh ngọt mang đi'),
-    {id:'khoa',k:'act',n:'Cà phê với Khoa',d:'Ngồi tán chuyện với bạn thân, kể nhau nghe tháng đầu đi làm.',cost:30000,eff:{tt:14,nl:4},story:1,show:s=>s.q.q3_khoa==='active',when:s=>(s.day===20||s.day===21)&&s.slot===2?null:'Khoa hẹn buổi chiều ngày 20 hoặc 21',run:s=>{s.flags.metKhoa=1}},
+    {id:'khoa',k:'act',n:'Cà phê với Khoa',d:'Ngồi tán chuyện với bạn cùng phòng, kể nhau nghe tháng đầu ở Sài Gòn.',cost:30000,eff:{tt:14,nl:4},story:1,show:s=>s.q.q3_khoa==='active',when:s=>(s.day===20||s.day===21)&&s.slot===2?null:'Khoa hẹn buổi chiều ngày 20 hoặc 21',run:s=>{s.flags.metKhoa=1}},
     {id:'chill',k:'act',n:'Ngồi chill, đọc sách',d:'Một góc yên tĩnh.',cost:45000,eff:{tt:13,nl:6}},
-    {id:'pt',k:'act',n:'Làm part-time phục vụ',d:'Chỉ tuyển cuối tuần. Trả tiền cuối ca.',gain:150000,eff:{nl:-25,tt:-4,no:-4},when:s=>isWE(s.day)?null:'Chỉ tuyển ca cuối tuần'},
   ],
-  office:[
-    {id:'canteen',k:'meal',n:'Cơm căng tin',d:'Rẻ hơn quán ngoài.',cost:35000,eff:{no:33,tt:1},when:s=>s.slot===1?null:'Căng tin chỉ mở buổi trưa'},
-    {id:'work',k:'act',n:'Làm việc',d:'Mỗi ca cộng vào lương và điểm thử việc. Lương trả ngày 15 và cuối tháng.',eff:{nl:-22,tt:-4,no:-4},when:s=>(s.slot===0||s.slot===2)?null:'Ca làm là buổi sáng và buổi chiều',note:s=>`+${fk(payPerCa(s))} lương`,pre:s=>{s.accrued+=payPerCa(s);s.ca++;s.caToday++;s.caCh[chOf(s.day)]++}},
-    {id:'desknap',k:'act',n:'Ngủ trưa tại bàn',d:'Chợp mắt 30 phút.',eff:{nl:14},when:s=>s.slot===1?null:'Chỉ nghỉ được giờ trưa'},
-    {id:'pantry',k:'act',n:'Tán gẫu ở pantry',d:'Hóng chuyện công ty.',eff:{tt:5,nl:-2},when:s=>s.slot===1?null:'Giờ làm thì tập trung đi'},
-    {id:'advance',k:'quick',n:'Xin ứng lương',d:'Ứng trước 500.000đ từ lương đang tích lũy. Không mất lãi, mỗi kỳ lương ứng được 1 lần.',eff:{},when:s=>s.accrued<500000?'Cần tích lũy đủ 500k lương':s.flags['adv'+(s.paid1?2:1)]?'Kỳ lương này đã ứng rồi':null,note:()=>'+500k · trừ vào lương chờ',run:s=>{s.money+=500000;s.accrued-=500000;s.flags['adv'+(s.paid1?2:1)]=1}},
-    {id:'ot',k:'act',n:'Tăng ca',d:'Lương cao hơn ca thường, nhưng vắt sức.',eff:{nl:-30,tt:-8,sk:-3},when:s=>s.slot===3?null:'Tăng ca vào buổi tối',note:()=>'+170k lương',pre:s=>{s.accrued+=170000;s.ot++}},
+  school:[
+    {id:'canteen',k:'meal',n:'Cơm căng tin',d:'Suất cơm sinh viên, rẻ nhất khu vực.',cost:25000,eff:{no:33,tt:1},when:s=>s.slot===1?null:'Căng tin chỉ mở buổi trưa'},
+    {id:'exam',k:'act',n:'Làm bài kiểm tra giữa kỳ',d:'Bài kiểm tra đầu tiên của năm nhất. Kết quả dựa trên điểm học tập.',eff:{nl:-12,tt:-3,no:-4},story:1,show:s=>s.day===29&&!s.flags.examTaken,when:s=>s.slot===0?null:'Bài kiểm tra diễn ra buổi sáng',
+      pre:s=>{s.classes++;s.classToday=1;s.classCh[chOf(s.day)]++;s.flags.examTaken=1;s.flags.examScore=studyScore()},
+      run:s=>{const p=s.flags.examScore;queue.push(ev('Kết quả kiểm tra giữa kỳ',p>=75?`“Bài của em được ${p} điểm, thuộc nhóm cao nhất lớp. Giữ phong độ nhé!”`:p>=55?`“Em được ${p} điểm, đạt yêu cầu. Chịu khó tự học thêm thì sẽ khá hơn.”`:`“Em chỉ được ${p} điểm, chưa đạt. Phần này em phải học lại.”`,[{l:p>=55?'Dạ, em cảm ơn thầy':'Dạ, em sẽ cố hơn'}],'hai'))}},
+    {id:'class',k:'act',n:'Lên lớp',d:'Học trên giảng đường. Mỗi buổi tăng điểm học tập; vắng buổi sáng ngày thường bị tính vắng học.',eff:{nl:-10,tt:-2,no:-4},show:s=>s.day!==29,when:s=>s.slot===0?null:'Lớp học buổi sáng',note:()=>'Điểm học tập tăng',pre:s=>{s.classes++;s.classToday=1;s.classCh[chOf(s.day)]++}},
+    {id:'library',k:'act',n:'Học ở thư viện',d:'Tự học, làm bài tập nhóm. Tăng điểm học tập.',eff:{nl:-8,tt:-2},when:s=>(s.slot===1||s.slot===2)?null:'Thư viện mở buổi trưa và chiều',note:()=>'Điểm học tập tăng',pre:s=>{s.study++;s.studyCh[chOf(s.day)]++}},
+    {id:'club',k:'act',n:'Sinh hoạt CLB',d:'Gặp các anh chị khóa trên, vui và có thêm bạn.',eff:{tt:9,nl:-6},when:s=>s.slot===2?null:'CLB sinh hoạt buổi chiều'},
+    {id:'campusnap',k:'act',n:'Chợp mắt ở ghế đá',d:'Nghỉ trưa dưới tán cây sân trường.',eff:{nl:12},when:s=>s.slot===1?null:'Chỉ nghỉ được giờ trưa'},
   ],
-  bank:[
-    {id:'sendmom',k:'quick',n:'Chuyển tiền về quê',d:'Gửi mẹ 500.000đ làm quà sinh nhật.',cost:500000,eff:{tt:4},story:1,show:s=>s.q.q4_mom==='active',run:s=>{s.flags.sentMom=1}},
-    {id:'dep',k:'quick',n:'Gửi tiết kiệm 500.000đ',d:'Kỳ hạn đến cuối tháng, lãi 0,4%.',cost:500000,eff:{},note:()=>'Lãi 0,4% cuối tháng',run:s=>{s.savings+=500000}},
-    {id:'wd',k:'quick',n:'Rút hết tiết kiệm',d:'Rút trước hạn thì mất lãi.',eff:{},when:s=>s.savings>0?null:'Chưa có khoản tiết kiệm',note:s=>s.savings?`+${fk(s.savings)} về ví`:'',run:s=>{s.money+=s.savings;s.savings=0}},
-    {id:'loan',k:'quick',n:'Vay nhanh qua app',d:'Nhận ngay 1 triệu. Cuối tháng phải trả 1,3 triệu.',eff:{tt:-3},when:s=>s.loanCount<2?null:'Đã vay tối đa 2 lần',note:()=>'+1tr · Nợ +1,3tr',run:s=>{s.money+=1000000;s.debt+=1300000;s.loanCount++}},
-    {id:'repay',k:'quick',n:'Trả nợ',d:'Dùng tiền trong ví trả bớt nợ.',eff:{tt:3},when:s=>s.debt>0?(s.money>0?null:'Ví đang trống'):'Bạn không có nợ',run:s=>{const p=Math.min(s.money,s.debt);s.money-=p;s.debt-=p}},
+  store:[
+    {id:'boxmeal',k:'meal',n:'Cơm hộp hâm nóng',d:'Ăn nhanh ngay tại quầy.',cost:30000,eff:{no:30,tt:1}},
+    buy('mi',30000,5,'Lốc 5 gói mì'),
+    buy('caphe',18000,1,'Cà phê lon'),
+    buy('sua',12000,1,'Hộp sữa tươi'),
+    {id:'interview',k:'act',n:'Phỏng vấn xin việc',d:'Gặp chị Mai, quản lý cửa hàng, để xin làm part-time.',eff:{nl:-4,tt:3},story:1,show:s=>!s.flags.hired,when:s=>(!isWE(s.day)&&s.slot===0)?'Buổi sáng ngày thường Minh đi học':null,
+      run:s=>{s.flags.hired=1;queue.push(ev('Nhận việc part-time','“Em làm được ca chiều và ca tối các ngày, cuối tuần thêm ca sáng. Mỗi ca 4 tiếng, 90 nghìn, ca tối 110 nghìn. Lương trả ngày 15 và cuối tháng. Mai em bắt đầu được rồi.”',[{l:'Dạ, em cảm ơn chị'}],'mai'))}},
+    {id:'shift',k:'act',n:'Làm ca part-time',d:'Đứng quầy thu ngân, xếp hàng lên kệ. Ca 4 tiếng; ca tối được trả cao hơn nhưng mệt hơn.',eff:s=>s.slot===3?{nl:-28,tt:-4,sk:-2,no:-4}:{nl:-20,tt:-3,no:-4},show:s=>!!s.flags.hired,when:canShift,note:s=>`+${fk(shiftPay(s))} lương`,
+      pre:s=>{s.accrued+=shiftPay(s);s.shifts++;s.shiftToday++;s.shiftCh[chOf(s.day)]++}},
+    {id:'advance',k:'quick',n:'Xin ứng lương',d:'Ứng trước 300.000đ từ lương đang chờ. Không mất lãi, mỗi kỳ lương ứng được 1 lần.',eff:{},show:s=>!!s.flags.hired,when:s=>s.accrued<300000?'Cần có đủ 300k lương đang chờ':s.flags['adv'+(s.paid1?2:1)]?'Kỳ lương này đã ứng rồi':null,note:()=>'+300k · trừ vào lương chờ',run:s=>{s.money+=300000;s.accrued-=300000;s.flags['adv'+(s.paid1?2:1)]=1}},
   ],
   mall:[
     {id:'buffet',k:'meal',n:'Buffet lẩu',d:'Ăn cho đã.',cost:199000,eff:{no:50,tt:15,sk:-1}},
+    {id:'gift',k:'buy',n:'Quà sinh nhật mẹ',d:'Chiếc khăn lụa mẹ thích, gói kèm tấm thiệp tự viết.',cost:300000,eff:{tt:6},story:1,show:s=>s.q.q4_gift==='active',run:s=>{s.flags.gift=1}},
     {id:'movie',k:'act',n:'Xem phim',d:'Suất chiếu mới nhất.',cost:110000,eff:{tt:18,nl:-4}},
     {id:'shop',k:'act',n:'Mua quần áo mới',d:'Vui tức thì.',cost:350000,eff:{tt:22}},
     {id:'window',k:'act',n:'Đi dạo ngắm đồ',d:'Miễn phí. Nhưng dễ bị dụ mua.',eff:{tt:4,nl:-8},run:()=>{if(Math.random()<0.35)queue.push(evImpulse())}},
@@ -214,7 +229,7 @@ const CATS=[
   {id:'eat',n:'Ăn uống',ic:'no',ks:['meal','drink'],verb:'Ăn'},
   {id:'buy',n:'Mua',ic:'basket',ks:['buy'],verb:'Mua'},
   {id:'act',n:'Hoạt động',ic:'star',ks:['act'],verb:'Làm'},
-  {id:'bank',n:'Giao dịch',ic:'coin',ks:['quick'],verb:'Thực hiện'},
+  {id:'bank',n:'Tiền bạc',ic:'coin',ks:['quick'],verb:'Thực hiện'},
 ];
 const locActs=()=>[...A[s.loc].filter(a=>!a.show||a.show(s)),IDLE];
 
@@ -274,11 +289,11 @@ function useItem(id){
   refresh();
 }
 function endSlot(a){
-  if(!isWE(s.day)&&(s.slot===0||s.slot===2)&&a.id!=='work'&&!a.excused){
-    s.absences++;addLog(s.absences===1?'Vắng ca làm. Mất thưởng chuyên cần 300k.':'Lại vắng một ca làm.','bad');
+  if(!isWE(s.day)&&s.slot===0&&a.id!=='class'&&a.id!=='exam'&&!a.excused){
+    s.absences++;addLog(s.absences===1?'Vắng buổi học sáng. Điểm học tập bị trừ.':'Lại vắng một buổi học.','bad');
   }
   s.no-=9;s.tt-=2;
-  if(!['nap','bench','desknap'].includes(a.id))s.nl-=4;
+  if(!['nap','bench','campusnap'].includes(a.id))s.nl-=4;
   if(s.no<25){s.tt-=4;s.sk-=2}
   if(s.no<=0)s.sk-=4;
   if(s.nl<15){s.tt-=3;s.sk-=2}
@@ -303,7 +318,7 @@ function endDay(early){
   if(spoiled.length){s.bag=s.bag.filter(x=>!(x.exp!==null&&x.exp<=s.day));
     const c={};spoiled.forEach(x=>c[x.id]=(c[x.id]||0)+1);
     addLog('Đồ hỏng phải bỏ: '+Object.entries(c).map(([id,n])=>`${ITEMS[id].n.toLowerCase()} ×${n}`).join(', '),'bad')}
-  s.noodleToday=0;s.caToday=0;s.mealsToday=0;s.spentToday=0;s.relaxToday=0;s.cookedToday=0;
+  s.noodleToday=0;s.classToday=0;s.shiftToday=0;s.mealsToday=0;s.spentToday=0;s.relaxToday=0;s.cookedToday=0;
   if(s.bikeBroken>0)s.bikeBroken--;
   s.loc='home';s.ateThisSlot=false;
   if(s.day>=30){finish();return}
@@ -328,7 +343,7 @@ function travel(id){
   addLog(walk?`Hết tiền xăng, đi bộ tới ${LOCS[id].name}`:`Đi tới ${LOCS[id].name}`+(c?` (−${fk(c)} ${s.bikeBroken?'xe ôm':'xăng'})`:''),walk?'bad':'');
   const st=$('stage');st.classList.add('fade');setTimeout(()=>st.classList.remove('fade'),230);
   if(c)popFx({},-c);
-  if(id==='office'&&!s.flags.metQuan){s.flags.metQuan=1;queue.push(ev('Chào mừng tới team','“Chào Minh! Ca sáng từ 8 giờ, ca chiều từ 13 giờ 30. Mỗi ca tính 120 nghìn. Tháng này anh chấm thử việc dựa trên chuyên cần và các đầu việc. Cố lên nha.”',[{l:'Dạ, em hiểu rồi'}],'quan'))}
+  if(id==='school'&&!s.flags.metHai){s.flags.metHai=1;queue.push(ev('Chào mừng tân sinh viên','“Chào em Minh! Lớp mình học buổi sáng từ thứ Hai đến thứ Sáu. Thầy chấm điểm học tập dựa trên chuyên cần, giờ tự học ở thư viện và bài kiểm tra giữa kỳ sáng ngày 29. Có gì khó cứ tìm thầy.”',[{l:'Dạ, em cảm ơn thầy'}],'hai'))}
   afterChange();
 }
 
@@ -359,8 +374,7 @@ function resolveDue(day){
     if(q.endCheck){q.pass(s)?completeQuest(q):failQuest(q)}else failQuest(q)});
 }
 function genDaily(){
-  const d=s.day,ids=isWE(d)?['relax','frugal']:[(d%2===0&&chOf(d)>=2)?'cook':'eat2','work2'];
-  if(isWE(d))ids.reverse();
+  const d=s.day,ids=isWE(d)?[s.flags.hired?'shift1':'relax','frugal']:['class1',(d%2===0&&chOf(d)>=2)?'cook':'eat2'];
   s.daily=ids.map(id=>({id,st:null}));
 }
 function dailyDone(d){d.st='done';const out=applyEff({tt:3});popFx(out,0);addLog(`Xong việc hôm nay: ${DAILY[d.id].t}`,'good')}
@@ -369,9 +383,9 @@ function trackedQuest(){
   if(s.pin&&s.q[s.pin]==='active')return QBY[s.pin];
   return QUESTS.filter(q=>s.q[q.id]==='active').sort((a,b)=>a.due-b.due)[0]||null;
 }
-function probation(){
-  const w=QUESTS.filter(q=>q.work&&s.q[q.id]==='done').length;
-  return clamp(Math.round(s.ca/44*70)+w*5+Math.min(s.ot,5)*2-s.absences*3);
+function studyScore(){
+  const q=QUESTS.filter(x=>x.study&&s.q[x.id]==='done').length;
+  return clamp(Math.round(s.classes/CLASS_DAYS*61)+Math.min(s.study,8)*3+q*5-s.absences*2);
 }
 const dueText=q=>q.due===s.day?'hạn hết hôm nay':`hạn ngày ${q.due} · còn ${q.due-s.day+1} ngày`;
 
@@ -380,37 +394,37 @@ const ev=(title,text,choices,who)=>({title,text,choices,who});
 const evImpulse=()=>ev('Giày đang sale 40%','Đôi giày bạn để ý từ lâu đang giảm giá, chỉ còn 420.000đ.',[
   {l:'Mua luôn',cost:420000,eff:{tt:14}},{l:'Thôi, không cần',eff:{tt:-3}}]);
 const EVENTS=[
-  {id:'nhau',w:3,when:s=>s.slot===3&&!isWE(s.day),mk:()=>ev('Đồng nghiệp rủ đi nhậu','“Tối nay làm vài ly không Minh?” Cả nhóm đang chờ câu trả lời.',[
-    {l:'Đi luôn',cost:250000,eff:{tt:16,sk:-8,nl:-12,no:15}},{l:'Từ chối khéo',eff:{tt:-5}}],'quan')},
-  {id:'bike',w:2,when:s=>s.slot===0&&s.bikeBroken===0&&(s.flags.bikeN||0)<2,mk:s=>{s.flags.bikeN=(s.flags.bikeN||0)+1;return ev('Xe chết máy','Chiếc xe máy cũ đề không nổ. Thợ đầu hẻm báo giá sửa 300.000đ.',[
-    {l:'Sửa ngay',cost:300000,eff:{tt:-2}},{l:'Đi xe ôm công nghệ vài hôm',eff:{tt:-4},x:'Phí đi lại ×3 trong 4 ngày',run:s=>{s.bikeBroken=4}}])}},
+  {id:'lau',w:3,when:s=>s.slot===3&&!isWE(s.day),mk:()=>ev('Lớp rủ đi ăn lẩu','“Tối nay cả lớp đi lẩu nướng, mày đi không?” Khoa hỏi.',[
+    {l:'Đi luôn',cost:150000,eff:{tt:14,no:20,nl:-8}},{l:'Ở nhà',eff:{tt:-4}}],'khoa')},
+  {id:'bike',w:2,when:s=>s.slot===0&&s.bikeBroken===0&&(s.flags.bikeN||0)<2,mk:s=>{s.flags.bikeN=(s.flags.bikeN||0)+1;return ev('Xe chết máy','Chiếc xe máy cũ bố cho đề không nổ. Thợ đầu hẻm báo giá sửa 250.000đ.',[
+    {l:'Sửa ngay',cost:250000,eff:{tt:-2}},{l:'Đi xe ôm công nghệ vài hôm',eff:{tt:-4},x:'Phí đi lại ×3 trong 4 ngày',run:s=>{s.bikeBroken=4}}])}},
   {id:'found',w:.6,once:1,when:()=>true,mk:()=>ev('Nhặt được tiền','Tờ 50.000đ rơi trên vỉa hè, xung quanh không có ai.',[
     {l:'Bỏ túi',gain:50000,eff:{tt:3}},{l:'Gửi bảo vệ gần đó',eff:{tt:8}}])},
-  {id:'bonus',w:5,once:1,when:s=>s.slot===2&&s.loc==='office'&&s.ca>=14,mk:()=>ev('Anh Quân khen trước cả phòng','“Layout tuần này của Minh khách khen lắm.” Kèm theo là một khoản thưởng nóng.',[
-    {l:'Nhận thưởng',gain:200000,eff:{tt:12}}],'quan')},
+  {id:'praise',w:5,once:1,when:s=>s.loc==='store'&&s.shifts>=8&&s.slot>=2,mk:()=>ev('Chị Mai khen','“Mấy ca của Minh quầy lúc nào cũng gọn gàng. Chị thưởng nóng nè.”',[
+    {l:'Em cảm ơn chị',gain:100000,eff:{tt:10}}],'mai')},
   {id:'rain',w:2,when:s=>s.slot===2,mk:()=>ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
     {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{sk:-6,tt:-4}}])},
-  {id:'lend',w:1.5,once:1,when:s=>s.day>=6&&s.day<=19,mk:()=>ev('Khoa hỏi mượn tiền','“Cho tao mượn 300k, cuối tháng trả nha. Tháng này kẹt quá.”',[
+  {id:'lend',w:1.5,once:1,when:s=>s.day>=6&&s.day<=19,mk:()=>ev('Khoa hỏi mượn tiền','“Cho tao mượn 300k, cuối tháng trả nha. Tháng này nhà tao gửi tiền trễ.”',[
     {l:'Cho mượn',cost:300000,eff:{tt:3},x:'Hẹn trả ngày 28',run:s=>{s.lent=300000}},{l:'Từ chối',eff:{tt:-6}}],'khoa')},
   {id:'phone',w:1,once:1,when:()=>true,mk:()=>ev('Rơi điện thoại','Điện thoại tuột tay, màn hình nứt một đường dài.',[
     {l:'Thay màn hình',cost:400000},{l:'Dùng tạm',eff:{tt:-10}}])},
-  {id:'bday',w:2,once:1,when:s=>isWE(s.day)&&s.slot===3&&s.day!==13,mk:()=>ev('Sinh nhật bạn cùng lớp','Nhóm bạn đại học tổ chức sinh nhật ở quán nướng, Khoa cũng tới.',[
-    {l:'Góp quà, đi dự',cost:200000,eff:{tt:12,no:15}},{l:'Nhắn tin chúc mừng',eff:{tt:-4}}],'khoa')},
+  {id:'bday',w:2,once:1,when:s=>isWE(s.day)&&s.slot===3&&s.day!==13,mk:()=>ev('Sinh nhật bạn cùng lớp','Lớp tổ chức sinh nhật cho một bạn ở quán nướng, Khoa cũng đi.',[
+    {l:'Góp quà, đi dự',cost:150000,eff:{tt:12,no:15}},{l:'Nhắn tin chúc mừng',eff:{tt:-4}}],'khoa')},
 ];
 function slotEvents(){
   if(s.over)return;
   if(s.sk<=0){queue.push(ev('Ngất xỉu','Cơ thể kiệt quệ, Minh được đưa vào viện. Viện phí 1.200.000đ, nghỉ hết hôm nay.',[
-    {l:'Chấp nhận',run:s=>{payBill(1200000,'viện phí');s.sk=45;s.nl=60;s.no=Math.max(s.no,50);s.tt=clamp(s.tt-15);if(!isWE(s.day))s.absences++;s.slot=3;endDay(false)}}]));return}
-  if(s.day===13&&s.slot===1&&!s.flags.wedding){s.flags.wedding=1;queue.push(ev('Đám cưới chị Hạnh','“Trưa nay nhớ ghé nha Minh, cả phòng đều đi đó!”',[
-    {l:'Đi dự, mừng 500k',cost:500000,eff:{tt:10,no:30},x:'Hết buổi trưa',run:s=>{s.flags.weddingGo=1;s.mealsToday++;skipSlot('Đi đám cưới chị Hạnh')}},
-    {l:'Đi dự, mừng 300k',cost:300000,eff:{tt:5,no:30},x:'Hết buổi trưa',run:s=>{s.flags.weddingGo=1;s.mealsToday++;skipSlot('Đi đám cưới chị Hạnh')}},
-    {l:'Gửi lời chúc, không đi',eff:{tt:-10}}],'hanh'));return}
+    {l:'Chấp nhận',run:s=>{payBill(1200000,'viện phí');s.sk=45;s.nl=60;s.no=Math.max(s.no,50);s.tt=clamp(s.tt-15);if(!isWE(s.day)&&s.slot===0)s.absences++;s.slot=3;endDay(false)}}]));return}
+  if(s.day===13&&s.slot===3&&!s.flags.club){s.flags.club=1;queue.push(ev('Đêm nhạc chào tân sinh viên','“Tối nay CLB mình diễn ở sân trường, em tới chơi nha! Vé ủng hộ 100 nghìn.”',[
+    {l:'Đi xem, mua vé 100k',cost:100000,eff:{tt:16,nl:-10},x:'Hết buổi tối',run:s=>{s.flags.clubGo=1;skipSlot('Đi đêm nhạc chào tân sinh viên')}},
+    {l:'Ở nhà nghỉ ngơi',eff:{tt:-8}}],'linh'));return}
   if(s.day===11&&s.slot===3&&!s.flags.sale){s.flags.sale=1;queue.push(ev('Flash sale 0 giờ','App mua sắm báo: tai nghe không dây giảm 50%, còn 450.000đ. Chỉ còn 3 phút.',[
     {l:'Chốt đơn',cost:450000,eff:{tt:15}},{l:'Đóng app',eff:{tt:-3}}]));return}
-  if(s.day===29&&s.slot===0&&!s.flags.present){s.flags.present=1;const ok=s.q.q4_present==='done'||s.caCh[4]>=8;queue.push(ev('Buổi thuyết trình tổng kết',ok?'“Bài làm chỉn chu đó Minh. Anh ghi nhận.” Anh Quân gật gù khi xem slide cuối.':'“Phần này còn sơ sài quá Minh.” Anh Quân nhíu mày lật qua các trang slide.',[{l:ok?'Cảm ơn anh':'Em sẽ cố hơn'}],'quan'));return}
+  if(s.day===18&&s.slot===3&&!s.flags.momCall){s.flags.momCall=1;queue.push(ev('Mẹ gọi điện','“Con ăn uống có đủ không? Tiền còn đủ xài không con?”',[
+    {l:'Con đủ mà, mẹ đừng lo',eff:{tt:5}},{l:'Con xin thêm 500k',gain:500000,eff:{tt:-4},x:'Ảnh hưởng nhiệm vụ Tự lập',run:s=>{s.askCount++}}],'me'));return}
   if(s.slot===0&&s.sk<40&&Math.random()<0.45){queue.push(ev('Bị ốm','Sáng dậy đầu nặng, người nóng hầm hập. Sức khỏe đang yếu.',[
     {l:'Uống thuốc cảm trong túi',need:s=>bagCount('thuoc')?null:'Túi không có thuốc',eff:{sk:12,tt:-1},run:s=>bagTake('thuoc')},
-    {l:'Đi khám phòng khám',cost:250000,eff:{sk:25,nl:5},x:'Hết buổi sáng · có giấy nghỉ ốm',run:()=>skipSlot('Nghỉ ốm có phép')},
+    {l:'Đi khám phòng khám',cost:200000,eff:{sk:25,nl:5},x:'Hết buổi sáng · có giấy xin nghỉ học',run:()=>skipSlot('Nghỉ học có phép vì ốm')},
     {l:'Kệ, ráng chịu',eff:{sk:-5,tt:-6,nl:-10}}]));return}
   if(s.noodleToday>=2&&!s.flags['st'+s.day]&&Math.random()<0.55){s.flags['st'+s.day]=1;queue.push(ev('Đau bụng','Ăn mì gói liên tục, bụng bắt đầu biểu tình.',[
     {l:'Mua men tiêu hóa',cost:30000,eff:{sk:-3}},{l:'Ráng chịu',eff:{sk:-8,tt:-5,nl:-8}}]));return}
@@ -428,41 +442,42 @@ function dayEvents(){
   if(b){const ok=payBill(b[1],b[0]);
     if(s.day===5&&ok)s.flags.rentPaid=1;
     addLog(`${b[0]}: −${fk(b[1])}`,ok?'':'bad');
-    queue.push(s.day===5?ev('Cô Tư thu tiền nhà',ok?'“Đủ rồi nghen con. Ở đây có gì cứ kêu cô.” Cô Tư đếm tiền, cười hiền.':'“Thiếu vậy con? Thôi cô ghi sổ, nhưng nhớ là có phạt đó nghen.”',[{l:ok?'Dạ, con cảm ơn cô':'Dạ, con xin lỗi cô'}],'tu')
+    queue.push(s.day===5?ev('Cô Tư thu tiền nhà',ok?'“Đủ rồi nghen con. Học hành cho giỏi, có gì cứ kêu cô.” Cô Tư đếm tiền, cười hiền.':'“Thiếu vậy con? Thôi cô ghi sổ, nhưng nhớ là có phạt đó nghen.”',[{l:ok?'Dạ, con cảm ơn cô':'Dạ, con xin lỗi cô'}],'tu')
       :ev(`${b[0]} đến hạn`,ok?`Đã tự động trừ ${fmt(b[1])} từ ví.`:`Ví không đủ ${fmt(b[1])}. Phần thiếu được ghi nợ, cộng phạt 10%.`,[{l:'Đã hiểu'}]))}
-  if(s.day===15){const x=s.accrued;s.caHalf=s.ca;s.money+=x;s.accrued=0;s.paid1=true;
-    addLog(`Nhận lương kỳ 1: +${fk(x)}`,'good');
-    queue.push(ev('Lương kỳ 1 đã về',`Công ty chuyển ${fmt(x)} cho ${s.ca} ca làm nửa đầu tháng. Lương nửa sau được cộng vào tổng kết ngày 30.`,[{l:'Nhận lương'}]))}
+  if(s.day===15){const x=s.accrued;s.shiftHalf=s.shifts;s.money+=x;s.accrued=0;s.paid1=true;
+    addLog(x?`Nhận lương part-time kỳ 1: +${fk(x)}`:'Chưa có lương part-time vì chưa làm ca nào.',x?'good':'bad');
+    queue.push(ev('Lương part-time đầu tiên',x?`“Lương nửa đầu tháng của em nè, ${fmt(x)} cho ${s.shifts} ca. Các ca sau chị tính vào cuối tháng nha.”`:'“Em chưa làm ca nào nên kỳ này chưa có lương. Muốn làm thì ghé cửa hàng nha.”',[{l:x?'Em cảm ơn chị':'Dạ'}],'mai'))}
   if(s.day===28&&s.lent>0){const back=Math.random()<0.65;const amt=s.lent;s.lent=0;
-    if(back){s.money+=amt;s.tt=clamp(s.tt+5);addLog(`Khoa trả lại ${fk(amt)}.`,'good');queue.push(ev('Khoa trả tiền','“Trả mày nè, cảm ơn nha. Có gì tao bao cà phê.”',[{l:'Tốt quá'}],'khoa'))}
+    if(back){s.money+=amt;s.tt=clamp(s.tt+5);addLog(`Khoa trả lại ${fk(amt)}.`,'good');queue.push(ev('Khoa trả tiền','“Trả mày nè, cảm ơn nha. Có gì tao bao trà sữa.”',[{l:'Tốt quá'}],'khoa'))}
     else{s.tt=clamp(s.tt-6);addLog('Khoa hẹn trả sau. Mất 300k.','bad');queue.push(ev('Khoa hẹn lần sau','“Tháng này tao kẹt thiệt, cho tao khất thêm nha.” Khoản 300.000đ coi như chưa về.',[{l:'Đành vậy'}],'khoa'))}}
   genDaily();
   slotEvents();
 }
 
 /* ============ Score & ending ============ */
+const storeBonus=()=>s.shifts>=18?200000:0;
 function computeScore(){
-  const sav=Math.round(s.savings*1.004),bonus=s.absences===0?300000:0;
-  const asset=s.money+sav+s.accrued+bonus-s.debt,n=Math.max(1,s.samples);
-  const F={tien:clamp(asset/4000000,0.05,1.25),no:Math.max(0.05,s.sumNo/n/100),tt:Math.max(0.05,s.sumTt/n/100),sk:Math.max(0.05,s.sk/100)};
-  return {asset,sav,bonus,F,score:Math.round(1000*F.tien**0.35*F.no**0.2*F.tt**0.25*F.sk**0.2)};
+  const bonus=storeBonus(),asset=s.money+s.accrued+bonus-s.debt,n=Math.max(1,s.samples);
+  const F={tien:clamp(asset/2500000,0.05,1.25),no:Math.max(0.05,s.sumNo/n/100),tt:Math.max(0.05,s.sumTt/n/100),sk:Math.max(0.05,s.sk/100)};
+  return {asset,bonus,F,score:Math.round(1000*F.tien**0.35*F.no**0.2*F.tt**0.25*F.sk**0.2)};
 }
 function archetype({F}){
   if(s.debt>0)return ['Con nợ cuối tháng','Tháng này qua được nhờ vay mượn. Tháng sau bắt đầu với một khoản phải trả.'];
-  if(F.sk<0.4&&s.ot>=5)return ['Cỗ máy cày cuốc','Lương về đều, nhưng cơ thể đã trả giá cho mỗi ca tăng ca.'];
+  if(F.sk<0.4&&s.shifts>=24)return ['Cỗ máy làm thêm','Lương part-time về đều, nhưng sức khỏe và việc học đã trả giá.'];
   if(F.tien>=0.9&&(F.no<0.45||F.tt<0.45))return ['Kẻ khổ hạnh','Ví dày lên, còn bụng và tinh thần thì mỏng đi.'];
   if(F.tt>=0.7&&F.tien<0.5)return ['Sống cho hiện tại','Một tháng vui vẻ, nhưng tài khoản gần như trống trơn.'];
-  if(Math.min(F.tien,F.no,F.tt,F.sk)>=0.55)return ['Người cân bằng','Đủ ăn, đủ vui, đủ khỏe và vẫn còn để dành.'];
+  if(Math.min(F.tien,F.no,F.tt,F.sk)>=0.55)return ['Người cân bằng','Học đủ, làm đủ, ăn đủ, vui đủ và vẫn còn dư tiền.'];
   return ['Người sống sót','Qua tháng được, nhưng có vài chỗ hụt hơi.'];
 }
 const grade=sc=>sc>=800?'S':sc>=700?'A':sc>=580?'B':sc>=450?'C':'D';
 function endingLines(){
-  const p=probation(),L=[];
-  L.push(['quan',p>=75?`Thử việc đạt ${p}/100. Anh Quân bắt tay Minh: hợp đồng chính thức bắt đầu từ tháng sau.`:p>=55?`Thử việc đạt ${p}/100. Công ty gia hạn thử việc thêm một tháng để Minh chứng minh thêm.`:`Thử việc đạt ${p}/100. Minh không qua thử việc và phải tìm công việc mới.`]);
-  L.push(['me',s.flags.sentMom?'Mẹ nhận được tiền mừng sinh nhật, gọi video khoe với cả xóm.':'Sinh nhật mẹ, Minh chỉ kịp gọi điện chúc mừng.']);
-  if(s.flags.metKhoa)L.push(['khoa','Buổi cà phê cuối tuần giúp tình bạn với Khoa vẫn bền như hồi đại học.']);
-  if(s.flags.weddingGo)L.push(['hanh','Chị Hạnh vẫn nhắc mãi chuyện Minh tới dự đám cưới dù mới vào công ty.']);
-  L.push(['tu',s.debt>0?'Cô Tư nhắc khéo: tháng sau nhớ trả tiền nhà đúng hạn.':'Cô Tư khen Minh là người thuê ngoan nhất xóm trọ.']);
+  const L=[],p=s.flags.examScore;
+  L.push(['hai',!s.flags.examTaken?'Minh vắng bài kiểm tra giữa kỳ và phải thi lại vào tháng sau.':p>=75?`Kiểm tra giữa kỳ đạt ${p} điểm. Thầy Hải khen Minh trước lớp.`:p>=55?`Kiểm tra giữa kỳ đạt ${p} điểm, đủ để theo kịp chương trình.`:`Kiểm tra giữa kỳ chỉ đạt ${p} điểm. Thầy Hải nhắc Minh phải học lại phần này.`]);
+  L.push(['mai',!s.flags.hired?'Minh không đi làm thêm, cả tháng sống nhờ tiền bố mẹ gửi.':s.shifts>=18?`Làm ${s.shifts} ca trong tháng. Chị Mai giữ Minh lại và thưởng thêm 200.000đ.`:s.shifts>=8?`Làm ${s.shifts} ca trong tháng. Chị Mai tiếp tục xếp ca cho tháng sau.`:`Chỉ làm ${s.shifts} ca. Chị Mai hỏi Minh có muốn làm tiếp không.`]);
+  L.push(['me',(s.flags.gift?'Mẹ nhận được món quà Minh mua bằng tiền tự làm, cầm khoe khắp xóm.':'Sinh nhật mẹ, Minh chỉ kịp gọi điện chúc mừng.')+(s.askCount?' Bố mẹ vẫn phải gửi thêm tiền giữa tháng.':'')]);
+  if(s.flags.metKhoa)L.push(['khoa','Ở chung một tháng, Khoa đã thành bạn thân của Minh.']);
+  if(s.flags.clubGo)L.push(['linh','Chị Linh rủ Minh vào ban truyền thông của CLB.']);
+  L.push(['tu',s.debt>0?'Cô Tư nhắc khéo: tháng sau nhớ trả tiền nhà đúng hạn.':'Cô Tư khen Minh là sinh viên ngoan nhất xóm trọ.']);
   return L;
 }
 function finish(){s.over=true;queue=[];closeMenu();save();render();openWin('end')}
@@ -475,7 +490,7 @@ function renderTop(){
   $('slots').innerHTML=SLOTS.map((n,i)=>`<li class="${i<s.slot?'done':i===s.slot?'now':''}"${i===s.slot?' aria-current="true"':''}>${n}</li>`).join('');
   $('mstats').innerHTML=STATS.map(S=>`<div class="ms${s[S.k]<25?' low':''}" title="${S.n}: ${s[S.k]}/100" aria-label="${S.n} ${s[S.k]}">${ico(S.k)}<div class="bar"><i style="width:${s[S.k]}%;background:${SCOL[S.k]}"></i><b></b></div><span class="v" style="color:${s[S.k]<25?'':SCOL[S.k]}">${s[S.k]}</span></div>`).join('');
   $('money').textContent=fmt(s.money);
-  $('ledger').innerHTML=`Lương chờ ${fk(s.accrued)}`+(s.savings?` · Tiết kiệm ${fk(s.savings)}`:'')+(s.debt?` · <span class="neg">Nợ ${fk(s.debt)}</span>`:'');
+  $('ledger').innerHTML=`Lương part-time chờ ${fk(s.accrued)}`+(s.debt?` · <span class="neg">Nợ ${fk(s.debt)}</span>`:'');
   const L=LOCS[s.loc],cl=L.open(s);
   $('placeName').textContent=L.name;$('placeSub').textContent=L.sub;
   $('placeShut').innerHTML=cl?'<span class="shut">Đang đóng cửa</span>':'';
@@ -498,7 +513,7 @@ function renderCmd(){
     return `<button class="cbtn${menuCat===c.id?' on':''}" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}">${ico(c.ic)}<span>${c.n}</span>${any&&list.some(a=>a.story)?'<span class="dot"></span>':''}</button>`}).join('');
   const note=$('cmdNote');let t='',cls='';
   if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;cls='bad'}
-  else if(!isWE(s.day)&&(s.slot===0||s.slot===2)&&s.loc!=='office'){t='Đang giờ làm. Không đến công ty sẽ bị tính vắng ca.';cls='warn'}
+  else if(!isWE(s.day)&&s.slot===0&&s.loc!=='school'){t='Đang giờ học. Không lên lớp sẽ bị tính vắng học.';cls='warn'}
   note.hidden=!t||!!menuCat;note.textContent=t;note.className='cmd-note '+cls;
   renderMenu();
 }
@@ -596,12 +611,12 @@ function qcardHTML(q){
     <div class="qfoot"><div class="chips">${chipsHTML({rw:q.rw,rwTxt:q.rwTxt||(q.bonus?'':'')})}</div>${st==='active'?`<button class="btn sm" type="button" data-pin="${q.id}" ${pinned?'disabled':''}>${pinned?'Đang theo dõi':'Theo dõi'}</button>`:''}</div></div>`;
 }
 function tasksHTML(){
-  const ch=chOf(s.day),C=CHAPTERS[ch],p=probation();
+  const ch=chOf(s.day),C=CHAPTERS[ch],p=studyScore();
   let h=head('scroll','Nhiệm vụ',`<span class="tag gold">Chương ${ch}</span>`)+`<div class="win-b">
     <div class="tk-top"><div class="tk-story"><div class="chap-num">Chương ${ch} · ngày ${C.from}–${C.to}</div><b>${C.t}</b><p>${C.txt}</p></div>
-    <div class="tk-prob"><span class="lbl">Đánh giá thử việc</span><span><span class="num">${p}</span><span class="muted"> /100</span></span>
+    <div class="tk-prob"><span class="lbl">Điểm học tập</span><span><span class="num">${p}</span><span class="muted"> /100</span></span>
       <div class="bar"><i style="width:${p}%;background:${p>=75?'var(--good)':p>=55?'var(--warn)':'var(--bad)'}"></i><span class="mark" style="left:55%"></span><span class="mark" style="left:75%"></span></div>
-      <small>Từ 75: ký hợp đồng · 55–74: gia hạn thử việc. Tính từ số ca đã làm, nhiệm vụ công việc, tăng ca và số ca vắng.</small></div></div>
+      <small>Từ 55: qua kiểm tra giữa kỳ · từ 75: loại giỏi. Tính từ số buổi lên lớp, buổi tự học ở thư viện, nhiệm vụ học tập và số buổi vắng. Đã làm ${s.shifts} ca part-time.</small></div></div>
     <div class="tk-sec"><span>Việc hôm nay · ${DOW[dowOf(s.day)]}</span><span>Mỗi việc xong: Tinh thần +3</span></div>
     <div class="dlist">${s.daily.map(dailyRow).join('')}</div>
     <div class="tk-sec"><span>Nhiệm vụ chương ${ch}</span><span>${QUESTS.filter(q=>q.ch===ch&&s.q[q.id]==='done').length}/${QUESTS.filter(q=>q.ch===ch).length}</span></div>
@@ -670,12 +685,12 @@ function bagHTML(){
 
 /* Calendar */
 function calNotes(d){const a=[];
-  if(BILLS[d])a.push({t:`${BILLS[d][0]} · ${fmt(BILLS[d][1])}`,sh:{5:'Tiền nhà',10:'Điện nước',20:'Trả góp'}[d],c:'var(--cal-red)'});
-  if(d===13)a.push({t:'Đám cưới chị Hạnh, buổi trưa',sh:'Đám cưới',c:'#7a56c2'});
-  if(d===15)a.push({t:'Lương kỳ 1 về',sh:'Lương',c:'#2f8a4a'});
+  if(BILLS[d])a.push({t:`${BILLS[d][0]} · ${fmt(BILLS[d][1])}`,sh:{5:'Tiền nhà',10:'Điện nước',20:'Giáo trình'}[d],c:'var(--cal-red)'});
+  if(d===13)a.push({t:'Đêm nhạc chào tân sinh viên, buổi tối',sh:'Đêm nhạc',c:'#7a56c2'});
+  if(d===15)a.push({t:'Lương part-time kỳ 1',sh:'Lương',c:'#2f8a4a'});
   if(d===20||d===21)a.push({t:'Hẹn cà phê với Khoa, buổi chiều',sh:'Gặp Khoa',c:'#7a56c2'});
   if(d===28&&s.lent)a.push({t:'Khoa hẹn trả 300.000đ',sh:'Khoa trả',c:'#7a56c2'});
-  if(d===29)a.push({t:'Thuyết trình tổng kết thử việc',sh:'Thuyết trình',c:'#2b5d8a'});
+  if(d===29)a.push({t:'Kiểm tra giữa kỳ, buổi sáng',sh:'Thi giữa kỳ',c:'#2b5d8a'});
   if(d===30)a.push({t:'Sinh nhật mẹ · Tổng kết cuối tháng',sh:'Sinh nhật mẹ',c:'#b8892a'});
   return a}
 function calHTML(){
@@ -692,7 +707,7 @@ function calHTML(){
   det+=notes.length?notes.map(n=>`<p><span class="sw" style="--c:${n.c}"></span>${n.t}</p>`).join(''):(d>=s.day?'<p style="color:var(--ink-soft)">Chưa có lịch hẹn.</p>':'');
   const up=[];for(let x=s.day;x<=30&&up.length<4;x++)calNotes(x).forEach(n=>up.length<4&&up.push({d:x,...n}));
   return head('cal','Lịch tháng','<span class="tag">Bấm vào ngày để xem</span>')+
-   `<div class="win-b"><div class="paper"><div class="paper-h"><div class="rings"><i></i><i></i><i></i><i></i></div><b>Tháng thử việc</b><small>Ngày 1 là Thứ Hai · 30 ngày · 4 chương</small></div>
+   `<div class="win-b"><div class="paper"><div class="paper-h"><div class="rings"><i></i><i></i><i></i><i></i></div><b>Tháng đầu tiên</b><small>Ngày 1 là Thứ Hai · 30 ngày · 4 chương</small></div>
     <div class="pgrid">${g}</div>
     <div class="cal-foot"><div>${det}</div><div><h4>Sắp tới</h4><ul>${up.map(u=>`<li><span><span class="sw" style="--c:${u.c}"></span>${u.sh}</span><span class="num">${u.d===s.day?'hôm nay':'N'+u.d}</span></li>`).join('')||'<li>Hết lịch tháng này</li>'}</ul></div></div>
    </div></div>`;
@@ -724,30 +739,30 @@ function drawMap(){
 /* Rules */
 function rulesHTML(){return `<ul class="rules">
   <li>Câu chuyện chia 4 chương theo 4 tuần. Mỗi chương có nhiệm vụ chính (xem ở <b>Nhiệm vụ</b> hoặc khung theo dõi góc phải) và 2 việc nhỏ mỗi ngày.</li>
-  <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và giao dịch không tốn thời gian.</li>
+  <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và các việc tiền bạc không tốn thời gian.</li>
   <li>Thanh lệnh ở giữa dưới cùng: chọn nhóm, chọn một dòng để xem chi tiết, rồi bấm nút xác nhận. Bấm đúp một dòng để làm ngay.</li>
+  <li>Sáng thứ Hai đến thứ Sáu Minh phải lên lớp; vắng học bị trừ điểm học tập. Sáng thứ Hai ngày 29 là kiểm tra giữa kỳ.</li>
+  <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương.</li>
   <li><b>Túi đồ</b> chứa đồ mua mang về. Bánh mì, xôi, bánh ngọt hỏng sau 1 ngày; nguyên liệu và sữa giữ được 3 ngày.</li>
-  <li>Thứ Hai đến thứ Sáu, ca sáng và ca chiều là giờ làm. Mỗi ca cộng 120.000đ vào lương và tăng điểm thử việc. Không vắng ca nào được thưởng chuyên cần 300.000đ. Kẹt tiền thì có thể xin ứng lương ở công ty.</li>
   <li>Độ no, năng lượng, tinh thần tự giảm theo thời gian. Chỉ số nào xuống dưới 25 sẽ kéo các chỉ số khác giảm theo.</li>
 </ul>
 <div class="formula">Điểm = 1000 × Tài sản<sup>0,35</sup> × Độ no TB<sup>0,2</sup> × Tinh thần TB<sup>0,25</sup> × Sức khỏe cuối<sup>0,2</sup></div>
-<p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 4 triệu tính là 1). Kết cục câu chuyện phụ thuộc vào điểm thử việc và các nhiệm vụ bạn hoàn thành.</p>
+<p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
 <p class="note-line">Phím tắt: B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Esc đóng.</p>`}
 
 /* End */
 function endHTML(){
   const r=computeScore(),[an,ad]=archetype(r),g=grade(r.score),qd=QUESTS.filter(q=>s.q[q.id]==='done').length;
   const fac=[['Tài sản',r.F.tien,'#ffc94d','0,35'],['Độ no TB',r.F.no,SCOL.no,'0,2'],['Tinh thần TB',r.F.tt,SCOL.tt,'0,25'],['Sức khỏe cuối',r.F.sk,SCOL.sk,'0,2']];
-  const ach=[['Chuyên cần',s.absences===0],['Đầu bếp tại gia',s.cooked>=15],['Không một đồng nợ',s.debt===0&&s.loanCount===0],['Tiết kiệm có kỷ luật',s.savings>=1000000],['Hoàn thành mọi nhiệm vụ',qd===QUESTS.length],['Fan cứng mì gói',s.noodleTotal>=12]];
-  return head('scroll','Kết thúc tháng thử việc','',false)+`<div class="win-b"><div class="end-grid"><div>
+  const ach=[['Chuyên cần',s.absences===0],['Đầu bếp tại gia',s.cooked>=15],['Tự lập tài chính',s.loanCount===0&&s.askCount===0&&s.debt===0],['Chăm chỉ làm thêm',s.shifts>=18],['Hoàn thành mọi nhiệm vụ',qd===QUESTS.length],['Fan cứng mì gói',s.noodleTotal>=12]];
+  return head('scroll','Kết thúc tháng đầu tiên','',false)+`<div class="win-b"><div class="end-grid"><div>
     <div class="score-top"><span class="num">${r.score}</span><span class="grade">${g}</span><div class="arch"><b>${an}</b><span>${ad}</span></div></div>
     <p class="sec-h">Kết cục · ${qd}/${QUESTS.length} nhiệm vụ chính</p>
     <ul class="ending">${endingLines().map(([w,t])=>`<li><span class="pt">${ico(PEOPLE[w].p)}</span><span>${t}</span></li>`).join('')}</ul>
     <div class="asset">
       <span>Tiền mặt</span><span class="num">${fmt(s.money)}</span>
-      <span>Tiết kiệm kèm lãi</span><span class="num">${fmt(r.sav)}</span>
-      <span>Lương kỳ 2 (${s.ca-s.caHalf} ca)</span><span class="num">${fmt(s.accrued)}</span>
-      <span>Thưởng chuyên cần</span><span class="num">${fmt(r.bonus)}</span>
+      <span>Lương part-time kỳ 2 (${s.shifts-s.shiftHalf} ca)</span><span class="num">${fmt(s.accrued)}</span>
+      <span>Thưởng chăm chỉ (từ 18 ca)</span><span class="num">${fmt(r.bonus)}</span>
       <span>Nợ phải trả</span><span class="num" style="color:var(--bad)">−${fmt(s.debt)}</span>
       <span class="tot">Tài sản cuối tháng</span><span class="num tot">${fmt(r.asset)}</span>
     </div></div><div>
@@ -796,9 +811,10 @@ function renderTitle(){
 function showTitle(){hideWin();closeMenu();$('ui').hidden=true;$('titleScreen').hidden=false;renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];$('titleScreen').hidden=true;$('ui').hidden=false;render();save()}
 function cmd(k){
-  if(k==='new'){s=newState();s.started=true;startGame();addLog(`Ngày đầu ở Sài Gòn. Ví còn ${fmt(START_MONEY)}.`);
+  if(k==='new'){s=newState();s.started=true;startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
     activateChapter(1);
-    queue.push(ev('Phòng số 3 là của con','“Chìa khóa nè. Tiền nhà 1 triệu rưỡi, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
+    queue.push(ev('Tin nhắn của mẹ','“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”',[{l:'Dạ, con biết rồi mẹ'}],'me'));
+    queue.push(ev('Phòng ghép với Khoa','“Chìa khóa nè. Con ở chung với thằng Khoa, tiền nhà phần con 1 triệu 2, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
     genDaily();showBanner();afterChange()}
   else if(k==='cont'){const st=loadSaved();if(!st)return;s=st;startGame();processQueue()}
   else if(k==='rules'){win=null;openWin('rules')}
@@ -881,20 +897,22 @@ const DRAW={
     shadeTime(sl);
     if(sl>=2)for(let i=0;i<3;i++){const bx=6+i*64+27;px(bx,53,2,3,'#ffe29a');glow(bx+1,56,14,'#ffe29a',sl===3?0.32:0.15)}
   },
-  office(sl,t){
+  school(sl,t){
     skyRect(0,0,W,H,sl,t);
-    px(0,40,30,46,'#94a0b2');px(118,26,62,60,'#7d8aa0');px(118,26,62,2,'#66728a');
-    px(36,6,76,80,'#4f6b88');px(36,6,76,2,'#3c536b');
+    const tree=(x,y)=>{px(x,y,4,14,'#6b4a2f');px(x-9,y-14,22,15,'#3f8a47');px(x-6,y-20,16,7,'#4fa055')};
+    px(12,30,168,56,'#efe3c8');px(12,26,168,5,'#b5452f');px(8,24,176,3,'#8f3523');
     const wins=[];
-    for(let y=12;y<64;y+=8)for(let x=40;x<106;x+=9){px(x,y,6,5,'#9fc6e3');px(x,y,2,5,'#c9e3f3');wins.push([x,y,6,5])}
-    for(let y=32;y<80;y+=8)for(let x=122;x<176;x+=8){px(x,y,5,5,'#b8cde0');wins.push([x,y,5,5])}
-    for(let y=46;y<80;y+=8)for(let x=4;x<26;x+=7){px(x,y,4,5,'#c3cbd6');wins.push([x,y,4,5])}
-    px(58,68,34,3,'#26303d');px(62,71,26,15,'#2b3a4d');px(66,73,18,13,'#7fb0d4');px(74,73,1,13,'#2b3a4d');
-    sidewalk(86,'#9aa2ab','#b8bfc7');
-    px(160,72,3,14,'#6b4a2f');px(152,58,20,16,'#3f8f4f');px(155,54,14,6,'#4ea35c');px(150,84,24,3,'#7a6a5a');
-    shadeTime(sl,0.5);
-    if(sl>=2)wins.forEach(([x,y,w,h],i)=>{if(hash(i*1.7)>(sl===3?0.5:0.85))px(x,y,w,h,'#ffe39a')});
-    if(sl===3){glow(75,80,16,'#bfe3ff',0.3);px(66,73,18,13,'#cfe9ff')}
+    for(let y=36;y<74;y+=12)for(let x=18;x<176;x+=12){if(x>78&&x<110)continue;px(x,y,7,8,'#8fb8d8');px(x,y,7,1,'#6f8fa8');wins.push([x,y])}
+    px(84,12,24,74,'#e6d6b4');px(82,10,28,3,'#8f3523');px(90,16,12,12,'#fbf6ea');px(95,18,2,5,'#2a2730');px(96,22,4,1,'#2a2730');
+    px(88,62,16,24,'#5b3a29');px(90,64,12,22,'#7a5536');
+    px(28,52,46,7,'#d6455a');for(let x=31;x<72;x+=6)px(x,54,4,3,'#ffffff');
+    px(150,8,1,26,'#555');px(151,8,11,7,'#da251d');px(155,10,2,2,'#ffde00');
+    sidewalk(86,'#c9c1b0','#ddd5c4');
+    tree(6,74);tree(186,74);
+    px(132,84,3,8,'#3a78c2');px(132,81,3,3,'#f0c49c');px(138,84,3,8,'#e2525c');px(138,81,3,3,'#f0c49c');
+    shadeTime(sl,0.45);
+    if(sl>=2)wins.forEach(([x,y],i)=>{if(hash(i*2.3)>(sl===3?0.6:0.85))px(x,y,7,8,'#ffe39a')});
+    if(sl===3)glow(96,22,10,'#fff6d0',0.3);
   },
   cafe(sl,t){
     skyRect(0,0,W,H,sl,t);
@@ -938,16 +956,22 @@ const DRAW={
     if(sl>=2){ctx.globalAlpha=sl===3?0.75:0.3;px(10,40,172,40,'#ffeec4');ctx.globalAlpha=1;for(let x=10;x<182;x+=12)px(x,40,1,40,'#6f8fa8');px(10,60,172,1,'#6f8fa8');px(82,62,28,24,'#fff1cc');px(95,62,2,24,'#3c5468')}
     if(sl===3){const on=Math.floor(t/600)%5!==0;px(4,22,184,13,on?'#ff5d75':'#b8384d');glow(96,28,40,'#ff6b81',on?0.22:0.08);[64,76,88,100,116].forEach(x=>{px(x,25,8,7,'#ffffff');px(x+2,27,4,3,on?'#ff5d75':'#b8384d')})}
   },
-  bank(sl,t){
+  store(sl,t){
     skyRect(0,0,W,H,sl,t);
-    px(28,30,136,56,'#e4dfd2');px(36,24,120,6,'#d6cfbf');px(50,18,92,6,'#d6cfbf');px(66,12,60,6,'#d6cfbf');
-    px(40,31,112,7,'#1f5a85');for(let x=46;x<146;x+=10)px(x,33,6,3,'#e9b44c');
-    for(let i=0;i<6;i++){const cx=40+i*22;px(cx-1,40,10,3,'#cfc8b6');px(cx,43,8,39,'#f6f3ea');px(cx+6,43,2,39,'#cfc8b6');if(i<5)px(cx+10,52,10,30,'#5b5a52')}
-    px(24,82,144,4,'#cfc8b6');px(20,86,152,3,'#bdb5a2');
-    px(166,56,22,32,'#2f6f8f');px(170,62,14,9,'#8ff0ff');px(172,74,10,6,'#1e4a60');px(166,52,22,5,'#e9b44c');
-    px(0,89,W,19,'#a7a6a0');px(0,89,W,1,'#bcbbb5');
-    shadeTime(sl);
-    if(sl>=2){glow(177,66,16,'#8ff0ff',sl===3?0.35:0.15);px(170,62,14,9,'#b5f6ff')}
+    px(0,34,26,52,'#b7a28a');px(168,30,24,56,'#9fb0c0');for(let y=40;y<80;y+=10){px(6,y,10,6,'#6f5a48');px(174,y,10,6,'#5d6b78')}
+    px(26,28,142,58,'#f2f2ee');
+    px(26,28,142,10,'#1f9e5a');px(26,38,142,3,'#f39c12');px(26,41,142,2,'#d6455a');
+    [52,62,72,82,92,102,112,122,132].forEach((x,i)=>px(x,31,i%3?6:4,4,'#ffffff'));
+    px(34,48,90,34,'#cfe9f3');
+    const shelf=['#e53935','#fdd835','#4caf50','#ff9800','#3a78c2','#f06292'];
+    const shelves=()=>{for(let y=51;y<79;y+=7){px(36,y+5,86,1,'#9aabb5');for(let x=38;x<120;x+=5)px(x,y,4,5,shelf[(x+y)%6])}};
+    shelves();
+    px(130,46,30,40,'#7fb0d4');px(144,46,2,40,'#5a7a90');px(131,47,28,2,'#ffffff');
+    sidewalk(86,'#a59d92','#c9c1b6');
+    px(166,74,10,12,'#2e7dd1');px(167,71,8,3,'#e8f0f8');
+    shadeTime(sl,0.4);
+    if(sl>=2){glow(80,64,40,'#e8fbff',sl===3?0.3:0.12);
+      if(sl===3){px(34,48,90,34,'#e9f8ff');shelves();px(130,46,30,40,'#d8f0ff');px(144,46,2,40,'#5a7a90');px(26,28,142,10,'#2bd47a');glow(96,33,30,'#2bd47a',0.25)}}
   },
 };
 
@@ -956,8 +980,8 @@ const SPR=["...hhhhhh...","..hhhhhhhh..",".hhhhhhhhhh.",".hhsssssshh.",".hssssss
 function drawChar(cx,feet,t){
   const sc=2,bob=Math.floor(t/650)%2,x0=cx-12,y0=feet-40-bob,we=isWE(s.day);
   ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(cx-11,feet-1,22,3);
-  const pal={h:'#2a1c14',s:s.sk<30?'#c8d29a':'#f0c49c',w:we?'#ff7a59':'#eef2f7',p:'#2c3550',b:'#16161c'};
-  SPR.forEach((row,r)=>{for(let c=0;c<12;c++){const ch=row[c];if(ch==='.')continue;let col=pal[ch];if(!we&&ch==='w'&&(c===5||c===6)&&r>=10&&r<=13)col='#c0392b';px(x0+c*sc,y0+r*sc,sc,sc,col)}});
+  const pal={h:'#2a1c14',s:s.sk<30?'#c8d29a':'#f0c49c',w:s.loc==='store'?'#2e9c5a':we?'#ff7a59':'#4f7fd0',p:'#2c3550',b:'#16161c'};
+  SPR.forEach((row,r)=>{for(let c=0;c<12;c++){const ch=row[c];if(ch==='.')continue;const col=pal[ch];px(x0+c*sc,y0+r*sc,sc,sc,col)}});
   const P=(c,r,col)=>px(x0+c*sc,y0+r*sc,sc,sc,col);
   const blink=Math.floor(t/110)%34===0;
   if(blink){P(4,6,'#c99a76');P(7,6,'#c99a76')}

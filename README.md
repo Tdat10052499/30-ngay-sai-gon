@@ -4,9 +4,9 @@
 
 # 30 Ngày Sài Gòn
 
-**Game mô phỏng chi tiêu có cốt truyện.** Giúp Minh sống qua tháng thử việc đầu tiên ở Sài Gòn: còn tiền, còn khỏe, còn vui, và được ký hợp đồng.
+**Game mô phỏng chi tiêu có cốt truyện.** Giúp tân sinh viên Minh vừa học vừa làm thêm, sống qua tháng đầu tiên ở Sài Gòn: học đủ, làm đủ, còn tiền, còn khỏe, còn vui.
 
-Pixel art · Chơi trên trình duyệt · Tiếng Việt · Phiên bản `0.1.0`
+Pixel art · Chơi trên trình duyệt · Tiếng Việt · Phiên bản `0.2.0`
 
 </div>
 
@@ -14,13 +14,14 @@ Pixel art · Chơi trên trình duyệt · Tiếng Việt · Phiên bản `0.1.0
 
 ## Giới thiệu
 
-Minh, 23 tuổi, rời Tuy Hòa vào Sài Gòn làm designer thử việc 30 ngày. Mỗi ngày có 4 buổi; mỗi buổi người chơi chọn đi đâu, ăn gì, mua gì và làm một hoạt động chính. Cuối tháng, game chấm điểm theo tài sản, độ no, tinh thần và sức khỏe, đồng thời kể lại kết cục với từng nhân vật.
+Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất. Bố mẹ gửi 3 triệu cho tháng đầu, phần còn lại Minh tự lo bằng việc làm part-time ở cửa hàng tiện lợi. Mỗi ngày có 4 buổi; mỗi buổi người chơi chọn đi đâu, ăn gì, mua gì và làm một hoạt động chính: lên lớp, đi làm, tự học, nghỉ ngơi hay đi chơi. Cuối tháng, game chấm điểm theo tài sản, độ no, tinh thần và sức khỏe, đồng thời kể lại kết cục với từng nhân vật.
 
-- **4 chương** theo 4 tuần: Chân ướt chân ráo · Guồng quay · Ngày lương · Về đích
-- **13 nhiệm vụ chính** và 2 việc nhỏ mỗi ngày dẫn dắt người chơi
+- **4 chương** theo 4 tuần: Tân sinh viên · Vừa học vừa làm · Lương part-time đầu tiên · Về đích
+- **14 nhiệm vụ chính** và 2 việc nhỏ mỗi ngày dẫn dắt người chơi
+- **Học và làm**: lên lớp mỗi sáng, ca part-time chiều tối, điểm học tập và bài kiểm tra giữa kỳ
 - **8 địa điểm** pixel, đổi cảnh theo sáng, trưa, chiều, tối
 - **Túi đồ** 9 vật phẩm có hạn dùng, **lịch tháng**, **bản đồ**, **nhật ký**
-- **Kinh tế thực tế**: tiền nhà, điện nước, trả góp, tiết kiệm, ứng lương, vay nóng lãi cao
+- **Kinh tế sinh viên**: tiền bố mẹ chu cấp, lương part-time ngày 15, tiền nhà, giáo trình, ứng lương, xin thêm tiền nhà, vay app lãi cao
 
 ![Vòng lặp chơi](docs/images/game-loop.svg)
 
@@ -78,12 +79,12 @@ Mọi thao tác khác đều bấm chuột hoặc chạm, chơi được trên �
 | Phần | Nội dung |
 | --- | --- |
 | `Pixel icons` | Icon và chân dung nhân vật vẽ bằng lưới 12×12 |
-| `Story` | Nhân vật, 4 chương, 13 nhiệm vụ, việc hằng ngày |
+| `Story` | Nhân vật, 4 chương, 14 nhiệm vụ, việc hằng ngày |
 | `Items (bag)` | 9 vật phẩm, hạn dùng, nơi dùng |
 | `Locations & actions` | 8 địa điểm và các hành động ở mỗi nơi |
 | `Core loop` | Hành động, kết thúc buổi, qua đêm, đi lại |
 | `Quests` / `Events` | Kiểm tra nhiệm vụ, sự kiện cốt truyện và ngẫu nhiên |
-| `Score & ending` | Công thức điểm, kiểu người chơi, kết cục |
+| `Score & ending` | Công thức điểm, điểm học tập, kiểu người chơi, kết cục |
 | `HUD rendering` / `Windows` | Giao diện và các cửa sổ |
 | `Pixel scene` | Vẽ 8 khung cảnh và nhân vật trên canvas 192×108 |
 
@@ -96,14 +97,14 @@ npm test          # kiểm tra cú pháp + mô phỏng 40 ván mỗi kiểu chơ
 npm run sim       # mô phỏng đầy đủ 150 ván, in tỉ lệ hoàn thành từng nhiệm vụ
 ```
 
-Trình mô phỏng chạy logic thật của game với hai bot: **Thận trọng** (đi làm đủ ca, nấu ăn ở nhà, từ chối chi tiêu bốc đồng) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng.
+Trình mô phỏng chạy logic thật của game với hai bot: **Thận trọng** (lên lớp đủ, làm ca chiều, nấu ăn ở nhà, từ chối chi tiêu bốc đồng) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng.
 
 Kết quả hiện tại (150 ván mỗi kiểu):
 
-| Kiểu chơi | Điểm trung vị | Nhiệm vụ | Điểm thử việc |
+| Kiểu chơi | Điểm trung vị | Nhiệm vụ | Điểm học tập |
 | --- | --- | --- | --- |
-| Thận trọng | ~857 | 11/13 | 90 |
-| Ngẫu nhiên | ~150 | 3/13 | 0 |
+| Thận trọng | ~824 | 12/14 | 100 |
+| Ngẫu nhiên | ~160 | 3/14 | 0 |
 
 ## Tài liệu
 
@@ -113,7 +114,8 @@ Kết quả hiện tại (150 ván mỗi kiểu):
 ## Lộ trình
 
 - [x] `0.1.0` Bản chơi thử đầu tiên: đủ cốt truyện, nhiệm vụ, hệ thống chỉ số, túi đồ, lịch, bản đồ
-- [ ] Nhận góp ý của khách hàng về cốt truyện, độ khó, giao diện
+- [x] `0.2.0` Đổi bối cảnh sang tân sinh viên vừa học vừa làm theo góp ý khách hàng; bỏ tính năng tiết kiệm
+- [ ] Nhận góp ý vòng 2 của khách hàng
 - [ ] Thử nghiệm với người chơi thật để tinh chỉnh cân bằng
 - [ ] Âm thanh và nhạc nền
 - [ ] Cho người chơi chọn tên và ngoại hình nhân vật (chờ khách hàng xác nhận)
