@@ -66,8 +66,10 @@ Mọi thao tác khác đều bấm chuột hoặc chạm, chơi được trên �
 │   └── style.css           Giao diện: HUD, thanh lệnh, cửa sổ, bố cục dọc cho điện thoại
 ├── assets/
 │   └── favicon.svg         Biểu tượng tab trình duyệt
+├── design/                 Bộ thiết kế v0.3: 12 trang HTML tự chạy
 ├── docs/
 │   ├── GAME_DESIGN.md      Tài liệu thiết kế: cơ chế, nội dung, cân bằng
+│   ├── DESIGN_SPEC.md      Đặc tả thiết kế v0.3: hình ảnh, màn hình, thay đổi luật
 │   └── images/             Sơ đồ minh họa
 ├── tools/
 │   └── simulate.js         Mô phỏng cân bằng: cho bot chơi hàng trăm ván
@@ -108,9 +110,29 @@ Kết quả hiện tại (150 ván mỗi kiểu):
 | Thận trọng | ~824 | 12/14 | 100 |
 | Ngẫu nhiên | ~160 | 3/14 | 0 |
 
+## Thiết kế
+
+Thư mục `design/` chứa bộ thiết kế hình ảnh cho bản `0.3.0`. Mỗi file là một trang HTML tự chạy: bấm đúp để mở bằng trình duyệt, không cần máy chủ. Mã vẽ canvas trong từng trang là nguồn khi đưa đồ họa vào game. Quy tắc hình ảnh, bảng màu và các thay đổi luật đi kèm nằm trong [Đặc tả thiết kế v0.3](docs/DESIGN_SPEC.md).
+
+| File | Nội dung |
+| --- | --- |
+| [`01-trang-bia-30-ngay-sai-gon.html`](design/01-trang-bia-30-ngay-sai-gon.html) | Trang bìa |
+| [`02-dat-ten-nhan-vat.html`](design/02-dat-ten-nhan-vat.html) | Tạo nhân vật: chọn Nam/Nữ, đặt tên |
+| [`03-bat-dau-ngay-1.html`](design/03-bat-dau-ngay-1.html) | Chuyển cảnh vào ngày 1 |
+| [`04-phong-tro-giao-dien.html`](design/04-phong-tro-giao-dien.html) | Phòng trọ, HUD, menu hành động, độ bừa bộn phòng |
+| [`05-truong-dai-hoc.html`](design/05-truong-dai-hoc.html) | Sân trường, giảng đường, thư viện, phòng CLB, căng tin |
+| [`06-cua-hang-tien-loi.html`](design/06-cua-hang-tien-loi.html) | Cửa hàng tiện lợi và cảnh làm ca |
+| [`07-quan-an-va-cho.html`](design/07-quan-an-va-cho.html) | Phố ăn uống, cảnh ngồi ăn, chợ |
+| [`08-ca-phe-cong-vien-tttm.html`](design/08-ca-phe-cong-vien-tttm.html) | Cà phê, công viên bờ kênh, TTTM |
+| [`09-ban-do-khu-pho.html`](design/09-ban-do-khu-pho.html) | Bản đồ khu phố |
+| [`10-hoi-thoai-chan-dung.html`](design/10-hoi-thoai-chan-dung.html) | Khung hội thoại và 7 chân dung |
+| [`11-tui-do-lich-nhiem-vu.html`](design/11-tui-do-lich-nhiem-vu.html) | Túi đồ, Lịch, Nhiệm vụ |
+| [`12-hoan-thien-giao-dien.html`](design/12-hoan-thien-giao-dien.html) | Tổng kết, thẻ chương, biến thể nhân vật, bố cục điện thoại |
+
 ## Tài liệu
 
 - [Tài liệu thiết kế trò chơi](docs/GAME_DESIGN.md)
+- [Đặc tả thiết kế v0.3](docs/DESIGN_SPEC.md)
 - [Lịch sử phiên bản](CHANGELOG.md)
 
 ## Lộ trình
