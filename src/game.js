@@ -55,9 +55,14 @@ const ICON={
   p_linh:[["............","...hhhhhh...","..hhhhhhhh..",".hhsssssshh.",".hssssssssh.",".hsessssesh.",".hssssssssh.",".hsssmmsssh.",".hhsssssshh.",".hcccccccch.",F10,F10],{...FACE,h:'#4a2a1a',c:'#3a78c2'}],
   p_khoa:[["............","..kkkkkkk...","..kkkkkkkkkk",F3,F4,F5,F6,F7,F8,F9,F10,F10],{...FACE,h:'#2a1c14',k:'#e2525c',c:'#4caf50'}],
 };
+/* Biểu tượng và chân dung mới vẽ bằng canvas (src/gfx/); các lưới ICON ở trên chỉ còn dùng cho biểu tượng chưa có bản mới */
+const ICO_NEW={scroll:'quest',star:'act'};
+const pxImg=src=>`<img class="px" src="${src}" alt="" aria-hidden="true">`;
 const _ico={};
 function ico(key){
+  if(key.startsWith('p_')){const id=key==='p_minh'?'self':key.slice(2);return pxImg(Portraits.url(id,'normal',{gender:s&&s.gender}))}
   if(_ico[key])return _ico[key];
+  const nk=ICO_NEW[key]||key;if(Icons.has(nk))return _ico[key]=pxImg(Icons.url(nk));
   const [rows,pal]=ICON[key];let r='';
   rows.forEach((row,y)=>{for(let x=0;x<row.length;x++){const c=row[x];if(c!=='.'&&pal[c])r+=`<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${pal[c]}"/>`}});
   return _ico[key]=`<svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
@@ -837,7 +842,10 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ============ Pixel scene ============ */
-const W=192,H=108,cv=$('scene'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+/* Canvas cảnh mới 320×180 (GFX.W×GFX.H). Cảnh cũ 192×108 vẽ ra canvas phụ rồi phóng lên, chờ giai đoạn 3 thay bằng cảnh mới. */
+const W=192,H=108,cv=$('scene'),sctx=cv.getContext('2d');sctx.imageSmoothingEnabled=false;
+const oldCv=document.createElement('canvas');oldCv.width=W;oldCv.height=H;
+const ctx=oldCv.getContext('2d');ctx.imageSmoothingEnabled=false;
 const SKY=[['#7ec0ee','#9fd0f0','#c9e5ef','#ffe1bd'],['#3d8fe0','#58a5ea','#82bff0','#b6daf5'],['#5d4a8e','#b45f7c','#ef875d','#ffc27a'],['#0e1230','#151a3e','#1c224d','#252a5a']];
 function px(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
 function hash(n){const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)}
@@ -981,29 +989,21 @@ const DRAW={
   },
 };
 
-const SPR=["...hhhhhh...","..hhhhhhhh..",".hhhhhhhhhh.",".hhsssssshh.",".hssssssssh.","..ssssssss..","..ssssssss..","..ssssssss..","...ssssss...","....ssss....",
-"..wwwwwwww..",".wwwwwwwwww.",".swwwwwwwws.",".swwwwwwwws.",".s.wwwwww.s.","...pppppp...","...pppppp...","...pp..pp...","...pp..pp...","..bbb..bbb.."];
-function drawChar(cx,feet,t){
-  const sc=2,bob=Math.floor(t/650)%2,x0=cx-12,y0=feet-40-bob,we=isWE(s.day);
-  ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(cx-11,feet-1,22,3);
-  const pal={h:'#2a1c14',s:s.sk<30?'#c8d29a':'#f0c49c',w:s.loc==='store'&&s.flags.hired?'#2e9c5a':we?'#ff7a59':'#4f7fd0',p:'#2c3550',b:'#16161c'};
-  SPR.forEach((row,r)=>{for(let c=0;c<12;c++){const ch=row[c];if(ch==='.')continue;const col=pal[ch];px(x0+c*sc,y0+r*sc,sc,sc,col)}});
-  const P=(c,r,col)=>px(x0+c*sc,y0+r*sc,sc,sc,col);
-  const blink=Math.floor(t/110)%34===0;
-  if(blink){P(4,6,'#c99a76');P(7,6,'#c99a76')}
-  else if(s.nl<15){P(4,6,'#4a3530');P(7,6,'#4a3530');P(3,5,'#b98666');P(8,5,'#b98666')}
-  else{P(4,6,'#1a1a22');P(7,6,'#1a1a22')}
-  const mo='#8a3b2b';P(5,8,mo);P(6,8,mo);
-  if(s.tt>=60){P(4,7,mo);P(7,7,mo);P(3,7,'#f3a59a');P(8,7,'#f3a59a')}else if(s.tt<30){P(4,9,mo);P(7,9,mo)}
-  let icon=null;if(s.started){if(s.sk<30)icon='sick';else if(s.no<25)icon='hungry';else if(s.nl<15)icon='tired';else if(s.tt<25)icon='sad'}
-  if(icon){const bx=x0+26,by=y0-12-(Math.floor(t/400)%2);px(bx,by,16,12,'#ffffff');px(bx-1,by+1,18,10,'#ffffff');px(bx+1,by+13,2,2,'#ffffff');px(bx-1,by+16,1,1,'#ffffff');
-    if(icon==='hungry'){px(bx+3,by+6,10,2,'#e9e2d0');px(bx+4,by+8,8,2,'#c0392b');px(bx+6,by+2,1,3,'#9aa0b0');px(bx+9,by+2,1,3,'#9aa0b0')}
-    if(icon==='tired'){px(bx+4,by+3,6,1,'#3a78c2');px(bx+8,by+4,1,1,'#3a78c2');px(bx+7,by+5,1,1,'#3a78c2');px(bx+6,by+6,1,1,'#3a78c2');px(bx+5,by+7,1,1,'#3a78c2');px(bx+4,by+8,6,1,'#3a78c2');px(bx+11,by+2,3,1,'#3a78c2');px(bx+12,by+3,1,1,'#3a78c2');px(bx+11,by+4,3,1,'#3a78c2')}
-    if(icon==='sad'){px(bx+3,by+3,10,4,'#8a90a8');px(bx+5,by+2,6,1,'#8a90a8');px(bx+4,by+8,1,2,'#5cc8ff');px(bx+8,by+9,1,2,'#5cc8ff');px(bx+11,by+8,1,2,'#5cc8ff')}
-    if(icon==='sick'){px(bx+7,by+2,3,9,'#e23d4f');px(bx+4,by+5,9,3,'#e23d4f')}}
+/* Nhân vật chính (design/12 thẻ 3): trang phục theo hoàn cảnh, biểu cảm theo chỉ số, bong bóng khi chỉ số nguy hiểm */
+function heroLook(){
+  const outfit=s.loc==='store'&&s.flags.hired?'store':isWE(s.day)?'weekend':'week';
+  let mood='normal',bub=null;
+  if(s.started){if(s.sk<30){mood='sick';bub='sick'}else if(s.no<25){mood='hungry';bub='hungry'}else if(s.nl<15){mood='tired';bub='tired'}else if(s.tt<30){mood='sad';bub=s.tt<25?'sad':null}else if(s.tt>=60)mood='happy'}
+  return {outfit,mood,bub};
+}
+function drawHero(c,cx,feet,t){
+  const {outfit,mood,bub}=heroLook(),b=Math.floor(t/900)%2,x=cx-15,y=feet-52;
+  GFX.use(c);for(let k=0;k<18;k++)GFX.dith(cx-9+k,feet-1,1,3,'#3a2e36',.45);
+  c.drawImage(Chars.sprite(s.gender==='nu'?'nu':'nam',outfit,mood,{b}),x,y);
+  if(bub)c.drawImage(Chars.BUB[bub],x+16,y-18-(Math.floor(t/400)%2));
 }
 let lastDraw=0;
-function loop(t){if(t-lastDraw>110){lastDraw=t;try{(DRAW[s.loc]||DRAW.home)(s.slot,t);drawChar(96,95,t)}catch(e){}}requestAnimationFrame(loop)}
+function loop(t){if(t-lastDraw>110){lastDraw=t;try{(DRAW[s.loc]||DRAW.home)(s.slot,t);sctx.drawImage(oldCv,0,0,cv.width,cv.height);drawHero(sctx,160,158,t)}catch(e){}}requestAnimationFrame(loop)}
 
 /* ============ Boot ============ */
 function boot(data){

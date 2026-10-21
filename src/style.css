@@ -26,14 +26,16 @@ button{font:inherit;color:inherit}
 .num{font-family:var(--f-num);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:.02em}
 .muted{color:var(--muted)}
 h1,h2,h3,h4{text-wrap:balance}
-svg{display:block}
+svg,img.px{display:block}
+img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 
 /* ---------- Screen & stage ---------- */
 .screen{position:fixed;inset:0;display:grid;place-items:center;
   padding-block:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-bottom,0px));
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:radial-gradient(120% 90% at 50% 40%,#171a2e 0%,var(--bezel) 70%)}
-.stage{position:relative;container:stage/size;width:min(100%,calc((100dvh - 20px) * 16 / 9));aspect-ratio:16/9;
+/* --p: một điểm ảnh của lưới giao diện 640×360 (DESIGN_SPEC mục 1); thay thế dần các đơn vị cqw ở giai đoạn 4 */
+.stage{--p:calc(100cqw / 640);position:relative;container:stage/size;width:min(100%,calc((100dvh - 20px) * 16 / 9));aspect-ratio:16/9;
   border-radius:14px;overflow:hidden;background:#0b0c17;box-shadow:0 0 0 2px #2c3150,0 0 0 7px #080911,0 24px 70px rgba(0,0,0,.65)}
 @media (max-aspect-ratio:4/5){.stage{width:100%;height:100%;aspect-ratio:auto;border-radius:10px}}
 #scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;image-rendering:pixelated;image-rendering:crisp-edges;transition:opacity .22s}
@@ -56,7 +58,7 @@ svg{display:block}
 .slots li.done{opacity:.35}
 .mstats{display:grid;gap:.34em;margin-top:.6em}
 .ms{display:grid;grid-template-columns:1.15em minmax(0,1fr) 1.7em;gap:.45em;align-items:center}
-.ms svg{width:1.15em;height:1.15em}
+.ms :is(svg,img){width:1.15em;height:1.15em}
 .ms .v{font-family:var(--f-num);font-size:1.2em;text-align:right;line-height:1}
 .ms.low .v{color:var(--bad)}
 .bar{position:relative;height:.45em;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
@@ -100,7 +102,7 @@ svg{display:block}
 .tool{position:relative;width:3.7em;display:flex;flex-direction:column;align-items:center;gap:.2em;padding:.45em .15em .35em;border-radius:.6em;cursor:pointer;
   border:1px solid var(--glass-line);background:var(--glass);box-shadow:0 .25em 0 rgba(0,0,0,.35);transition:transform .1s,border-color .12s}
 .tool:hover{border-color:var(--lantern);transform:translateY(-2px)}
-.tool svg{width:1.75em;height:1.75em}
+.tool :is(svg,img){width:1.75em;height:1.75em}
 .tool .tn{font-size:.62em;font-weight:700;white-space:nowrap}
 .badge{position:absolute;top:-.45em;right:-.45em;min-width:1.45em;height:1.45em;padding:0 .3em;border-radius:99px;background:var(--lantern);color:var(--lantern-ink);
   font-family:var(--f-num);font-size:.95em;display:grid;place-items:center;box-shadow:0 0 0 2px var(--bezel)}
@@ -111,12 +113,12 @@ svg{display:block}
   background:var(--lantern);color:var(--lantern-ink);border:0;box-shadow:0 .25em 0 #a87a1c}
 .mapbtn:hover{filter:brightness(1.06)}
 .mapbtn:active{transform:translateY(2px);box-shadow:0 .08em 0 #a87a1c}
-.mapbtn svg{width:1.55em;height:1.55em}
+.mapbtn :is(svg,img){width:1.55em;height:1.55em}
 
 .cmd-wrap{position:absolute;left:50%;bottom:2.6cqh;transform:translateX(-50%);width:min(30em,44cqw);display:flex;flex-direction:column;align-items:center;gap:.45em}
 .cmdbar{display:flex;gap:.25em;padding:.3em}
 .cbtn{display:flex;align-items:center;gap:.4em;padding:.5em .75em;border-radius:.55em;font-weight:800;font-size:.84em;background:transparent;border:1px solid transparent;cursor:pointer;white-space:nowrap}
-.cbtn svg{width:1.35em;height:1.35em}
+.cbtn :is(svg,img){width:1.35em;height:1.35em}
 .cbtn:hover:not(:disabled){background:rgba(255,255,255,.07)}
 .cbtn.on{background:var(--lantern);color:var(--lantern-ink)}
 .cbtn:disabled{opacity:.32;cursor:not-allowed}
@@ -188,7 +190,7 @@ svg{display:block}
   border:2px solid var(--frame);border-radius:.75em;box-shadow:0 0 0 3px var(--bezel),inset 0 1px 0 rgba(255,255,255,.05),0 1.2em 3em rgba(0,0,0,.55)}
 .win.w-map{width:min(100%,56em)}.win.w-end{width:min(100%,62em)}.win.w-cal{width:min(100%,42em)}.win.w-event{width:min(100%,44em)}.win.w-tasks{width:min(100%,52em)}.win.w-chapter{width:min(100%,46em)}
 .win-h{display:flex;align-items:center;gap:.6em;padding:.6em .8em;border-bottom:1px solid var(--line);background:var(--panel2)}
-.win-h svg{width:1.7em;height:1.7em;flex:none}
+.win-h :is(svg,img){width:1.7em;height:1.7em;flex:none}
 .win-h h2{margin:0;font-size:1.08em;font-weight:800;flex:1}
 .win-b{padding:.9em;overflow:auto;min-height:0;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 .note-line{margin:.7em 0 0;font-size:.78em;color:var(--muted)}
@@ -200,6 +202,7 @@ svg{display:block}
 .spk{display:flex;align-items:center;gap:.7em;margin-bottom:.5em}
 .pt{width:3.2em;height:3.2em;border-radius:.5em;background:#14172a;box-shadow:inset 0 0 0 2px var(--frame);display:grid;place-items:center;flex:none}
 .pt svg{width:80%;height:80%}
+.pt img{width:100%;height:100%;border-radius:inherit}
 .spk b{display:block;font-size:.95em}
 .spk small{font-family:var(--f-num);font-size:1.1em;color:var(--lantern)}
 .ev-stamp{font-family:var(--f-num);font-size:1.15em;color:var(--lantern)}
@@ -260,7 +263,7 @@ svg{display:block}
 .bag-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.5em}
 .slot{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:.5em;background:#14172a;cursor:pointer;display:grid;place-items:center;
   box-shadow:inset 0 0 0 2px #2b3052,inset 0 .3em 0 rgba(0,0,0,.35);transition:box-shadow .12s,transform .12s}
-.slot svg{width:64%;height:64%}
+.slot :is(svg,img){width:64%;height:64%}
 .slot:hover:not(.empty){box-shadow:inset 0 0 0 2px var(--lantern),inset 0 .3em 0 rgba(0,0,0,.35);transform:translateY(-1px)}
 .slot.sel{box-shadow:inset 0 0 0 3px var(--lantern)}
 .slot.empty{cursor:default;background:#111325}

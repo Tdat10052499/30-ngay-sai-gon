@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Mô phỏng cân bằng game 30 Ngày Sài Gòn.
- * Chạy logic thật trong src/game.js với một DOM giả, cho ba "bot" chơi trọn 30 ngày:
+ * Chạy logic thật của game (mọi script trong index.html, đúng thứ tự) với một DOM giả, cho ba "bot" chơi trọn 30 ngày:
  *   - random  : chọn bừa mọi thứ
  *   - prudent : đi làm đủ ca, nấu ăn ở nhà, dọn phòng khi bừa, từ chối chi tiêu bốc đồng
  *   - empty   : như prudent nhưng chiều tối ngày 4 dồn hết tiền vào thuốc, mì, cà phê lon để ví trống khi trừ tiền nhà (kiểm tra lỗ hổng bỏ nợ)
@@ -15,13 +15,21 @@ const argRuns = process.argv.indexOf('--runs');
 const RUNS = argRuns > -1 ? Number(process.argv[argRuns + 1]) || 150 : 150;
 
 /* ---------- DOM giả: mọi phần tử nhận thuộc tính bất kỳ, mọi hàm là no-op ---------- */
+/* Ngữ cảnh canvas giả: mọi lệnh vẽ là no-op, getImageData trả mảng điểm ảnh trống để mã viền (outlined) chạy được */
+function fakeCtx() {
+  return new Proxy({}, {
+    get: (a, b) => (b === 'globalAlpha' ? 1 : b === 'getImageData' ? (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }) : () => {}),
+    set: () => true,
+  });
+}
 function fakeEl() {
   const store = { hidden: false, innerHTML: '', textContent: '', className: '', dataset: {}, style: {} };
   return new Proxy(store, {
     get(t, k) {
       if (k in t) return t[k];
       if (k === 'classList') return { add() {}, remove() {}, contains() { return false; } };
-      if (k === 'getContext') return () => new Proxy({}, { get: (a, b) => (b === 'globalAlpha' ? 1 : () => {}), set: () => true });
+      if (k === 'getContext') return () => fakeCtx();
+      if (k === 'toDataURL') return () => 'data:,';
       if (k === 'querySelector') return () => null;
       if (k === 'querySelectorAll') return () => [];
       if (['addEventListener', 'appendChild', 'replaceChildren', 'remove', 'focus'].includes(k)) return () => {};
@@ -39,7 +47,9 @@ global.requestAnimationFrame = () => {};
 global.setTimeout = () => 0;
 global.clearTimeout = () => {};
 
-const game = fs.readFileSync(path.join(__dirname, '..', 'src', 'game.js'), 'utf8');
+const root = path.join(__dirname, '..');
+const scripts = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+const game = scripts.map(src => fs.readFileSync(path.join(root, src), 'utf8')).join('\n;\n');
 
 /* ---------- Bot (chạy chung phạm vi với game qua eval) ---------- */
 const bots = `
