@@ -179,17 +179,17 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ## Giai đoạn 4: nhân vật Ngân và giao diện sự kiện mới (mục 5.3, 5.2)
 
-- [ ] **4.1 Chân dung Ngân 48×48** (`src/gfx/portraits.js`)
+- [x] **4.1 Chân dung Ngân 48×48** (`src/gfx/portraits.js`)
   - Theo phong cách chân dung hiện có: tóc ngắn ngang vai, kính tròn, áo cardigan vàng nhạt, màu nền riêng chưa trùng với ai; biểu cảm bình thường và vui.
   - Kiểm tra: ảnh ghép 8 chân dung để so phong cách.
-- [ ] **4.2 Hội thoại lời mời của Ngân** qua tin nhắn điện thoại (khung điện thoại như tin nhắn của mẹ)
+- [x] **4.2 Hội thoại lời mời của Ngân** qua tin nhắn điện thoại (khung điện thoại như tin nhắn của mẹ)
   - Văn bản đề xuất (chờ duyệt):
     - Ngày 11: “Chiều nay rảnh hông? Mình ra quán cà phê ngồi vẽ phác thảo nha.”
     - Ngày 17: “Tuần này mệt quá trời. Đi cà phê với mình một chút cho đỡ ngán nha?”
     - Ngày 24: “Sắp thi rồi, ra quán ngồi ôn với vẽ chung hông?”
   - Cảnh cà phê dùng biến thể ngồi bàn có thêm Ngân.
-- [ ] **4.3 Giao diện 10 sự kiện mới:** người nói và biểu cảm; thẻ gợi ý "Ra quán cà phê" khi cúp điện; thông báo sau khi chuyển tiền lừa đảo.
-- [ ] **4.4 Sinh nhật mẹ ở TTTM:** lời thoại và cảnh (mẹ cùng nhân vật ở TTTM). Văn bản viết nháp, đưa vào báo cáo để duyệt.
+- [x] **4.3 Giao diện 10 sự kiện mới:** người nói và biểu cảm; thẻ gợi ý "Ra quán cà phê" khi cúp điện; thông báo sau khi chuyển tiền lừa đảo.
+- [x] **4.4 Sinh nhật mẹ ở TTTM:** lời thoại và cảnh (mẹ cùng nhân vật ở TTTM). Văn bản viết nháp, đưa vào báo cáo để duyệt.
 
 ---
 

@@ -14,6 +14,7 @@ function person(o,blink,b){
   return outlined(30,54,()=>{
     const c=15;
     if(o.hair==='long')R(c-9,6+b,18,24,C.hD);
+    if(o.hair==='bob')R(c-9,6+b,18,16,C.hD);
     if(o.seated){
       // ngồi trên ghế đá: đùi hướng về phía trước nên chỉ thấy đầu gối và cẳng chân ngắn
       R(c-7,38,14,4,C.pa);R(c-7,38,14,1,C.paL);R(c-1,39,2,3,C.paD);
@@ -43,12 +44,14 @@ function person(o,blink,b){
     R(c-7,y+8,2,10,C.skL);R(c+5,y+7,2,12,C.skD);R(c-9,y+10,2,4,C.sk);R(c+7,y+10,2,4,C.skD);
     if(blink){R(c-5,y+13,3,1,C.eye);R(c+2,y+13,3,1,C.eye)}
     else{[c-5,c+2].forEach(x=>{R(x,y+11,3,3,C.eye);P(x,y+11,'#ffffff');P(x+2,y+13,'#6a7ab0')});if(o.lash){P(c-6,y+11,C.eye);P(c+5,y+11,C.eye)}}
-    if(o.glasses){R(c-6,y+10,5,5,'rgba(0,0,0,0)');[c-6,c+1].forEach(x=>{R(x,y+10,5,1,'#2a2a38');R(x,y+14,5,1,'#2a2a38');R(x,y+10,1,5,'#2a2a38');R(x+4,y+10,1,5,'#2a2a38')});R(c-1,y+11,2,1,'#2a2a38')}
+    if(o.glasses==='round'){[c-6,c+1].forEach(x=>{R(x+1,y+10,3,1,'#5a3a2a');R(x+1,y+14,3,1,'#5a3a2a');R(x,y+11,1,3,'#5a3a2a');R(x+4,y+11,1,3,'#5a3a2a')});R(c-1,y+12,2,1,'#5a3a2a')}
+    else if(o.glasses){R(c-6,y+10,5,5,'rgba(0,0,0,0)');[c-6,c+1].forEach(x=>{R(x,y+10,5,1,'#2a2a38');R(x,y+14,5,1,'#2a2a38');R(x,y+10,1,5,'#2a2a38');R(x+4,y+10,1,5,'#2a2a38')});R(c-1,y+11,2,1,'#2a2a38')}
     if(o.beard)R(c-4,y+17,8,2,'#5a4a42');
     R(c-6,y+15,2,1,C.bl);R(c+4,y+15,2,1,C.bl);
     R(c-1,y+16,3,1,C.mo);P(c-2,y+15,C.mo);P(c+2,y+15,C.mo);
     R(c-8,y+1,16,6,C.h);R(c-7,y,14,1,C.h);R(c-5,y-1,10,1,C.h);R(c-9,y+3,2,8,C.h);R(c+7,y+3,2,8,C.h);
     if(o.hair==='long'){R(c-10,y+6,3,22,C.h);R(c+7,y+6,3,22,C.h);R(c-10,y+6,1,21,C.hR);R(c+9,y+8,1,20,C.hD);R(c-7,y+7,10,2,C.h);R(c-7,y+9,5,1,C.h);R(c+3,y+7,4,3,C.h);if(o.clip){R(c+2,y+3,4,2,o.clip);R(c+2,y+3,4,1,'#fff0a0')}}
+    else if(o.hair==='bob'){R(c-10,y+5,3,15,C.h);R(c+7,y+5,3,15,C.h);R(c-10,y+5,1,14,C.hR);R(c+9,y+6,1,14,C.hD);R(c-7,y+7,14,2,C.h);for(let x=c-7;x<c+7;x+=3)P(x+1,y+9,C.h);if(o.clip){R(c+3,y+3,3,2,o.clip)}}
     else if(o.hair==='pony'){R(c-7,y+7,14,2,C.h);R(c+8,y+2,3,3,C.h);R(c+9,y+5,3,10,C.h);R(c+9,y+12,2,4,C.hD);P(c+8,y+3,o.tieC||'#ff7a9a')}
     else if(o.hair==='side'){R(c-7,y+7,9,2,C.h);R(c+4,y+7,3,2,C.h);R(c-7,y+9,3,1,C.h);R(c-1,y,6,2,C.hL)}
     else if(o.hair==='net'){R(c-8,y,16,7,'#e8eef4');R(c-8,y+6,16,1,'#c8d0da');for(let x=c-7;x<c+8;x+=2)P(x,y+2,'#c8d0da')}

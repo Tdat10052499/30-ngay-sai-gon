@@ -217,6 +217,16 @@ withRandom(0.99,()=>{doAction(locActs().find(a=>a.id==='sleep'));clicks=0;
   go('class');go('campusnap');go('shift');go('shift')});
 check('Bấm: một ngày thường không quá 6 lần bấm',clicks<=6&&s.day===4&&s.shifts===2,clicks+' lần, ngày '+s.day+', ca '+s.shifts);
 console.log('  (số lần bấm một ngày thường: '+clicks+')');
+/* ---------- giai đoạn 4: Ngân, sự kiện mới, sinh nhật mẹ ---------- */
+check('Ngân: có chân dung và tên trong danh bạ',!!Portraits.CH.ngan&&PEOPLE.ngan.n.startsWith('Ngân'));
+fresh('thuong');s.day=17;s.slot=2;queue=[];withRandom(0.99,()=>slotEvents());const ng=queue.find(e=>e.title==='Ngân nhắn tin');
+check('Ngân: lời mời ngày 17 do Ngân nói, qua tin nhắn',ng&&ng.who==='ngan'&&evLook(ng).phone==='Tin nhắn');
+fresh('thuong');s.nganCount=2;check('Ngân: đi đủ 2 lần thì có lời kết riêng',endingLines().some(([w,t])=>w==='ngan'&&t.includes('bài tập nhóm học kỳ sau')));
+s.nganCount=1;check('Ngân: đi 1 lần thì chưa có lời kết',!endingLines().some(([w])=>w==='ngan'));
+fresh('thuong');s.day=13;s.slot=3;s.loc='home';s.money=500000;DECK_BY.blackout.mk(s);check('Cúp điện: có thẻ Ra quán cà phê',pickCards(s).some(c=>c.n==='Ra quán cà phê'&&c.loc==='cafe'));
+fresh('thuong');s.day=30;s.slot=1;s.money=900000;queue=[];withRandom(0.99,()=>{slotEvents();processQueue()});while(win==='event'&&curEvent.title!=='Mẹ lên Sài Gòn')pickChoice(curEvent.choices.length-1);
+withRandom(0.99,()=>pickChoice(0));check('Sinh nhật mẹ: ăn mừng ở TTTM có lời thoại của mẹ',s.loc==='mall'&&s.flags.momParty===1&&win==='event'&&curEvent.title==='Sinh nhật mẹ'&&curEvent.who==='me');
+clearEvents();check('Sinh nhật mẹ: lời kết có câu ăn mừng',endingLines().some(([w,t])=>w==='me'&&t.startsWith('Mẹ lên Sài Gòn đúng ngày sinh nhật')));
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

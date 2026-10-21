@@ -2,7 +2,7 @@
 const Portraits=(()=>{
 const {W,H,BAYER,rng,mk,R,P,shade,dith,outlined}=GFX;
 const EYE='#241a2a',MO='#9a4636',BL='#f39a9a';
-/* ---------- khuôn mặt dùng chung ---------- */
+/* ---------- khuôn mặt dùng chung (8 chân dung, thêm Ngân ở bản chơi thử 2) ---------- */
 function face(S){const [sk,skD,skL,skS]=S;
   R(20,31,8,6,skD);R(20,31,2,6,sk);R(21,35,6,1,skS);
   R(9,19,3,7,sk);R(9,19,1,7,skL);R(10,21,1,3,skD);R(36,19,3,7,skD);R(37,21,1,3,skS);
@@ -21,7 +21,8 @@ function expr(S,o,ex){const [sk,skD,skL,skS]=S,br=o.brow||'#24150e',old=o.old;
     else{[[15],[28]].forEach(([x])=>{R(x+1,19,3,1,EYE);R(x,20,5,4,EYE);R(x+1,24,3,1,EYE);R(x+1,20,2,2,'#ffffff');P(x+3,23,'#6a7ab0')});if(o.lash){P(14,19,EYE);P(13,20,EYE);P(33,19,EYE);P(34,20,EYE)}}}
   if(ey==='happy'){[[15],[28]].forEach(([x])=>{P(x,22,EYE);R(x+1,21,3,1,EYE);P(x+4,22,EYE)})}
   if(ey==='wide'){[[15],[28]].forEach(([x])=>{R(x+1,18,3,1,EYE);R(x,19,5,5,EYE);R(x+1,24,3,1,EYE);R(x+1,19,2,2,'#ffffff');P(x+3,22,'#ffffff')})}
-  if(o.glasses){[[14],[27]].forEach(([x])=>{R(x,18,7,1,'#2a2a38');R(x,25,7,1,'#2a2a38');R(x,18,1,8,'#2a2a38');R(x+6,18,1,8,'#2a2a38');R(x+1,19,2,1,'rgba(255,255,255,.6)')});R(21,20,6,1,'#2a2a38')}
+  if(o.glasses==='round'){[[14],[27]].forEach(([x])=>{const g='#5a3a2a';R(x+2,17,3,1,g);R(x+2,26,3,1,g);R(x,19,1,5,g);R(x+6,19,1,5,g);P(x+1,18,g);P(x+5,18,g);P(x+1,25,g);P(x+5,25,g);R(x+2,18,2,1,'rgba(255,255,255,.55)')});R(21,21,6,1,'#5a3a2a')}
+  else if(o.glasses){[[14],[27]].forEach(([x])=>{R(x,18,7,1,'#2a2a38');R(x,25,7,1,'#2a2a38');R(x,18,1,8,'#2a2a38');R(x+6,18,1,8,'#2a2a38');R(x+1,19,2,1,'rgba(255,255,255,.6)')});R(21,20,6,1,'#2a2a38')}
   // má, mũi, miệng
   if(ex.blush!==false)[[13,26],[30,26]].forEach(([x,y])=>{R(x+1,y,3,2,BL);P(x,y+1,BL);P(x+4,y,BL)});
   P(24,26,skD);P(23,27,skS);
@@ -77,6 +78,14 @@ const CH={
       [[14,1],[19,0],[24,1],[29,0],[33,2]].forEach(([x,y])=>{R(x,y,3,4,'#1e1612');P(x+1,y-1,'#1e1612')});R(16,5,6,1,'#4a3628');R(27,6,5,1,'#4a3628')},
     cloth(){R(7,39,34,9,'#e06a5a');R(9,37,30,2,'#e06a5a');R(7,39,3,9,'#f8907c');R(36,39,5,9,'#b44a40');R(19,36,10,2,'#e06a5a');R(21,37,6,2,'#b98060');
       R(19,41,10,6,'#f4f1ea');R(21,42,6,4,'#2c3550');P(23,43,'#ffc94d');P(24,44,'#ffc94d')}},
+  /* Ngân: tóc ngắn ngang vai, mái thưa, kính tròn, áo cardigan vàng nhạt, nền xanh ngọc */
+  ngan:{n:'Ngân',role:'bạn cùng lớp',bg:['#d2f0ee','#b8e6e2','#9ed8d4'],S:['#f2c7a0','#d09a74','#ffdcbc','#b9805e'],lash:1,glasses:'round',brow:'#2a1a12',
+    hair(){const h='#2a1a12',hL='#5a3a28';
+      R(11,5,26,9,h);R(13,3,22,2,h);R(16,2,16,1,h);R(9,9,4,22,h);R(35,9,4,22,h);R(8,26,5,6,h);R(35,26,5,6,h);R(9,31,4,1,'#170e0a');R(35,31,4,1,'#170e0a');
+      R(12,13,24,2,h);for(let x=12;x<36;x+=4)R(x,15,3,1,h);R(14,4,8,1,hL);R(12,7,5,2,hL);R(30,5,4,1,hL);R(31,6,3,2,'#ff86b3');P(32,6,'#ffd0e0')},
+    cloth(){R(7,39,34,9,'#f2dc8c');R(9,37,30,2,'#f2dc8c');R(7,39,3,9,'#fff0b8');R(36,39,5,9,'#d4b860');
+      R(18,36,12,12,'#f4f1ea');R(21,38,6,2,'#d09a74');R(23,40,2,8,'#e8e2d6');R(18,36,2,12,'#e6cc74');R(28,36,2,12,'#e6cc74');
+      for(let y=40;y<48;y+=3){P(17,y,'#a88a3c');P(30,y,'#a88a3c')}R(31,42,5,4,'#4f7fd0');R(31,42,5,1,'#86afee')}},
   self:{n:'Minh',role:'nhân vật chính',bg:['#d4e4f6','#bcd4ee','#a6c4e6'],S:['#f2c7a0','#d09a74','#ffdcbc','#b9805e'],brow:'#24150e',
     hair(o,back){const h='#3b2418',hD='#24150e',hL='#6e4630';
       if(back){if(o.gender==='nu')R(9,8,30,30,hD);return}

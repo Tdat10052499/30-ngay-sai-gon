@@ -72,7 +72,7 @@ function ico(key){
 /* ============ Story ============ */
 const PEOPLE={
   me:{n:'Mẹ',p:'p_me'},tu:{n:'Cô Tư · chủ nhà trọ',p:'p_tu'},mai:{n:'Chị Mai · quản lý cửa hàng',p:'p_mai'},
-  hai:{n:'Thầy Hải · cố vấn học tập',p:'p_hai'},linh:{n:'Chị Linh · trưởng CLB',p:'p_linh'},khoa:{n:'Khoa · bạn cùng phòng',p:'p_khoa'},self:{n:'Minh',p:'p_minh'},
+  hai:{n:'Thầy Hải · cố vấn học tập',p:'p_hai'},linh:{n:'Chị Linh · trưởng CLB',p:'p_linh'},khoa:{n:'Khoa · bạn cùng phòng',p:'p_khoa'},ngan:{n:'Ngân · bạn cùng lớp',p:'p_ngan'},self:{n:'Minh',p:'p_minh'},
 };
 const CHAPTERS={
   1:{t:'Tân sinh viên',from:1,to:7,txt:'Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất ngành Thiết kế. Bố mẹ gửi 3 triệu cho tháng đầu, đã gồm tiền nhà. Tuần này Minh phải làm quen trường lớp, ở ghép với Khoa và tìm một việc làm thêm để tự lo phần còn lại.'},
@@ -532,11 +532,12 @@ function slotEvents(){
     {l:'Mua men tiêu hóa',cost:30000,eff:{sk:-3}},{l:'Ráng chịu',eff:{sk:-8,tt:-5,nl:-8}}]));return}
   /* Ngân rủ đi cà phê: chiều ngày 11, 17, 24 */
   if(s.slot===2&&NGAN_DAYS[s.day]&&!s.flags['ngan'+s.day]){s.flags['ngan'+s.day]=1;queue.push(ev('Ngân nhắn tin',NGAN_DAYS[s.day],[
-    {l:'Đi cà phê với Ngân',cost:30000,eff:{tt:12,nl:4},x:'Đi tới quán cà phê · hết buổi',run:s=>{s.loc='cafe';s.nganCount=(s.nganCount||0)+1;skipSlot('Đi cà phê với Ngân')}},
-    {l:'Hẹn lần sau',eff:{tt:-2}}]));return}
+    {l:'Đi cà phê với Ngân',cost:30000,eff:{tt:12,nl:4},x:'Đi tới quán cà phê · hết buổi',run:s=>{s.loc='cafe';s.nganCount=(s.nganCount||0)+1;startActScene({id:'ngan'});skipSlot('Đi cà phê với Ngân')}},
+    {l:'Hẹn lần sau',eff:{tt:-2}}],'ngan'));return}
   /* ngày 30 mẹ lên Sài Gòn: đưa mẹ đi ăn mừng sinh nhật ở TTTM */
   if(s.day===30&&s.slot===1&&!s.flags.momVisit){s.flags.momVisit=1;queue.push(ev('Mẹ lên Sài Gòn','“Mẹ lên thăm con nè. Sinh nhật mẹ, hai mẹ con đi đâu ăn một bữa nha?”',[
-    {l:'Đưa mẹ đi ăn mừng ở TTTM',cost:300000,eff:{tt:10},x:'Đi tới TTTM · hết buổi trưa',run:s=>{s.loc='mall';s.flags.momParty=1;skipSlot('Đưa mẹ đi ăn mừng sinh nhật ở TTTM')}},
+    {l:'Đưa mẹ đi ăn mừng ở TTTM',cost:300000,eff:{tt:10},x:'Đi tới TTTM · hết buổi trưa',run:s=>{s.loc='mall';s.flags.momParty=1;startActScene({id:'momParty'});
+      queue.unshift(ev('Sinh nhật mẹ',s.flags.gift?'Hai mẹ con ăn một bữa thật no ở TTTM. Mẹ mở gói quà, quàng thử chiếc khăn lụa: “Con lớn thiệt rồi. Mẹ vui lắm.”':'Hai mẹ con ăn một bữa thật no ở TTTM. Mẹ cười suốt buổi: “Có con ở bên là mẹ vui rồi.”',[{l:'Chúc mừng sinh nhật mẹ'}],'me'));skipSlot('Đưa mẹ đi ăn mừng sinh nhật ở TTTM')}},
     {l:'Mời mẹ bữa cơm ở phòng trọ',eff:{tt:4}}],'me'));return}
   if(Math.random()>0.22)return;
   const pick=deckDraw(s,Math.random);
@@ -799,7 +800,8 @@ function renderWin(){
 /* Biểu cảm và kiểu khung cho từng sự kiện (design/10). Mẹ ở xa nên nói qua điện thoại. */
 const EV_LOOK={'Tin nhắn của mẹ':{phone:'Tin nhắn'},'Mẹ gọi điện':{ex:'worry',phone:'Đang gọi',call:1},'Chào mừng tân sinh viên':{ex:'happy'},
   'Khoa hỏi mượn tiền':{ex:'awkward'},'Khoa hẹn lần sau':{ex:'awkward'},'Đêm nhạc chào tân sinh viên':{ex:'excited'},'Chị Mai khen':{ex:'happy'},
-  'Khoa trả tiền':{ex:'grin'},'Lương part-time đầu tiên':{ex:'happy'},'Lớp rủ đi ăn lẩu':{ex:'grin'},'Sinh nhật bạn cùng lớp':{ex:'happy'}};
+  'Khoa trả tiền':{ex:'grin'},'Ngân nhắn tin':{ex:'happy',phone:'Tin nhắn'},'Mẹ lên Sài Gòn':{ex:'happy'},'Sinh nhật mẹ':{ex:'happy'},
+  'Thùng đồ quê':{ex:'happy',phone:'Tin nhắn'},'Tô canh của cô Tư':{ex:'happy'},'Bài tập nhóm':{ex:'normal'},'Khoa rủ chạy bộ':{ex:'grin'},'Thầy Hải nhắc nhở':{ex:'stern'},'Lương part-time đầu tiên':{ex:'happy'},'Lớp rủ đi ăn lẩu':{ex:'grin'},'Sinh nhật bạn cùng lớp':{ex:'happy'}};
 function evLook(e){
   const L={ex:'normal',...(EV_LOOK[e.title]||{})};
   if(e.title==='Cô Tư thu tiền nhà'&&s.flags.rentShort)L.ex='stern';
@@ -1222,6 +1224,8 @@ const ACT_SCENES={
   library:sl=>[Scenes.school,'lib',{stack:Math.min(6,s.study)}],
   club:sl=>[Scenes.school,'club',{poster:chOf(s.day)===2}],
   canteen:sl=>[Scenes.school,'canteen',{}],
+  ngan:sl=>[Scenes.rest,'cafeTable',{variant:'ngan'}],
+  momParty:sl=>[Scenes.rest,'mall',{state:0,mom:1}],
   interview:sl=>[Scenes.store,'shop',{state:1}],
   shift:sl=>[Scenes.store,'shift',{shift:shiftIdx(sl),name:s.name}],
   comtam:sl=>[Scenes.food,'table',{dish:'comtam'}],pho:sl=>[Scenes.food,'table',{dish:'pho'}],bunbo:sl=>[Scenes.food,'table',{dish:'bunbo'}],

@@ -91,6 +91,8 @@ function pickCards(s){
   /* thẻ nhiệm vụ đúng ngày, kể cả khi đang khóa */
   for(const [loc,a] of all){if(out.length>=MAX_CARDS)break;
     if(!has(a.id)&&QUEST_DAY[a.id]&&questOfAct(s,a.id)&&QUEST_DAY[a.id](s))out.push(makeCard(s,loc,a,a.id==='gift'?{n:'Mua quà sinh nhật mẹ'}:{}))}
+  /* cúp điện ở phòng trọ: gợi ý ra quán cà phê */
+  if(s.flags.blackout===s.day*10+s.slot&&out.length<MAX_CARDS){const ch=A.cafe.find(a=>a.id==='chill');if(ch&&!has('chill'))out.push(makeCard(s,'cafe',ch,{n:'Ra quán cà phê'}))}
   /* các thẻ còn lại: việc làm được, ưu tiên việc giúp chỉ số đang thấp nhất; mỗi nhóm việc một thẻ */
   const best={},grp=a=>CARD_GROUP[a.id]||a.id,used=new Set(out.map(c=>CARD_GROUP[c.id]||c.id));
   for(const [loc,a] of all){if(a.id==='idle'||a.k!=='act'||has(a.id)||used.has(grp(a))||reasonAt(s,loc,a))continue;
