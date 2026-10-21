@@ -279,6 +279,7 @@ function doAction(a){
   if(a.gain)s.money+=a.gain;
   const out=applyEff(effOf(a));
   if(a.run)a.run(s);
+  txAdd(a.n,s.money-m0);
   if(RELAX.includes(a.id))s.relaxToday=1;
   popFx(out,s.money-m0);
   addLog(a.n+(a.cost?` (−${fk(a.cost)})`:'')+(a.gain?` (+${fk(a.gain)})`:''));
@@ -337,13 +338,12 @@ function endDay(early){
   s.loc='home';s.ateThisSlot=false;
   if(s.day>=30){finish();return}
   s.day++;s.slot=0;
-  showBanner();
   dayEvents();
 }
 function skipSlot(label){addLog(label);endSlot({id:'skip',excused:true})}
 function payBill(amt,name){
-  if(s.money>=amt){s.money-=amt;return true}
-  const short=amt-s.money;s.money=0;s.tt=clamp(s.tt-12);
+  if(s.money>=amt){s.money-=amt;txAdd(name[0].toUpperCase()+name.slice(1),-amt);return true}
+  const short=amt-s.money;txAdd(name[0].toUpperCase()+name.slice(1),-s.money);s.money=0;s.tt=clamp(s.tt-12);
   addLog(`Thiếu ${fk(short)} cho ${name}. Đã trừ hết tiền trong ví.`,'bad');return false;
 }
 function travelCost(id){const c=LOCS[id].cost;return c&&s.bikeBroken>0?c*3:c}
@@ -352,7 +352,7 @@ function travel(id){
   let c=travelCost(id);if(LOCS[id].open(s))return;
   const walk=c>0&&s.money<c;
   if(walk){c=0;const o=applyEff({nl:-8,tt:-2});popFx(o,0)}
-  s.money-=c;s.spentToday+=c;s.loc=id;
+  s.money-=c;s.spentToday+=c;s.loc=id;txAdd(`Đi tới ${LOCS[id].short}`,-c);
   hideWin();closeMenu();
   addLog(walk?`Hết tiền xăng, đi bộ tới ${LOCS[id].name}`:`Đi tới ${LOCS[id].name}`+(c?` (−${fk(c)} ${s.bikeBroken?'xe ôm':'xăng'})`:''),walk?'bad':'');
   const st=$('stage');st.classList.add('fade');setTimeout(()=>st.classList.remove('fade'),230);
@@ -451,18 +451,19 @@ function slotEvents(){
   queue.push(pick.mk(s));
 }
 function dayEvents(){
+  queue.push({kind:'day',title:`Ngày ${s.day}`,choices:[{l:'Bắt đầu buổi sáng'}]});
   if(CHAPTERS[chOf(s.day)].from===s.day)activateChapter(chOf(s.day));
   const b=BILLS[s.day];
-  if(b){const ok=payBill(b[1],b[0]);
+  if(b){const m0=s.money,ok=payBill(b[1],b[0]);if(!ok)s.flags['bill'+s.day]=b[1]-m0;
     if(s.day===5){if(ok)s.flags.rentPaid=1;else s.flags.rentShort=1}
     addLog(`${b[0]}: −${fk(b[1])}`,ok?'':'bad');
     queue.push(s.day===5?ev('Cô Tư thu tiền nhà',ok?'“Đủ rồi nghen con. Học hành cho giỏi, có gì cứ kêu cô.” Cô Tư đếm tiền, cười hiền.':'“Thiếu vậy con? Thôi tháng này cô cho qua, tháng sau nhớ để dành đủ trước mùng 5 nghen.”',[{l:ok?'Dạ, con cảm ơn cô':'Dạ, con xin lỗi cô'}],'tu')
       :ev(`${b[0]} đến hạn`,ok?`Đã tự động trừ ${fmt(b[1])} từ ví.`:`Ví không đủ ${fmt(b[1])}. Đã trừ hết tiền trong ví.`,[{l:'Đã hiểu'}]))}
-  if(s.day===15){const x=s.accrued;s.shiftHalf=s.shifts;s.money+=x;s.accrued=0;s.paid1=true;
+  if(s.day===15){const x=s.accrued;s.shiftHalf=s.shifts;s.money+=x;s.accrued=0;s.paid1=true;s.flags.pay1=x;txAdd('Lương part-time kỳ 1',x);
     addLog(x?`Nhận lương part-time kỳ 1: +${fk(x)}`:'Chưa có lương part-time vì chưa làm ca nào.',x?'good':'bad');
     queue.push(ev('Lương part-time đầu tiên',x?`“Lương nửa đầu tháng của em nè, ${fmt(x)} cho ${s.shifts} ca. Các ca sau chị tính vào cuối tháng nha.”`:'“Em chưa làm ca nào nên kỳ này chưa có lương. Muốn làm thì ghé cửa hàng nha.”',[{l:x?'Em cảm ơn chị':'Dạ'}],'mai'))}
   if(s.day===28&&s.lent>0){const back=Math.random()<0.65;const amt=s.lent;s.lent=0;
-    if(back){s.money+=amt;s.tt=clamp(s.tt+5);addLog(`Khoa trả lại ${fk(amt)}.`,'good');queue.push(ev('Khoa trả tiền','“Trả mày nè, cảm ơn nha. Có gì tao bao trà sữa.”',[{l:'Tốt quá'}],'khoa'))}
+    if(back){s.money+=amt;txAdd('Khoa trả tiền',amt);s.tt=clamp(s.tt+5);addLog(`Khoa trả lại ${fk(amt)}.`,'good');queue.push(ev('Khoa trả tiền','“Trả mày nè, cảm ơn nha. Có gì tao bao trà sữa.”',[{l:'Tốt quá'}],'khoa'))}
     else{s.tt=clamp(s.tt-6);addLog('Khoa hẹn trả sau. Mất 300k.','bad');queue.push(ev('Khoa hẹn lần sau','“Tháng này tao kẹt thiệt, cho tao khất thêm nha.” Khoản 300.000đ coi như chưa về.',[{l:'Đành vậy'}],'khoa'))}}
   genDaily();
   slotEvents();
@@ -570,6 +571,7 @@ function renderMenu(){
 }
 function openCat(id,focusId){
   if(win)return;
+  if(id==='bank'&&s.loc==='home'){closeMenu();openWin('phone');return}
   if(menuCat===id){closeMenu();renderCmd();return}
   menuCat=id;renderCmd();
   const f=(focusId&&$('popMenu').querySelector(`[data-pa="${focusId}"]:not(:disabled)`))||$('popMenu').querySelector('.row:not(:disabled)');
@@ -598,11 +600,6 @@ function popFx(out,dm){
   items.forEach(([t,c],i)=>setTimeout(()=>{const d=document.createElement('div');d.className='pop '+c;d.textContent=t;
     d.style.left=(50+((i%2)?10:-10)+(Math.random()*4-2))+'%';d.style.marginTop=(i*1.7)+'em';$('fx').appendChild(d);setTimeout(()=>d.remove(),1700)},i*130));
 }
-function showBanner(){
-  const b=document.createElement('div');b.className='banner';
-  b.innerHTML=`<span class="num">Ngày ${s.day}</span><span>${DOW[dowOf(s.day)]}${BILLS[s.day]?' · '+BILLS[s.day][0]:''}${s.day===15?' · Ngày lương':''}</span>`;
-  $('fx').appendChild(b);setTimeout(()=>b.remove(),2500);
-}
 function showToast(text,tone){
   if(!s||!s.started)return;
   const t=$('toast');t.textContent=nm(text);t.className='pn toast '+(tone||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('out'),2800);
@@ -613,12 +610,14 @@ function afterChange(){refresh();processQueue()}
 /* ============ Windows ============ */
 const head=(icon,title,extra='',closable=true)=>`<header class="win-h">${icon?ico(icon):''}<h2>${title}</h2>${extra}${closable?'<button class="btn sm" type="button" data-close>Đóng</button>':''}</header>`;
 function openWin(name){
+  if(name==='phone'&&win!=='phone')phoneApp='home';
   win=name;bagSel=null;if(name==='cal')calSel=s.day;
   closeMenu();renderCmd();
-  $('layer').className='layer'+(name==='event'?(curEvent&&curEvent.kind==='chapter'?' dialog':' dlgl'):name==='map'?' full':TAB_WINS.includes(name)?' full dim':'');
+  const kind=name==='event'&&curEvent?curEvent.kind||'dlg':null;
+  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
   if(name==='map')mapPick();
   $('layer').hidden=false;renderWin();
-  const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.choice:not(:disabled),.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
+  const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
 function closeWin(){hideWin();processQueue()}
@@ -629,26 +628,22 @@ function toggleWin(name){
   openWin(name);
 }
 function renderWin(){
-  const isDlg=win==='event'&&curEvent&&curEvent.kind!=='chapter';
-  const w=$('win');w.className=TAB_WINS.includes(win)?'pn tw':isDlg?'evhost':'win w-'+(win==='event'&&curEvent&&curEvent.kind==='chapter'?'chapter':win);
+  const kind=win==='event'&&curEvent?curEvent.kind||'dlg':null,isDlg=kind==='dlg';
+  const w=$('win');w.className=TAB_WINS.includes(win)?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
+  w.setAttribute('aria-labelledby',kind==='chapter'?'chT':win==='end'?'endT':'');
   const html=win==='bag'?bagHTML():win==='cal'?calHTML():win==='tasks'?tasksHTML():win==='map'?mapHTML()
     :win==='log'?head('book','Nhật ký')+`<div class="win-b"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
     :win==='rules'?head('help','Luật chơi')+`<div class="win-b">${rulesHTML()}</div>`
-    :win==='event'?(curEvent.kind==='chapter'?chapterHTML(curEvent):eventHTML())
-    :win==='end'?endHTML():'';
+    :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():eventHTML())
+    :win==='end'?endHTML():win==='phone'?phoneHTML():'';
   w.innerHTML=nm(html);
   if(win==='map')drawMap();
   else if(isDlg)startType();
+  else if(kind==='chapter')Scenes.vignette($('vig'),curEvent.n);
   else if(win==='end')requestAnimationFrame(drawChart);
 }
 
 /* Event, dialogue & chapter */
-function chapterHTML(e){
-  const C=CHAPTERS[e.n];
-  return `<div class="chap"><div class="chap-num">Chương ${e.n}</div><h2>${C.t}</h2><div class="chap-days">Ngày ${C.from} – ${C.to}</div><p>${C.txt}</p>
-    <h4>Nhiệm vụ mới</h4><ul class="chap-q">${QUESTS.filter(q=>q.ch===e.n).map(q=>`<li><span class="pt">${ico(PEOPLE[q.who].p)}</span><div><b>${q.t}</b><span>${q.d}</span></div></li>`).join('')}</ul>
-    <button class="btn primary" type="button" data-ch="0">${e.n===1?'Bắt đầu tháng mới':'Vào chương '+e.n}</button></div>`;
-}
 /* Biểu cảm và kiểu khung cho từng sự kiện (design/10). Mẹ ở xa nên nói qua điện thoại. */
 const EV_LOOK={'Tin nhắn của mẹ':{phone:'Tin nhắn'},'Mẹ gọi điện':{ex:'worry',phone:'Đang gọi',call:1},'Chào mừng tân sinh viên':{ex:'happy'},
   'Khoa hỏi mượn tiền':{ex:'awkward'},'Khoa hẹn lần sau':{ex:'awkward'},'Đêm nhạc chào tân sinh viên':{ex:'excited'},'Chị Mai khen':{ex:'happy'},
@@ -701,8 +696,8 @@ function pickChoice(i){
   if((c.cost&&s.money<c.cost)||(c.need&&c.need(s)))return;
   hideWin();curEvent=null;
   const m0=s.money;
-  if(c.cost){s.money-=c.cost;s.spentToday+=c.cost}
-  if(c.gain)s.money+=c.gain;
+  if(c.cost){s.money-=c.cost;s.spentToday+=c.cost;txAdd(e.title,-c.cost)}
+  if(c.gain){s.money+=c.gain;txAdd(e.title,c.gain)}
   const out=applyEff(c.eff||{});
   if(c.run)c.run(s);
   popFx(out,s.money-m0);
@@ -835,37 +830,105 @@ function rulesHTML(){return `<ul class="rules">
 <p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
 <p class="note-line">Phím tắt: B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Esc đóng.</p>`}
 
-/* End */
+/* Thẻ chương (design/12 thẻ 2): tranh nhỏ khung gỗ, nội dung chương, nhiệm vụ của chương */
+function chapterHTML(e){
+  const C=CHAPTERS[e.n];
+  return `<canvas class="vig" id="vig" width="64" height="48" aria-hidden="true"></canvas><div>
+    <div class="eb">Chương ${e.n} / 4</div><h2 id="chT">${C.t}</h2><div class="dd">Ngày ${C.from} – ${C.to}</div><p>${C.txt}</p>
+    <div class="qmini">${QUESTS.filter(q=>q.ch===e.n).map(q=>`<span>${q.t}</span>`).join('')}</div>
+    <button class="btnp" type="button" data-ch="0">${e.n===1?'Bắt đầu tháng mới':'Vào chương '+e.n}</button></div>`;
+}
+/* Thẻ sang ngày (design/12 thẻ 2): hiện mỗi sáng từ ngày 2, tóm tắt hôm qua và việc hôm nay */
+function dayCardHTML(){
+  const d=s.day,h=s.hist.find(x=>x.d===d-1),marks=[5,10,13,15,20,29,30];
+  const yd=[`<li><i style="--c:#a4a9c8"></i>Ví còn ${fmt(h?h.money:s.money)} cuối ngày ${d-1}</li>`]
+    .concat(s.log.filter(l=>l.d===d-1&&l.tone==='bad').slice(0,3).map(l=>`<li class="bad"><i style="--c:#ff6474"></i>${l.text}</li>`));
+  const td=[];
+  if(BILLS[d]){const [n,amt]=BILLS[d],short=s.flags['bill'+d];
+    if(short){td.push([`Trừ ${n.toLowerCase()} ${fmt(amt)}: ví thiếu ${fmt(short)}`,'#ff8a96']);td.push(['Ví về 0đ · tinh thần −12 · không ghi nợ','#ff8a96'])}
+    else td.push([`Trừ ${n.toLowerCase()}: −${fmt(amt)}`,'#ff8a96'])}
+  if(d===15)td.push([s.flags.pay1?`Nhận lương part-time kỳ 1: +${fmt(s.flags.pay1)}`:'Chưa có lương part-time vì chưa làm ca nào','#72de90']);
+  if(CHAPTERS[chOf(d)].from===d)td.push([`Bắt đầu chương ${chOf(d)}: ${CHAPTERS[chOf(d)].t}`,'#5cc8ff']);
+  calNotes(d).filter(n=>!BILLS[d]||!n.t.startsWith(BILLS[d][0])).filter(n=>d!==15||n.sh!=='Lương').forEach(n=>td.push([n.t,'#7a56c2']));
+  s.daily.forEach(x=>td.push([`Việc hôm nay: ${DAILY[x.id].t}`,'#ffc94d']));
+  return `<div class="top"><span class="dw">${DOW[dowOf(d)]}</span><span class="num">Ngày ${d}</span><span class="ch">Chương ${chOf(d)}: ${CHAPTERS[chOf(d)].t}</span></div>
+    <div class="strip" aria-hidden="true">${Array.from({length:30},(_,i)=>`<i class="${i+1<d?'past':i+1===d?'now':marks.includes(i+1)?'mark':''}"></i>`).join('')}</div>
+    <h5>Hôm qua</h5><ul>${yd.join('')}</ul>
+    <h5>Hôm nay</h5><ul>${td.map(([t,c])=>`<li><i style="--c:${c}"></i>${t}</li>`).join('')}</ul>
+    <button class="btnp" type="button" data-ch="0">Bắt đầu buổi sáng</button>`;
+}
+
+/* Tổng kết cuối tháng (design/12 thẻ 1) */
+let endChart='stat';
 function endHTML(){
   const r=computeScore(),[an,ad]=archetype(r),g=grade(r.score),qd=QUESTS.filter(q=>s.q[q.id]==='done').length;
-  const fac=[['Tài sản',r.F.tien,'#ffc94d','0,35'],['Độ no TB',r.F.no,SCOL.no,'0,2'],['Tinh thần TB',r.F.tt,SCOL.tt,'0,25'],['Sức khỏe cuối',r.F.sk,SCOL.sk,'0,2']];
-  const ach=[['Chuyên cần',s.absences===0],['Đầu bếp tại gia',s.cooked>=15],['Tự lập tài chính',s.askCount===0],['Chăm chỉ làm thêm',s.shifts>=18],['Hoàn thành mọi nhiệm vụ',qd===QUESTS.length],['Fan cứng mì gói',s.noodleTotal>=12]];
-  return head('scroll','Kết thúc tháng đầu tiên','',false)+`<div class="win-b"><div class="end-grid"><div>
-    <div class="score-top"><span class="num">${r.score}</span><span class="grade">${g}</span><div class="arch"><b>${an}</b><span>${ad}</span></div></div>
-    <p class="sec-h">Kết cục · ${qd}/${QUESTS.length} nhiệm vụ chính</p>
-    <ul class="ending">${endingLines().map(([w,t])=>`<li><span class="pt">${ico(PEOPLE[w].p)}</span><span>${t}</span></li>`).join('')}</ul>
-    <div class="asset">
-      <span>Tiền mặt</span><span class="num">${fmt(s.money)}</span>
-      <span>Lương part-time kỳ 2 (${s.shifts-s.shiftHalf} ca)</span><span class="num">${fmt(s.accrued)}</span>
-      <span>Thưởng chăm chỉ (từ 18 ca)</span><span class="num">${fmt(r.bonus)}</span>
-      <span class="tot">Tài sản cuối tháng</span><span class="num tot">${fmt(r.asset)}</span>
-    </div></div><div>
-    <p class="sec-h">Các yếu tố tính điểm</p>
-    <div class="factors">${fac.map(([n,v,c,w])=>`<span>${n} <span class="muted">^${w}</span></span><div class="bar"><i style="width:${Math.min(100,v/1.25*100)}%;background:${c}"></i></div><span class="num">${v.toFixed(2)}</span>`).join('')}</div>
-    <div class="chart-box"><canvas id="chartCv"></canvas><div class="legend">${STATS.map(S=>`<span><i style="background:${SCOL[S.k]}"></i>${S.n}</span>`).join('')}<span><i style="background:var(--bad)"></i>Ngưỡng 25</span></div></div>
-    <p class="sec-h">Thành tựu</p><div class="ach">${ach.map(([n,on])=>`<span class="${on?'on':'off'}">${n}</span>`).join('')}</div>
-  </div></div><div style="display:flex;gap:.5em;margin-top:1em;justify-content:flex-end"><button class="btn" type="button" data-m="home">Màn hình chính</button><button class="btn primary" type="button" data-m="new">Chơi lại từ đầu</button></div></div>`;
+  const RC={S:'#ffc94d',A:'#72de90',B:'#5cc8ff',C:'#c9a0e8',D:'#ff8a96'};
+  const fac=[['Tài sản',r.F.tien,'#ffc94d','0,35',fmt(r.asset)],['Độ no trung bình',r.F.no,SCOL.no,'0,2',Math.round(r.F.no*100)],['Tinh thần trung bình',r.F.tt,SCOL.tt,'0,25',Math.round(r.F.tt*100)],['Sức khỏe cuối tháng',r.F.sk,SCOL.sk,'0,2',Math.round(r.F.sk*100)]];
+  const ach=[['Chuyên cần',s.absences===0,'📘'],['Đầu bếp tại gia',s.cooked>=15,'🍳'],['Tự lập tài chính',s.askCount===0,'💪'],['Chăm chỉ làm thêm',s.shifts>=18,'🏪'],['Hoàn thành mọi nhiệm vụ',qd===QUESTS.length,'⭐'],['Fan cứng mì gói',s.noodleTotal>=12,'🍜']];
+  const lg=endChart==='stat'?STATS.map(S=>`<span><i style="--c:${SCOL[S.k]}"></i>${S.n}</span>`).join(''):'<span><i style="--c:#ffc94d"></i>Tiền trong ví</span><span><i style="--c:#ff6474"></i>Mốc 1,2 triệu</span>';
+  return `<div class="hd3"><b id="endT">Kết thúc tháng đầu tiên của ${s.name}</b><span>Ngày 30 · Sinh nhật mẹ · ${qd}/${QUESTS.length} nhiệm vụ</span></div>
+    <div class="scorebox well"><div class="sc"><span class="num">${r.score}</span><span class="rank" style="--rk:${RC[g]}" aria-label="Hạng ${g}">${g}</span></div>
+      <div class="arch"><b>${an}</b><span>${ad}</span></div>
+      <div class="fac">${fac.map(([n,v,c,w,val])=>`<div><div class="row"><b>${n}</b><span>${val} · mũ ${w}</span></div><div class="fbar"><i style="--c:${c};width:${Math.min(1,v)*100}%"></i></div></div>`).join('')}</div>
+      <div class="formula">Điểm = 1000 × Tài sản<sup>0,35</sup> × No<sup>0,2</sup> × Tinh thần<sup>0,25</sup> × Sức khỏe<sup>0,2</sup>. Hạng S từ 800, A từ 700, B từ 580, C từ 450.</div></div>
+    <div class="chartbox well"><div class="tl"><span>30 ngày của ${s.name}</span><span class="lg">${lg}</span></div>
+      <canvas id="chartCv" width="220" height="92" role="img" aria-label="Đồ thị 30 ngày"></canvas>
+      <div class="lg" style="justify-content:space-between;color:var(--muted)"><span>Ngày 1</span><span>8</span><span>15</span><span>22</span><span>30</span></div>
+      <div class="chsw"><button class="btns" type="button" data-chart="stat" aria-pressed="${endChart==='stat'}">4 chỉ số</button><button class="btns" type="button" data-chart="money" aria-pressed="${endChart==='money'}">Tiền trong ví</button></div></div>
+    <div class="ends well"><h4>Mọi người nói gì</h4>${endingLines().map(([w,t])=>`<div class="en">${pxImg(Portraits.url(w,w==='me'&&!s.flags.gift?'worry':'normal',{gender:s.gender}))}<span><b>${PEOPLE[w].n.split(' · ')[0]}</b>${t}</span></div>`).join('')}</div>
+    <div class="achs">${ach.map(([n,on,ic])=>`<div class="ach well${on?' on':''}"><span class="md" aria-hidden="true">${on?ic:'🔒'}</span>${n}${on?'':'<span class="vh"> (chưa đạt)</span>'}</div>`).join('')}</div>
+    <div class="endbtns"><button class="btns" type="button" data-m="home">Về trang bìa</button><button class="btnp" type="button" data-m="new">Chơi lại tháng mới</button></div>`;
 }
+/* đồ thị 30 ngày vẽ bằng nét pixel; chế độ tiền có vạch mốc 1,2 triệu tiền nhà */
 function drawChart(){
-  const cv=$('chartCv');if(!cv)return;const dpr=window.devicePixelRatio||1,w=cv.clientWidth||500,h=cv.clientHeight||150;
-  cv.width=w*dpr;cv.height=h*dpr;const c=cv.getContext('2d');c.scale(dpr,dpr);
-  const L=28,R=8,T=8,B=18,pw=w-L-R,ph=h-T-B,X=d=>L+(d-1)/29*pw,Y=v=>T+(1-v/100)*ph;
-  c.font='11px "Be Vietnam Pro", system-ui, sans-serif';c.fillStyle='#a4a9c8';c.strokeStyle='rgba(164,169,200,.16)';c.lineWidth=1;
-  [0,50,100].forEach(v=>{c.beginPath();c.moveTo(L,Y(v));c.lineTo(w-R,Y(v));c.stroke();c.fillText(v,2,Y(v)+4)});
-  [1,8,15,22,30].forEach(d=>c.fillText(d,X(d)-(d>9?6:3),h-4));
-  c.strokeStyle='rgba(255,100,116,.55)';c.setLineDash([4,4]);c.beginPath();c.moveTo(L,Y(25));c.lineTo(w-R,Y(25));c.stroke();c.setLineDash([]);
-  for(const S of STATS){c.strokeStyle=SCOL[S.k];c.lineWidth=2;c.beginPath();s.hist.forEach((p,i)=>{const x=X(p.d),y=Y(p[S.k]);i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke();
-    const last=s.hist[s.hist.length-1];if(last){c.fillStyle=SCOL[S.k];c.beginPath();c.arc(X(last.d),Y(last[S.k]),3,0,7);c.fill()}}
+  const cv=$('chartCv');if(!cv)return;const c=cv.getContext('2d'),W=cv.width,H=cv.height;c.imageSmoothingEnabled=false;c.fillStyle='#151933';c.fillRect(0,0,W,H);
+  const L=14,Rr=4,T=4,B=10,X=d=>Math.round(L+(d-1)/29*(W-L-Rr)),Y=v=>Math.round(T+(1-v/100)*(H-T-B));
+  c.fillStyle='#2c335c';[0,50,100].forEach(v=>c.fillRect(L,Y(v),W-L-Rr,1));[1,8,15,22].forEach(d=>c.fillRect(X(d),T,1,H-T-B));
+  const px=(x,y,col)=>{c.fillStyle=col;c.fillRect(x,y,1,1)};
+  const line=(k,col,sc)=>{let p0=null;s.hist.forEach(o=>{const v=sc?Math.min(100,o[k]/35000):o[k],x=X(o.d),y=Y(v);
+    if(p0){const [x0,y0]=p0,n=Math.max(1,Math.abs(x-x0),Math.abs(y-y0));for(let i=0;i<=n;i++)px(Math.round(x0+(x-x0)*i/n),Math.round(y0+(y-y0)*i/n),col)}else px(x,y,col);p0=[x,y]})};
+  if(endChart==='stat'){for(let x=L;x<W-Rr;x+=2)px(x,Y(25),'#ff6474');STATS.forEach(S=>line(S.k,SCOL[S.k]))}
+  else{line('money','#ffc94d',1);for(let x=L;x<W-Rr;x+=2)px(x,Y(1200000/35000),'#ff6474')}
+  c.fillStyle='#6a70a0';[1,8,15,22,30].forEach(d=>c.fillRect(X(d),H-B+2,1,3));
+}
+
+/* Điện thoại trong game (design/12 thẻ 5): mở từ nút Tiền bạc ở phòng trọ. Không có ứng dụng vay. */
+let phoneApp='home';
+const PH_TIME=['07:30','12:00','16:00','20:30'];
+function txAdd(n,v){if(!v)return;(s.tx=s.tx||[]).unshift({d:s.day,n,v});if(s.tx.length>40)s.tx.length=40}
+function phoneHTML(){
+  const sb=`<div class="sb"><span>${PH_TIME[s.slot]}</span><span>▮▮▮ 64%</span></div>`,hdr=t=>`<div class="ah"><button type="button" data-ph="home" aria-label="Về màn hình chính">‹</button>${t}</div>`;
+  const ask=A.home.find(x=>x.id==='askparents'),ship=A.home.find(x=>x.id==='ship');
+  let scr;
+  if(phoneApp==='home')scr=`<div class="ph dark"><div class="wall"></div><div class="sb" style="position:relative"><span>${PH_TIME[s.slot]}</span><span>▮▮▮ 64%</span></div>
+    <div class="apps"><button class="app" type="button" data-ph="chat"><span class="ai" style="--c:#4f7fd0">💬</span>Tin nhắn${s.flags.momCall?'':'<span class="bd">1</span>'}</button><button class="app" type="button" data-ph="call"><span class="ai" style="--c:#3f9a5a">📞</span>Gọi điện</button>
+    <button class="app" type="button" data-ph="wallet"><span class="ai" style="--c:#2f7a46">💳</span>Ví</button><button class="app" type="button" data-ph="food"><span class="ai" style="--c:#ff9a3a">🛵</span>Đặt đồ ăn</button></div></div>`;
+  else if(phoneApp==='wallet'){const nb=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&!(d===s.day&&s.slot>0));
+    scr=`<div class="ph">${sb}${hdr('Ví của tôi')}<div class="pb">
+    <div class="bal"><small>Số dư</small><span class="num">${fmt(s.money)}</span></div>
+    <div class="kv"><span>Lương part-time chờ trả</span><b class="pos">${fmt(s.accrued)}</b></div><div class="kv"><span>Hóa đơn sắp tới</span><b>${nb?`${BILLS[nb][0]} ngày ${nb}: ${fmt(BILLS[nb][1])}`:'Không còn'}</b></div>
+    <b style="font-size:.86em">Giao dịch gần đây</b>${(s.tx||[]).slice(0,6).map(t=>`<div class="tx"><span>${t.n}</span><span class="num" style="color:${t.v<0?'#d6453a':'#2f8a4a'}">${t.v>0?'+':'−'}${fmt(Math.abs(t.v))}</span></div>`).join('')||'<p style="margin:0;font-size:.8em">Chưa có giao dịch.</p>'}</div></div>`}
+  else if(phoneApp==='chat')scr=`<div class="ph">${sb}${hdr('Mẹ')}<div class="chat">
+    <div class="msg">“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”<small>Ngày 1 · 07:00</small></div>
+    <div class="msg me">Dạ, con biết rồi mẹ<small>Ngày 1 · 07:02</small></div>
+    ${s.flags.momCall?'<div class="msg">“Con ăn uống có đủ không? Tiền còn đủ xài không con?”<small>Ngày 18 · 20:30</small></div>':''}</div>
+    <div class="quick"><button type="button" data-ph="call">Gọi cho mẹ<small>Mở màn hình gọi điện</small></button></div></div>`;
+  else if(phoneApp==='call'){const r=reason(ask);
+    scr=`<div class="ph dark call">${sb}<div class="pb" style="align-items:center;justify-content:center;text-align:center">
+    <span class="momc ringd">${pxImg(Portraits.url('me','normal',{}))}</span><b style="font-size:1.2em">Mẹ</b><small style="opacity:.7">Đang gọi…</small>
+    <div class="quick" style="background:transparent;border:0;width:100%;padding:0"><button type="button" data-phdo="askparents" ${r?'disabled':''} style="background:#fff">Con xin thêm 500k<small>+500.000đ · tinh thần −8 · ảnh hưởng nhiệm vụ Tự lập${r?' · '+r.toLowerCase():` · đã xin ${s.askCount}/2 lần`}</small></button>
+    <button type="button" data-ph="home" style="background:#ff5a5a;color:#fff;border-color:#ff5a5a">Kết thúc cuộc gọi<small style="color:#ffe0e0">Không mất buổi, không đổi chỉ số</small></button></div></div></div>`}
+  else{const r=reason(ship);
+    scr=`<div class="ph">${sb}${hdr('Đặt đồ ăn')}<div class="pb">
+    <div class="loanh"><b>Cơm gà xối mỡ + trà đá</b><small style="display:block">Giao tới phòng trọ trong 20 phút</small><span class="num" style="display:block;color:#1d2136;font-size:2em">${fmt(ship.cost)}</span></div>
+    <div class="kv"><span>Hiệu ứng</span><b>Độ no +40, tinh thần +5</b></div><div class="kv"><span>Phòng</span><b>Thêm hộp xốp (bừa hơn)</b></div><div class="alert">${ship.d} Chỉ đặt được khi đang ở phòng trọ.</div>
+    ${r?`<div class="alert" style="background:#ffe8ea;color:#a8283a">${r}</div>`:''}<button class="pbtn" type="button" data-phdo="ship" ${r?'disabled':''}>Đặt món</button></div></div>`}
+  return `<div class="hand" role="dialog" aria-label="Điện thoại">${scr}</div><button class="btns phx" type="button" data-close>Cất điện thoại (Esc)</button>`;
+}
+function phoneDo(id){
+  const a=A.home.find(x=>x.id===id);if(!a||reason(a))return;
+  hideWin();const ok=doAction(a);
+  if(ok&&!win){phoneApp=id==='askparents'?'wallet':'home';if(id==='askparents')openWin('phone')}
 }
 
 /* Layer clicks */
@@ -881,6 +944,9 @@ $('layer').addEventListener('click',e=>{
   const qq=t.closest('[data-q]');if(qq){questSel=qq.dataset.q;renderWin();const f=$('win').querySelector(`[data-q="${questSel}"]`);if(f)f.focus({preventScroll:true});return}
   const sl=t.closest('[data-slot]');if(sl){bagSel=sl.dataset.slot;renderWin();const u=$('win').querySelector(`[data-slot="${bagSel}"]`);if(u)u.focus({preventScroll:true});return}
   const day=t.closest('[data-day]');if(day){calSel=+day.dataset.day;renderWin();return}
+  const cs=t.closest('[data-chart]');if(cs){endChart=cs.dataset.chart;renderWin();return}
+  const ph=t.closest('[data-ph]');if(ph){phoneApp=ph.dataset.ph;renderWin();const f=$('win').querySelector('.ah button,.app,.quick button');if(f)f.focus({preventScroll:true});return}
+  const pd=t.closest('[data-phdo]');if(pd){if(!pd.disabled)phoneDo(pd.dataset.phdo);return}
   const m=t.closest('[data-m]');if(m){cmd(m.dataset.m);return}
   if(t.closest('[data-close]')){closeWin();return}
   if(t.id==='layer'&&win!=='event'&&win!=='end')closeWin();
@@ -899,7 +965,7 @@ function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScree
 function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
 /* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
-function newGame(ch){s=newState();s.name=ch.name;s.gender=ch.gender;s.started=true;startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
+function newGame(ch){s=newState();s.name=ch.name;s.gender=ch.gender;s.started=true;txAdd('Bố mẹ gửi',START_MONEY);startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
   activateChapter(1);
   queue.push(ev('Tin nhắn của mẹ','“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”',[{l:'Dạ, con biết rồi mẹ'}],'me'));
   queue.push(ev('Phòng ghép với Khoa','“Chìa khóa nè. Con ở chung với thằng Khoa, tiền nhà phần con 1 triệu 2, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
