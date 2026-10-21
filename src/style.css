@@ -678,6 +678,48 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 
 @media (prefers-reduced-motion:reduce){.pop{animation-duration:.01s}.st.low .sbar i{animation:none}#scene,.toast,.sbar i,.bar i{transition:none}}
 
+/* minigame (bản chơi thử 2, mục 6): khung giữa màn hình, tờ tiền pixel, thanh lửa */
+.pn.mgw{left:50%;top:50%;transform:translate(-50%,-50%);width:calc(var(--p)*330);max-height:calc(100% - var(--p)*16);overflow:auto;padding:calc(var(--p)*9) calc(var(--p)*11);font-size:calc(var(--p)*7.5);line-height:1.35;display:flex;flex-direction:column;gap:calc(var(--p)*5)}
+.mg-h{display:flex;align-items:center;gap:.7em}
+.mg-h h2{margin:0;font-size:1.25em;font-weight:900;color:var(--lantern)}
+.mg-time{margin-left:auto;font-family:var(--f-num);font-size:1.3em;color:var(--fg)}
+.mg-hint{margin:0;color:var(--muted);font-size:.86em}
+.mg-b{display:flex;flex-direction:column;gap:calc(var(--p)*4)}
+.mg-k{font-weight:800;display:flex;align-items:center;gap:.6em}
+.mg-dots{display:flex;gap:.3em}.mg-dots i{width:.7em;height:.7em;background:var(--u-well);box-shadow:inset 0 0 0 1px var(--u-hi)}
+.mg-dots i.cur{background:var(--lantern)}.mg-dots i.ok{background:var(--good)}.mg-dots i.no{background:var(--bad)}
+.mg-cust{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--p)*2) calc(var(--p)*10)}
+.mg-cust>.mg-k,.mg-items,.mg-given{grid-column:1/-1}
+.mg-items{list-style:none;margin:0;padding:calc(var(--p)*3) calc(var(--p)*5);background:var(--u-well);display:flex;flex-wrap:wrap;gap:.2em 1.2em;font-size:.9em}
+.mg-items li{display:flex;gap:.5em}.mg-items b{font-family:var(--f-num);font-size:1.15em;font-weight:400}
+.mg-sum{display:flex;justify-content:space-between;align-items:baseline;border-bottom:var(--p) solid var(--u-in)}
+.mg-sum b{font-family:var(--f-num);font-size:1.4em;font-weight:400}.mg-sum.give b{color:var(--lantern)}
+.mg-given{display:flex;flex-wrap:wrap;gap:calc(var(--p)*2);min-height:calc(var(--p)*26)}
+.mg-given img{width:calc(var(--p)*12);height:calc(var(--p)*24)}
+.mg-notes{display:grid;grid-template-columns:repeat(8,1fr);gap:calc(var(--p)*3)}
+.mg-note{position:relative;font:inherit;color:inherit;border:0;cursor:pointer;background:var(--u-well);padding:calc(var(--p)*3) 0 calc(var(--p)*2);display:flex;flex-direction:column;align-items:center;gap:calc(var(--p)*1.5);
+  box-shadow:inset var(--p) var(--p) 0 #0b0d1c,inset calc(var(--p)*-1) calc(var(--p)*-1) 0 #262c50}
+.mg-note:hover{background:#1d2245}.mg-note:active{transform:translateY(var(--p))}
+.mg-note img{width:calc(var(--p)*12);height:calc(var(--p)*24)}
+.mg-note span{font-family:var(--f-num);font-size:1.15em;line-height:1}
+.mg-note kbd,.mg-acts kbd{font:inherit;font-size:.7em;color:#8a90c0}
+.mg-note kbd{position:absolute;left:calc(var(--p)*2);top:calc(var(--p)*1)}
+.mg-acts{display:flex;justify-content:flex-end;gap:calc(var(--p)*5)}
+.mg-acts .big{font-size:1.15em;padding:.55em 2.2em}
+.mg-steps{list-style:none;margin:0;padding:0;display:flex;gap:calc(var(--p)*6);font-weight:800}
+.mg-steps li{padding:.15em .6em;background:var(--u-well);color:var(--muted)}
+.mg-steps li.cur{color:var(--lantern-ink);background:var(--lantern)}.mg-steps li.ok{color:#10301c;background:var(--good)}.mg-steps li.no{color:#fff;background:var(--bad)}
+.mg-bar{position:relative;height:calc(var(--p)*18);background:linear-gradient(90deg,#5a2a1c,#c8502a 30%,#ff9a3a 50%,#c8502a 70%,#5a2a1c);box-shadow:inset 0 0 0 var(--p) var(--u-o)}
+.mg-bar .z{position:absolute;top:0;bottom:0;background:rgba(114,222,144,.75);box-shadow:inset 0 0 0 var(--p) #2f7a46}
+.mg-bar .m{position:absolute;top:calc(var(--p)*-3);bottom:calc(var(--p)*-3);width:calc(var(--p)*3);margin-left:calc(var(--p)*-1.5);background:#ffffff;box-shadow:0 0 0 var(--p) var(--u-o)}
+.mg-fin{margin:calc(var(--p)*6) 0;font-size:1.15em;font-weight:800;text-align:center;color:var(--lantern)}
+@media (pointer:coarse) and (orientation:landscape){
+  .pn.mgw{width:min(620px,calc(100% - 24px));font-size:13px;padding:10px 14px;gap:6px}
+  .mg-notes{gap:4px}.mg-note{min-height:52px}.mg-note kbd,.mg-acts kbd{display:none}
+  .mg-note img,.mg-given img{width:12px;height:24px}
+  .mg-acts button{min-height:44px}
+  .mg-hint{display:none}
+}
 /* điện thoại nằm ngang: thẻ xếp dọc bên phải (mỗi thẻ cao ít nhất 52 điểm), cột công cụ bên trái,
    nhiệm vụ dời sang cạnh ví để cột thẻ có đủ chiều cao */
 @media (pointer:coarse) and (orientation:landscape){

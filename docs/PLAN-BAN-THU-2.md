@@ -195,16 +195,16 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ## Giai đoạn 5: minigame (mục 6)
 
-- [ ] **5.1 Khung minigame** (`src/minigames.js`, `src/style.css`)
+- [x] **5.1 Khung minigame** (`src/minigames.js`, `src/style.css`)
   - Tiêu đề, hướng dẫn một dòng, đồng hồ đếm ngược, nút "Bỏ qua" (nhận kết quả trung bình). Dùng được chuột, phím, cảm ứng. Bật giảm chuyển động thì không giới hạn thời gian.
   - Tần suất: lần đầu mỗi tuần cho mỗi loại, sau đó khoảng 1 trong 3 lần; còn lại tự tính kết quả trung bình.
   - Mô phỏng dùng kết quả trung bình, không chạy minigame.
-- [ ] **5.2 Tờ tiền pixel 12×24** (`src/gfx/money.js`): 1.000 đến 200.000đ theo màu tờ tiền thật, không chép hình in.
-- [ ] **5.3 Thối tiền** khi làm ca:
+- [x] **5.2 Tờ tiền pixel 12×24** (`src/gfx/money.js`): 1.000 đến 200.000đ theo màu tờ tiền thật, không chép hình in.
+- [x] **5.3 Thối tiền** khi làm ca:
   - 3 khách, mỗi khách có các món, tổng tiền, tiền khách đưa; bấm tờ tiền để thối, nút "Xóa" và "Đưa tiền"; 25 giây cho cả 3 khách.
   - Kết quả: đúng 3 thì thưởng 20.000đ, tinh thần +3, chị Mai khen; đúng 2 thì thưởng 10.000đ; đúng 0 hoặc 1 thì tinh thần −2; bỏ qua thì thưởng 10.000đ.
   - Kiểm tra: test hàm chấm điểm; Playwright chơi đúng cả 3 khách.
-- [ ] **5.4 Canh lửa** khi nấu cơm ở phòng trọ:
+- [x] **5.4 Canh lửa** khi nấu cơm ở phòng trọ:
   - 3 bước (xào rau, chiên trứng, nêm nếm); vạch chạy qua lại, bấm để dừng; vùng xanh khoảng 25%.
   - Kết quả: trúng 3 thì tinh thần +3, no +4 cộng thêm; trúng 1 hoặc 2 thì không cộng; trúng 0 thì món bị khét, có dòng nhật ký vui (văn bản đề xuất: “Món trứng hơi khét, nhưng vẫn ăn hết sạch.”); bỏ qua thì không cộng.
 

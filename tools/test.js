@@ -13,6 +13,7 @@ function check(name,ok,detail){RESULTS.push({name,ok:!!ok,detail:detail||''})}
 const realRandom=Math.random;
 function withRandom(v,fn){Math.random=()=>v;try{return fn()}finally{Math.random=realRandom}}
 /* test lỗi cũ chạy ở độ khó Dễ (số v0.2.0) để chỉ kiểm đúng phần đã sửa; luật mới có test riêng ở cuối */
+MG.off=true; // test cũ không mở minigame; test minigame bật riêng
 function fresh(diff='de'){newGame({name:'Lan',gender:'nu'});s.diff=diff;clearEvents();}
 function clearEvents(){let g=0;while(win==='event'&&g++<50){finishType();const i=curEvent.choices.findIndex(c=>!(c.cost&&s.money<c.cost)&&!(c.need&&c.need(s)));pickChoice(i<0?0:i)}hideWin();queue=[]}
 const poolIds=()=>DECK.filter(e=>deckOk(s,e,true)).map(e=>e.id);
@@ -227,6 +228,28 @@ fresh('thuong');s.day=13;s.slot=3;s.loc='home';s.money=500000;DECK_BY.blackout.m
 fresh('thuong');s.day=30;s.slot=1;s.money=900000;queue=[];withRandom(0.99,()=>{slotEvents();processQueue()});while(win==='event'&&curEvent.title!=='Mẹ lên Sài Gòn')pickChoice(curEvent.choices.length-1);
 withRandom(0.99,()=>pickChoice(0));check('Sinh nhật mẹ: ăn mừng ở TTTM có lời thoại của mẹ',s.loc==='mall'&&s.flags.momParty===1&&win==='event'&&curEvent.title==='Sinh nhật mẹ'&&curEvent.who==='me');
 clearEvents();check('Sinh nhật mẹ: lời kết có câu ăn mừng',endingLines().some(([w,t])=>w==='me'&&t.startsWith('Mẹ lên Sài Gòn đúng ngày sinh nhật')));
+/* ---------- minigame (src/minigames.js) ---------- */
+{let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};let okAll=true;
+ for(let k=0;k<200;k++){for(const c of mgCustomers(rnd)){if(!(c.items.length>=1&&c.items.length<=3&&c.paid>c.total&&MG_PAY.includes(c.paid)&&c.total===c.items.reduce((a,[,p])=>a+p,0)))okAll=false}}
+ check('Thối tiền: 3 khách, 1–3 món, tiền khách đưa lớn hơn tổng',okAll)}
+check('Thối tiền: chấm đúng khi tổng tờ tiền bằng tiền thối',mgChangeOk({total:37000,paid:100000},[50000,10000,2000,1000])&&!mgChangeOk({total:37000,paid:100000},[50000,10000,2000]));
+check('Thối tiền: đúng 3 thưởng 20.000đ, tinh thần +3, chị Mai khen',JSON.stringify(mgChangeResult(3))===JSON.stringify({gain:20000,tt:3,praise:true}));
+check('Thối tiền: đúng 2 thưởng 10.000đ; đúng 0–1 tinh thần −2; trung bình 10.000đ',mgChangeResult(2).gain===10000&&mgChangeResult(1).tt===-2&&mgChangeResult(0).tt===-2&&MG_CHANGE_AVG.gain===10000);
+check('Canh lửa: trúng 3 thì tinh thần +3, no +4; trúng 0 khét; trúng 1–2 không cộng',mgCookResult(3).tt===3&&mgCookResult(3).no===4&&mgCookResult(0).burnt&&!Object.keys(mgCookResult(2)).length);
+check('Canh lửa: vùng xanh 25%, vạch trong vùng là trúng',MG_ZONE===0.25&&mgFireHit(0.5,0.4)&&!mgFireHit(0.7,0.4));
+fresh('thuong');s.day=8;check('Tần suất: lần đầu mỗi tuần luôn chơi',mgWant(s,'change',()=>0.99)&&!mgWant(s,'change',()=>0.99)&&mgWant(s,'change',()=>0.1)&&mgWant(s,'cook',()=>0.99));
+s.day=15;check('Tần suất: sang tuần mới lại chơi lần đầu',mgWant(s,'change',()=>0.99));
+// làm ca có minigame: chơi đúng cả 3 khách
+MG.off=false;fresh('thuong');s.flags.hired=1;s.day=3;s.slot=2;s.loc='store';s.money=100000;s.tt=50;queue=[];hideWin();
+withRandom(0.99,()=>doAction(A.store.find(a=>a.id==='shift')));
+check('Làm ca: mở Thối tiền trước khi hết ca',win==='event'&&curEvent.kind==='mg'&&curEvent.type==='change'&&s.slot===2);
+for(let k=0;k<3;k++){const c=curEvent.st.cs[k];let r=c.paid-c.total;for(const v of [...Money.VALUES].reverse())while(r>=v){mgDo('note',v);r-=v}mgDo('give')}
+const fin=mgCur&&mgCur.fin;withRandom(0.99,()=>mgCur.e.done(fin));mgCur=null;clearEvents();
+check('Làm ca: thối đúng 3 khách thì +20.000đ, tinh thần +3, chị Mai khen, sang buổi tối',fin&&fin.n===3&&s.money===120000&&s.slot===3&&s.shifts===1&&s.log.some(l=>l.text.startsWith('Chị Mai khen')),JSON.stringify({m:s.money,sl:s.slot,n:fin&&fin.n}));
+fresh('thuong');s.day=3;s.slot=3;s.loc='home';s.bag=[{id:'nguyenlieu',exp:5}];queue=[];hideWin();useItem('nguyenlieu');
+check('Nấu cơm: mở Canh lửa',win==='event'&&curEvent.type==='cook');
+const no0=s.no;mgDo('skip');check('Canh lửa: bỏ qua thì vẫn nấu, không cộng thêm',s.cooked===1&&!win&&s.no>no0);
+MG.off=true;
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

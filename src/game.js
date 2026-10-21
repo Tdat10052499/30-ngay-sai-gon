@@ -321,6 +321,7 @@ function chipsHTML(o,withMoney=true){
 /* ============ Core loop ============ */
 function doAction(a){
   if(s.over||win||reason(a))return false;
+  if(a.id==='shift'&&!a.mgDone&&mgStart('change',()=>doAction({...a,mgDone:1})))return true;
   const m0=s.money;
   if(a.k==='act'){s.lastAct=a.id;if(s.slot===3)s.noBed=s.no} // độ no lúc chọn hành động cuối ngày, trước mọi lần trừ
   startActScene(a);
@@ -344,11 +345,28 @@ function slotStart(){if(s.mealChk===s.day*10+s.slot)return;s.mealChk=s.day*10+s.
 const MEAL_LBL={ship:'Đặt đồ ăn qua app',nguyenlieu:'Nấu cơm',mi:'Ăn mì gói'};
 function tryAutoEat(){
   const m0=s.money,n0=s.no,top=s.log[0],p=autoEat();if(!p)return null;
+  if(win==='event'&&curEvent&&curEvent.kind==='mg')return p;
   const id=p.act||p.item,lb=MEAL_LBL[id]||('Ăn '+(p.act?A[s.loc].find(a=>a.id===id).n:ITEMS[id].n).toLowerCase());
   /* bỏ dòng nhật ký riêng của món ăn (và của lần mua), thay bằng một dòng tự ăn */
   for(let i=0;i<s.log.length&&s.log[i]!==top;)if(!s.log[i].tone&&/^(Dùng |Nấu cơm ăn|Ăn mì|.+ [(]−[0-9.,]+k[)]$)/.test(s.log[i].text))s.log.splice(i,1);else i++;
   const msg=`${lb}: ${s.money<m0?`−${fmt(m0-s.money)}, `:''}no +${s.no-n0}`;
   showToast(msg);addLog('Tự ăn theo chế độ '+DIETS[s.diet].n+': '+msg);return p;
+}
+/* minigame (src/minigames.js): lần đầu mỗi tuần, sau đó khoảng 1 trong 3 lần; lần còn lại lấy kết quả trung bình.
+ * Trả true nếu đã mở minigame (hành động chạy sau khi chơi xong). */
+const mgAvg=type=>type==='change'?MG_CHANGE_AVG:MG_COOK_AVG;
+function mgStart(type,after){
+  if(MG.off||!mgWant(s,type,Math.random)){mgApply(type,mgAvg(type),true);return false}
+  closeMenu();curEvent=mgNew(type,r=>{hideWin();curEvent=null;after();mgApply(type,r||mgAvg(type),!r);afterChange()});
+  openWin('event');return true;
+}
+function mgApply(type,r,quiet){
+  if(type==='change'){if(r.gain){s.money+=r.gain;txAdd('Thưởng thối tiền',r.gain)}
+    if(quiet)return;const out=applyEff({tt:r.tt||0});popFx(out,r.gain||0);
+    addLog(`Thối tiền: đúng ${r.n}/3 khách`+(r.gain?`, thưởng ${fk(r.gain)}`:'')+(r.tt<0?', tinh thần −2':''),r.tt<0?'bad':'good');
+    if(r.praise)addLog('Chị Mai khen: “Thối tiền nhanh mà chuẩn ghê!”','good');return}
+  if(quiet)return;const out=applyEff({tt:r.tt||0,no:r.no||0});popFx(out,0);
+  addLog(`Canh lửa: trúng ${r.n}/3 bước`+(r.tt?', tinh thần +3, no +4':''),r.tt?'good':'');if(r.burnt)addLog(MG_BURNT);
 }
 /* ăn theo chế độ ăn (src/cards.js); trả bữa đã ăn hoặc null */
 function autoEat(){
@@ -358,8 +376,9 @@ function autoEat(){
   if(p.buy){const b=find(p.buy);if(!b)return null;doAction(b)}
   if(itemReason(p.item))return null;useItem(p.item);return p;
 }
-function useItem(id){
+function useItem(id,mgDone){
   const r=itemReason(id);if(r||s.over)return;
+  if(id==='nguyenlieu'&&!mgDone&&mgStart('cook',()=>useItem(id,true)))return;
   const it=ITEMS[id];
   const out=applyEff(effOf(it));
   bagTake(id);if(it.after)it.after(s);
@@ -766,7 +785,7 @@ function openWin(name){
   win=name;bagSel=null;if(name==='cal')calSel=s.day;
   closeMenu();renderCmd();
   const kind=name==='event'&&curEvent?curEvent.kind||'dlg':null;
-  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='warn'?' full dim':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||name==='log'||name==='rules'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
+  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='warn'||kind==='mg'?' full dim':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||name==='log'||name==='rules'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
   if(name==='map')mapPick();
   $('layer').hidden=false;renderWin();
   if(kind==='day')sfx('dayStart');else if(kind==='warn')sfx('warn');else if(kind==='dlg'){if(curEvent.who==='me')sfx('message')}else sfx('open');
@@ -782,12 +801,12 @@ function toggleWin(name){
 }
 function renderWin(){
   const kind=win==='event'&&curEvent?curEvent.kind||'dlg':null,isDlg=kind==='dlg';
-  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='warn'?'pn warnc':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
-  w.setAttribute('aria-labelledby',kind==='warn'?'wnT':kind==='chapter'?'chT':win==='end'?'endT':'');
+  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='warn'?'pn warnc':kind==='mg'?'pn mgw':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
+  w.setAttribute('aria-labelledby',kind==='mg'?'mgT':kind==='warn'?'wnT':kind==='chapter'?'chT':win==='end'?'endT':'');
   const html=win==='bag'?bagHTML():win==='cal'?calHTML():win==='tasks'?tasksHTML():win==='map'?mapHTML()
     :win==='log'?docHead('book','Nhật ký')+`<div class="t-det well t-doc"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
     :win==='rules'?docHead('help','Luật chơi')+`<div class="t-det well t-doc">${rulesHTML()}</div>`
-    :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():kind==='warn'?warnHTML(curEvent):eventHTML())
+    :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():kind==='warn'?warnHTML(curEvent):kind==='mg'?(mgCur&&mgCur.e===curEvent||mgMount(curEvent),mgHTML()):eventHTML())
     :win==='end'?endHTML():win==='phone'?phoneHTML():'';
   w.innerHTML=nm(html);
   if(win==='map')drawMap();
@@ -981,6 +1000,7 @@ function rulesHTML(){return `<ul class="rules">
   <li>Độ khó: <b>${rulesOf(s).n}</b>. ${DIFF_TXT[(s&&s.diff)||'thuong']}</li>
   <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và các việc tiền bạc không tốn thời gian.</li>
   <li>Thẻ gợi ý dưới cùng (phím 1–5): bấm một thẻ là tự đi tới nơi, làm việc đó rồi sang buổi sau. Thẻ <b>Tự chọn</b> mở các nhóm hành động như cũ. Thẻ bị khóa ghi rõ lý do.</li>
+  <li>Thỉnh thoảng khi làm ca có minigame <b>Thối tiền</b>, khi nấu cơm có <b>Canh lửa</b>. Bỏ qua thì nhận kết quả trung bình.</li>
   <li><b>Chế độ ăn</b> chọn trong <b>Lịch</b>. Đầu mỗi buổi, nếu độ no dưới 45 và chưa ăn, Minh tự ăn theo chế độ đó; chọn Tự chọn bữa để tự bấm ăn.</li>
   <li>Sáng thứ Hai đến thứ Sáu Minh phải lên lớp; vắng học bị trừ điểm học tập. Sáng thứ Hai ngày 29 là kiểm tra giữa kỳ.</li>
   <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca trưa, ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương hoặc gọi xin thêm bố mẹ bằng điện thoại ở phòng trọ.</li>
@@ -1102,6 +1122,7 @@ function phoneDo(id){
 /* Layer clicks */
 $('layer').addEventListener('click',e=>{
   const t=e.target;
+  if(win==='event'&&curEvent&&curEvent.kind==='mg'){mgClick(t);return}
   if(typingNow()&&t.closest('.evw')){finishType();return}
   const ch=t.closest('[data-ch]');if(ch){if(!ch.disabled)pickChoice(+ch.dataset.ch);return}
   const ms=t.closest('[data-msel]');if(ms){mapSel=ms.dataset.msel;renderWin();const f=$('win').querySelector(`[data-msel="${mapSel}"]`);if(f)f.focus({preventScroll:true});return}
@@ -1194,6 +1215,7 @@ $('titleBtns').addEventListener('click',e=>{const b=e.target.closest('[data-m]')
 
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(win==='event'&&curEvent&&curEvent.kind==='mg'){mgKey(e);return}
   if(e.key==='Escape'&&mode==='create'&&!win){showTitle();return}
   if(e.key==='Escape'){if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd();return}if(!cardMode&&s.started){cardMode=true;renderCmd()}return}
   if(!s.started||$('ui').hidden)return;

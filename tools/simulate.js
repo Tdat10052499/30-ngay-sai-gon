@@ -20,6 +20,7 @@ const game = gameSource();
 
 /* ---------- Bot (chạy chung phạm vi với game qua eval) ---------- */
 const bots = `
+;MG.off=true; // minigame lấy kết quả trung bình
 ;function resolveEvents(prudent){let g=0;while(win==='event'&&g++<50){
   const ok=c=>!(c.cost&&s.money<c.cost)&&!(c.need&&c.need(s));
   let i=-1;
