@@ -17,8 +17,10 @@
 - **Điện thoại trong game** ở phòng trọ: tin nhắn của mẹ, gọi xin thêm tiền, ví (số dư, lương chờ, hóa đơn sắp tới, giao dịch gần đây), đặt đồ ăn.
 - Nhân vật chính đổi trang phục (ngày thường, cuối tuần, đồng phục) và biểu cảm (vui, buồn, mệt, đói, ốm), có bong bóng trạng thái; 7 chân dung có biểu cảm theo sự kiện.
 - **Bố cục điện thoại nằm ngang**: chừa vùng an toàn, nút lớn từ 48×48 điểm theo hai ngón cái, menu thành ngăn bên phải; điện thoại dọc hiện lời nhắc xoay ngang.
-- Bộ thiết kế `design/` (12 trang HTML tự chạy) và đặc tả `docs/DESIGN_SPEC.md`.
-- Trình mô phỏng có bot "Ví trống ngày 5" kiểm tra việc cố tình để ví trống trước ngày đóng tiền nhà, cùng số liệu hạng, tiền cuối tháng, tinh thần trung bình, số lần dọn phòng.
+- **Âm thanh** (`src/audio.js`, Web Audio, không cần file nhạc): 9 bản nhạc nền theo màn hình và địa điểm, đoạn bình minh ngày 1, nhạc dịu lại buổi tối, 17 hiệu ứng (bấm nút, mở và đóng cửa sổ, tiền vào ra, chỉ số tăng giảm, ăn, ngủ, sang ngày, nhiệm vụ, cảnh báo, tin nhắn, chữ hội thoại, cửa, máy tính tiền). Menu → Âm thanh có thanh Nhạc nền, Hiệu ứng và nút Tắt tiếng, lưu riêng khỏi bản lưu game. Âm thanh chỉ bật sau lần bấm đầu tiên.
+- **2 sự kiện mới trong nhà**: "Quán hết chỗ" ở quán cà phê và "Mời làm thẻ thành viên" ở TTTM (buổi trưa đến tối, mỗi sự kiện 1 lần trong tháng).
+- Bộ thiết kế `design/` (13 trang HTML tự chạy, gồm trang nghe thử âm thanh), bản WAV của nhạc nền trong `audio/` và đặc tả `docs/DESIGN_SPEC.md`.
+- Test cố định `tools/test.js` chạy trong `npm test`; trình mô phỏng có bot "Ví trống ngày 5" kiểm tra việc cố tình để ví trống trước ngày đóng tiền nhà, cùng số liệu hạng, tiền cuối tháng, tinh thần trung bình, số lần dọn phòng.
 
 ### Thay đổi
 
@@ -29,6 +31,12 @@
 - Nhiệm vụ "Tự lập tài chính" và thành tựu cùng tên chỉ còn điều kiện không xin thêm tiền bố mẹ.
 - Đồng phục cửa hàng chỉ mặc sau khi được nhận việc.
 - Khóa lưu đổi thành `ba-muoi-ngay-sg-v5`; bản lưu v0.2.0 không dùng được, game bắt đầu ván mới.
+
+### Sửa lỗi
+
+- Sự kiện "Mưa to bất chợt" xảy ra cả khi đang ngồi trong quán cà phê hoặc TTTM. Nay chỉ xảy ra khi vừa đi tới nơi khác bằng bản đồ (buổi trưa hoặc chiều, 15%) hoặc khi đang ở công viên buổi trưa hoặc chiều, tối đa 1 lần mỗi ngày.
+- Đã ăn, độ no trên 30 vẫn bị báo "Đi ngủ với cái bụng đói": game trừ độ no buổi tối và qua đêm rồi mới xét mức 35, nên phải còn khoảng 54 lúc đi ngủ. Nay xét độ no lúc chọn hành động cuối ngày, dưới 30 mới bị phạt, sau đó mới trừ độ no qua đêm. Dòng "Đi ngủ sớm" báo trước khi bụng đói.
+- Nhiệm vụ "Không bỏ buổi học nào" thất bại vào tối ngày 12 mà không nói vắng ngày nào (kể cả khi buổi bị lỡ là nghỉ có phép vì ốm), khiến người chơi tưởng ngày 12 bị tính vắng. Nay thông báo ghi "(vắng ngày X)" và cửa sổ Nhiệm vụ hiện ngày vắng.
 
 ### Gỡ bỏ
 
