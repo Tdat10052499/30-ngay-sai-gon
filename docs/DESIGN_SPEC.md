@@ -59,14 +59,14 @@ Mã vẽ trong các file trùng nhau một phần (ví dụ hàm `outlined`, `ca
 6. **Bản đồ mới**: vị trí 8 địa điểm theo file 09. Giá đi lại giữ nguyên (cà phê 5K, trường 6K, TTTM 12K, còn lại miễn phí).
 7. **Khóa lưu** tăng lên `ba-muoi-ngay-sg-v5`.
 
-## 5. Quyết định còn chờ (hỏi chủ dự án trước khi làm phần liên quan)
+## 5. Quyết định còn chờ (đã chốt ở v0.3.0)
 
-| Câu hỏi | Mặc định nếu chưa có trả lời |
-| --- | --- |
-| Mức phạt khi thiếu tiền hóa đơn có tăng theo số tiền thiếu không (đề xuất: −12, thêm −1 cho mỗi 50.000đ thiếu, tối đa −30)? | Giữ −12, nhưng báo kết quả mô phỏng việc cố tình để ví trống trước ngày 5 |
-| Đồng phục nữ ở cửa hàng: váy hay quần? | Váy |
-| Số liệu độ bừa bộn | Dùng số ở mục 4, chạy mô phỏng rồi báo lại |
-| Sự kiện ngẫu nhiên khi phòng bừa bộn (gián, Khoa than phiền) | Chưa làm |
+| Câu hỏi | Mặc định nếu chưa có trả lời | Đã chốt |
+| --- | --- | --- |
+| Mức phạt khi thiếu tiền hóa đơn có tăng theo số tiền thiếu không (đề xuất: −12, thêm −1 cho mỗi 50.000đ thiếu, tối đa −30)? | Giữ −12, nhưng báo kết quả mô phỏng việc cố tình để ví trống trước ngày 5 | Giữ −12. Bot ví trống ngày 5 chỉ được 445 điểm so với 817 của bot thận trọng (GAME_DESIGN mục 9) |
+| Đồng phục nữ ở cửa hàng: váy hay quần? | Váy | Váy |
+| Số liệu độ bừa bộn | Dùng số ở mục 4, chạy mô phỏng rồi báo lại | Dùng số ở mục 4; bot thận trọng dọn phòng khoảng 3 ngày một lần, điểm không đổi |
+| Sự kiện ngẫu nhiên khi phòng bừa bộn (gián, Khoa than phiền) | Chưa làm | Chưa làm |
 
 ## 6. Ngoài phạm vi v0.3
 

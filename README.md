@@ -4,9 +4,9 @@
 
 # 30 Ngày Sài Gòn
 
-**Game mô phỏng chi tiêu có cốt truyện.** Giúp tân sinh viên Minh vừa học vừa làm thêm, sống qua tháng đầu tiên ở Sài Gòn: học đủ, làm đủ, còn tiền, còn khỏe, còn vui.
+**Game mô phỏng chi tiêu có cốt truyện.** Giúp một tân sinh viên vừa học vừa làm thêm, sống qua tháng đầu tiên ở Sài Gòn: học đủ, làm đủ, còn tiền, còn khỏe, còn vui.
 
-Pixel art · Chơi trên trình duyệt · Tiếng Việt · Phiên bản `0.2.0`
+Pixel art · Chơi trên trình duyệt (máy tính, điện thoại nằm ngang) · Tiếng Việt · Phiên bản `0.3.0`
 
 </div>
 
@@ -14,14 +14,23 @@ Pixel art · Chơi trên trình duyệt · Tiếng Việt · Phiên bản `0.2.0
 
 ## Giới thiệu
 
-Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất. Bố mẹ gửi 3 triệu cho tháng đầu, phần còn lại Minh tự lo bằng việc làm part-time ở cửa hàng tiện lợi. Mỗi ngày có 4 buổi; mỗi buổi người chơi chọn đi đâu, ăn gì, mua gì và làm một hoạt động chính: lên lớp, đi làm, tự học, nghỉ ngơi hay đi chơi. Cuối tháng, game chấm điểm theo tài sản, độ no, tinh thần và sức khỏe, đồng thời kể lại kết cục với từng nhân vật.
+Người chơi đặt tên, chọn Nam hoặc Nữ cho nhân vật 18 tuổi rời Tuy Hòa vào Sài Gòn học năm nhất (tên mặc định là Minh). Bố mẹ gửi 3 triệu cho tháng đầu, phần còn lại nhân vật tự lo bằng việc làm part-time ở cửa hàng tiện lợi. Mỗi ngày có 4 buổi; mỗi buổi người chơi chọn đi đâu, ăn gì, mua gì và làm một hoạt động chính: lên lớp, đi làm, tự học, nghỉ ngơi hay đi chơi. Cuối tháng, game chấm điểm theo tài sản, độ no, tinh thần và sức khỏe, đồng thời kể lại kết cục với từng nhân vật.
 
 - **4 chương** theo 4 tuần: Tân sinh viên · Vừa học vừa làm · Lương part-time đầu tiên · Về đích
 - **14 nhiệm vụ chính** và 2 việc nhỏ mỗi ngày dẫn dắt người chơi
 - **Học và làm**: lên lớp mỗi sáng, ca part-time chiều tối, điểm học tập và bài kiểm tra giữa kỳ
-- **8 địa điểm** pixel, đổi cảnh theo sáng, trưa, chiều, tối
-- **Túi đồ** 9 vật phẩm có hạn dùng, **lịch tháng**, **bản đồ**, **nhật ký**
-- **Kinh tế sinh viên**: tiền bố mẹ chu cấp, lương part-time ngày 15, tiền nhà, giáo trình, ứng lương, xin thêm tiền nhà, vay app lãi cao
+- **8 địa điểm** pixel 320×180, đổi theo sáng, trưa, chiều, tối và theo tiến độ; lên lớp, làm ca, ăn ở quán, ngồi cà phê có cảnh hành động riêng
+- **Nhân vật** đổi trang phục và biểu cảm theo chỉ số; 7 chân dung có biểu cảm trong hội thoại
+- **Túi đồ** 9 vật phẩm có hạn dùng, **lịch tháng**, **bản đồ**, **nhật ký**, **điện thoại** trong phòng trọ
+- **Phòng trọ** bừa dần theo sinh hoạt, phải dọn để giữ tinh thần
+- **Kinh tế sinh viên**: tiền bố mẹ chu cấp, lương part-time ngày 15, tiền nhà, giáo trình, ứng lương, xin thêm tiền bố mẹ. Không có vay; thiếu tiền hóa đơn thì mất hết tiền trong ví và tinh thần
+
+| | |
+| --- | --- |
+| ![Trang bìa](docs/images/v0.3/trang-bia.png) | ![Phòng trọ và HUD](docs/images/v0.3/phong-tro.png) |
+| ![Bản đồ khu phố](docs/images/v0.3/ban-do.png) | ![Hội thoại](docs/images/v0.3/hoi-thoai.png) |
+
+![Điện thoại nằm ngang](docs/images/v0.3/dien-thoai-ngang.png)
 
 ![Vòng lặp chơi](docs/images/game-loop.svg)
 
@@ -52,9 +61,11 @@ Font chữ (Be Vietnam Pro, VT323) tải từ Google Fonts. Khi không có mạn
 | `J` | Nhiệm vụ |
 | `M` | Bản đồ |
 | `N` | Nhật ký |
+| `1`–`4` | Mở nhóm hành động trên thanh lệnh; trong hội thoại: chọn lựa chọn |
+| `Space` | Hiện hết lời thoại đang chạy |
 | `Esc` | Đóng cửa sổ hoặc menu |
 
-Mọi thao tác khác đều bấm chuột hoặc chạm, chơi được trên điện thoại.
+Mọi thao tác khác đều bấm chuột hoặc chạm. Trên điện thoại, xoay ngang màn hình để chơi.
 
 ## Cấu trúc thư mục
 
@@ -62,15 +73,21 @@ Mọi thao tác khác đều bấm chuột hoặc chạm, chơi được trên �
 30-ngay-sai-gon/
 ├── index.html              Trang game (khung HTML của màn hình)
 ├── src/
-│   ├── game.js             Toàn bộ logic: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện, cảnh pixel
-│   └── style.css           Giao diện: HUD, thanh lệnh, cửa sổ, bố cục dọc cho điện thoại
+│   ├── game.js             Logic game: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện, chọn cảnh
+│   ├── style.css           Giao diện: HUD, cửa sổ, màn mở đầu, bố cục điện thoại nằm ngang
+│   └── gfx/                Đồ họa canvas, gom từ design/
+│       ├── core.js         Công cụ vẽ chung: dither, viền tối, font pixel có dấu, phủ màu theo buổi
+│       ├── characters.js   Nhân vật chính (trang phục, biểu cảm, bong bóng) và nhân vật phụ
+│       ├── portraits.js    7 chân dung 48×48 có biểu cảm
+│       ├── icons.js        Biểu tượng HUD và vật phẩm 12×12
+│       └── scenes/         Từng cảnh: trang bìa, phòng trọ, trường, cửa hàng, quán ăn và chợ, cà phê/công viên/TTTM, bản đồ, tranh thẻ chương
 ├── assets/
 │   └── favicon.svg         Biểu tượng tab trình duyệt
 ├── design/                 Bộ thiết kế v0.3: 12 trang HTML tự chạy
 ├── docs/
 │   ├── GAME_DESIGN.md      Tài liệu thiết kế: cơ chế, nội dung, cân bằng
 │   ├── DESIGN_SPEC.md      Đặc tả thiết kế v0.3: hình ảnh, màn hình, thay đổi luật
-│   └── images/             Sơ đồ minh họa
+│   └── images/             Sơ đồ và ảnh chụp màn hình
 ├── tools/
 │   └── simulate.js         Mô phỏng cân bằng: cho bot chơi hàng trăm ván
 ├── .github/                CI và mẫu báo lỗi / góp ý
@@ -78,19 +95,16 @@ Mọi thao tác khác đều bấm chuột hoặc chạm, chơi được trên �
 └── package.json            Lệnh kiểm tra (không có thư viện phụ thuộc)
 ```
 
-### Bản đồ mã nguồn `src/game.js`
+### Bản đồ mã nguồn
 
 | Phần | Nội dung |
 | --- | --- |
-| `Pixel icons` | Icon và chân dung nhân vật vẽ bằng lưới 12×12 |
-| `Story` | Nhân vật, 4 chương, 14 nhiệm vụ, việc hằng ngày |
-| `Items (bag)` | 9 vật phẩm, hạn dùng, nơi dùng |
-| `Locations & actions` | 8 địa điểm và các hành động ở mỗi nơi |
-| `Core loop` | Hành động, kết thúc buổi, qua đêm, đi lại |
-| `Quests` / `Events` | Kiểm tra nhiệm vụ, sự kiện cốt truyện và ngẫu nhiên |
-| `Score & ending` | Công thức điểm, điểm học tập, kiểu người chơi, kết cục |
-| `HUD rendering` / `Windows` | Giao diện và các cửa sổ |
-| `Pixel scene` | Vẽ 8 khung cảnh và nhân vật trên canvas 192×108 |
+| `game.js` · `Story`, `Items`, `Locations & actions` | Nhân vật, 4 chương, 14 nhiệm vụ, 9 vật phẩm, 8 địa điểm và hành động |
+| `game.js` · `Core loop`, `Quests`, `Events` | Hành động, kết thúc buổi, qua đêm, hóa đơn, độ bừa bộn, nhiệm vụ, sự kiện |
+| `game.js` · `Score & ending` | Công thức điểm, điểm học tập, kiểu người chơi, kết cục |
+| `game.js` · `HUD rendering`, `Windows` | HUD, menu hành động, cửa sổ, hội thoại, thẻ chương và thẻ ngày, điện thoại, tổng kết |
+| `game.js` · `Title screen`, `Pixel scene` | Trang bìa, tạo nhân vật, chuyển cảnh ngày 1; chọn cảnh theo địa điểm và hành động |
+| `gfx/` | Mã vẽ lấy từ `design/`; mỗi cảnh đăng ký một hàm vào `Scenes` |
 
 ## Phát triển
 
@@ -101,14 +115,15 @@ npm test          # kiểm tra cú pháp + mô phỏng 40 ván mỗi kiểu chơ
 npm run sim       # mô phỏng đầy đủ 150 ván, in tỉ lệ hoàn thành từng nhiệm vụ
 ```
 
-Trình mô phỏng chạy logic thật của game với hai bot: **Thận trọng** (lên lớp đủ, làm ca chiều, nấu ăn ở nhà, từ chối chi tiêu bốc đồng) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng.
+Trình mô phỏng nạp mọi script theo thứ tự trong `index.html` và chạy logic thật của game với ba bot: **Thận trọng** (lên lớp đủ, làm ca chiều, nấu ăn ở nhà, dọn phòng khi bừa, từ chối chi tiêu bốc đồng), **Ví trống ngày 5** (cố tình tiêu sạch ví trước ngày đóng tiền nhà) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng.
 
 Kết quả hiện tại (150 ván mỗi kiểu):
 
-| Kiểu chơi | Điểm trung vị | Nhiệm vụ | Điểm học tập |
-| --- | --- | --- | --- |
-| Thận trọng | ~824 | 12/14 | 100 |
-| Ngẫu nhiên | ~160 | 3/14 | 0 |
+| Kiểu chơi | Điểm trung vị | Nhiệm vụ | Điểm học tập | Tài sản cuối |
+| --- | --- | --- | --- | --- |
+| Thận trọng | 817 | 12,1/14 | 100 | ~1,77tr |
+| Ví trống ngày 5 | 445 | 9,0/14 | 100 | ~1,41tr |
+| Ngẫu nhiên | 168 | 3,2/14 | 0 | ~0,1tr |
 
 ## Thiết kế
 
@@ -139,10 +154,10 @@ Thư mục `design/` chứa bộ thiết kế hình ảnh cho bản `0.3.0`. M�
 
 - [x] `0.1.0` Bản chơi thử đầu tiên: đủ cốt truyện, nhiệm vụ, hệ thống chỉ số, túi đồ, lịch, bản đồ
 - [x] `0.2.0` Đổi bối cảnh sang tân sinh viên vừa học vừa làm theo góp ý khách hàng; bỏ tính năng tiết kiệm
+- [x] `0.3.0` Đồ họa và giao diện mới theo bộ thiết kế; đặt tên và chọn giới tính; độ bừa bộn phòng; bỏ vay và nợ; bố cục điện thoại nằm ngang
 - [ ] Nhận góp ý vòng 2 của khách hàng
 - [ ] Thử nghiệm với người chơi thật để tinh chỉnh cân bằng
 - [ ] Âm thanh và nhạc nền
-- [ ] Cho người chơi chọn tên và ngoại hình nhân vật (chờ khách hàng xác nhận)
 
 ## Bản quyền
 

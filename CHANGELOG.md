@@ -2,6 +2,40 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), đánh số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [0.3.0] - 2026-10-21
+
+Đồ họa và giao diện mới theo bộ thiết kế trong `design/` (đặc tả ở `docs/DESIGN_SPEC.md`), cùng các thay đổi luật đã chốt.
+
+### Thêm mới
+
+- **Tạo nhân vật**: chọn Nam hoặc Nữ, đặt tên từ 1 đến 12 ký tự. Tên người chơi thay cho "Minh" trong mọi lời thoại, nhiệm vụ, nhật ký và kết cục.
+- **Màn mở đầu mới**: trang bìa cổng trường lúc hoàng hôn, màn tạo nhân vật, chuyển cảnh đêm → bình minh → thẻ Ngày 1 (có nút Bỏ qua).
+- **Độ bừa bộn phòng** (0–100, 3 mức gọn gàng, hơi bừa, bừa bộn): tăng sau mỗi đêm, mỗi bữa ăn và lần nấu trong phòng, mỗi buổi ở phòng. Phòng bừa làm tinh thần giảm khi ở nhà và ngủ hồi ít năng lượng hơn; Dọn phòng giảm 50 và cho tinh thần +5/+8/+12 theo mức. Căn phòng vẽ đủ 3 mức.
+- **Cảnh hành động**: lên lớp, kiểm tra giữa kỳ, thư viện, CLB, căng tin, phỏng vấn, làm ca, ăn ở quán, trà đá, ốc, ngồi cà phê, gặp Khoa có cảnh riêng.
+- **Cảnh đổi theo tiến độ**: tờ tuyển dụng, poster đêm nhạc tuần 2, chồng sách thư viện, bài giảng theo tuần, chợ và TTTM đóng cửa, quán ốc chỉ mở tối, nhà thuốc sáng đèn khi ốm, quầy quà mẹ tuần 4.
+- **Thẻ sang ngày** mỗi sáng (hôm qua, hôm nay, hóa đơn tự trừ, lương, hẹn) và **thẻ chương** có tranh minh họa.
+- **Điện thoại trong game** ở phòng trọ: tin nhắn của mẹ, gọi xin thêm tiền, ví (số dư, lương chờ, hóa đơn sắp tới, giao dịch gần đây), đặt đồ ăn.
+- Nhân vật chính đổi trang phục (ngày thường, cuối tuần, đồng phục) và biểu cảm (vui, buồn, mệt, đói, ốm), có bong bóng trạng thái; 7 chân dung có biểu cảm theo sự kiện.
+- **Bố cục điện thoại nằm ngang**: chừa vùng an toàn, nút lớn từ 48×48 điểm theo hai ngón cái, menu thành ngăn bên phải; điện thoại dọc hiện lời nhắc xoay ngang.
+- Bộ thiết kế `design/` (12 trang HTML tự chạy) và đặc tả `docs/DESIGN_SPEC.md`.
+- Trình mô phỏng có bot "Ví trống ngày 5" kiểm tra việc cố tình để ví trống trước ngày đóng tiền nhà, cùng số liệu hạng, tiền cuối tháng, tinh thần trung bình, số lần dọn phòng.
+
+### Thay đổi
+
+- Đồ họa vẽ lại hoàn toàn ở lưới 320×180, giao diện ở lưới 640×360; mã vẽ tách ra `src/gfx/` (công cụ chung, nhân vật, chân dung, biểu tượng, từng cảnh).
+- HUD mới gọn trong 5 cụm: thời gian và nơi đang đứng, tiền và nhiệm vụ, 4 chỉ số dạng cột, thanh lệnh gộp (phím 1–4), cảnh báo kèm nút làm ngay. Bấm một dòng trong menu là làm ngay.
+- Cửa sổ mới: Bản đồ toàn màn hình (vị trí 8 địa điểm theo giá đi lại), Túi đồ, Lịch, Nhiệm vụ chung một khung có tab, hội thoại có chân dung và lời thoại hiện dần, tổng kết cuối tháng có đồ thị 30 ngày.
+- **Thiếu tiền hóa đơn**: trừ hết tiền trong ví, tinh thần −12, không ghi nợ, không phạt. Lời cô Tư và kết cục đổi theo việc có thiếu tiền nhà ngày 5 hay không.
+- Nhiệm vụ "Tự lập tài chính" và thành tựu cùng tên chỉ còn điều kiện không xin thêm tiền bố mẹ.
+- Đồng phục cửa hàng chỉ mặc sau khi được nhận việc.
+- Khóa lưu đổi thành `ba-muoi-ngay-sg-v5`; bản lưu v0.2.0 không dùng được, game bắt đầu ván mới.
+
+### Gỡ bỏ
+
+- **Vay qua app** và trả nợ app.
+- **Nợ hóa đơn** và phạt 10%; kiểu người chơi "Con nợ cuối tháng".
+- Bố cục điện thoại dọc (thay bằng lời nhắc xoay ngang).
+
 ## [0.2.0] - 2026-10-20
 
 Cập nhật theo góp ý của khách hàng: đổi bối cảnh sang tân sinh viên vừa học vừa làm thêm.
@@ -47,5 +81,6 @@ Bản chơi thử đầu tiên gửi khách hàng.
 - Giao diện gói trong một màn hình 16:9, bố cục dọc cho điện thoại, phím tắt, tự lưu tiến trình.
 - Công cụ mô phỏng cân bằng `tools/simulate.js` và CI kiểm tra tự động.
 
+[0.3.0]: https://github.com/Tdat10052499/30-ngay-sai-gon/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Tdat10052499/30-ngay-sai-gon/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Tdat10052499/30-ngay-sai-gon/releases/tag/v0.1.0

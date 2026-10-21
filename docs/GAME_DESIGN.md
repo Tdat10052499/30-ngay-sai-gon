@@ -1,8 +1,8 @@
 # 30 Ngày Sài Gòn · Tài liệu thiết kế trò chơi
 
-Phiên bản tài liệu: 0.2.0 · Cập nhật: 20/10/2026
+Phiên bản tài liệu: 0.3.0 · Cập nhật: 21/10/2026
 
-**30 Ngày Sài Gòn** là game mô phỏng chi tiêu theo lượt có cốt truyện. Người chơi vào vai Minh, tân sinh viên năm nhất vừa học vừa làm thêm, sống qua tháng đầu tiên ở Sài Gòn: đi học đầy đủ, làm part-time, chi tiêu khéo từ tiền bố mẹ chu cấp, và giữ cho mình đủ no, đủ khỏe, đủ vui.
+**30 Ngày Sài Gòn** là game mô phỏng chi tiêu theo lượt có cốt truyện. Người chơi vào vai một tân sinh viên năm nhất (tự đặt tên và chọn giới tính, mặc định là Minh) vừa học vừa làm thêm, sống qua tháng đầu tiên ở Sài Gòn: đi học đầy đủ, làm part-time, chi tiêu khéo từ tiền bố mẹ chu cấp, và giữ cho mình đủ no, đủ khỏe, đủ vui.
 
 ## Mục lục
 
@@ -25,19 +25,19 @@ Phiên bản tài liệu: 0.2.0 · Cập nhật: 20/10/2026
 | Hạng mục | Mô tả |
 | --- | --- |
 | Thể loại | Mô phỏng đời sống, quản lý tài nguyên theo lượt; điều khiển bằng bấm chọn (point-and-click) |
-| Nền tảng | Trình duyệt web trên máy tính và điện thoại |
-| Hình ảnh | Pixel art, canvas 192×108 phóng to; một nhân vật ở giữa, cảnh đổi theo địa điểm và buổi |
+| Nền tảng | Trình duyệt web trên máy tính và điện thoại nằm ngang |
+| Hình ảnh | Pixel art: cảnh 320×180, giao diện trên lưới 640×360, phóng to nguyên lần. Cảnh đổi theo địa điểm, buổi và tiến độ; một số hành động có cảnh riêng. Quy tắc hình ảnh và bảng màu: [DESIGN_SPEC.md](DESIGN_SPEC.md) |
 | Độ dài một ván | 30 ngày × 4 buổi = 120 lượt |
 | Ngôn ngữ | Tiếng Việt, giá cả theo TP.HCM |
 | Mục tiêu trải nghiệm | Người chơi tự cảm nhận đánh đổi giữa học, làm thêm, chi tiêu và chăm sóc bản thân |
 
 ## 2. Cốt truyện và nhân vật
 
-Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất ngành Thiết kế, ở ghép phòng trọ với Khoa. **Bố mẹ gửi 3.000.000đ cho tháng đầu**, đã gồm tiền nhà. Phần còn lại Minh phải tự lo bằng việc làm part-time ở cửa hàng tiện lợi. Ba mục tiêu song song: **học đầy đủ** để qua bài kiểm tra giữa kỳ, **tự lập tài chính** không xin thêm tiền nhà, và **tự tay mua quà sinh nhật mẹ** (ngày 30) bằng tiền mình làm ra.
+Minh (hoặc tên người chơi đặt), 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất ngành Thiết kế, ở ghép phòng trọ với Khoa. Mọi chỗ lời thoại, nhiệm vụ, nhật ký và kết cục nhắc "Minh" đều thay bằng tên người chơi; lời thoại dùng xưng hô trung tính nên không đổi theo giới tính. **Bố mẹ gửi 3.000.000đ cho tháng đầu**, đã gồm tiền nhà. Phần còn lại Minh phải tự lo bằng việc làm part-time ở cửa hàng tiện lợi. Ba mục tiêu song song: **học đầy đủ** để qua bài kiểm tra giữa kỳ, **tự lập tài chính** không xin thêm tiền nhà, và **tự tay mua quà sinh nhật mẹ** (ngày 30) bằng tiền mình làm ra.
 
 | Nhân vật | Mã trong code | Vai trò |
 | --- | --- | --- |
-| Minh | `self` | Nhân vật chính, tân sinh viên năm nhất |
+| Minh (tên do người chơi đặt) | `self` | Nhân vật chính, tân sinh viên năm nhất, nam hoặc nữ |
 | Cô Tư, chủ nhà trọ | `tu` | Thu tiền nhà, hướng dẫn những việc đầu tiên |
 | Thầy Hải, cố vấn học tập | `hai` | Theo dõi chuyên cần, ra bài kiểm tra giữa kỳ |
 | Chị Mai, quản lý cửa hàng tiện lợi | `mai` | Phỏng vấn, xếp ca, trả lương part-time |
@@ -61,7 +61,7 @@ Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất ngành Thiết 
 | Đi tới địa điểm khác | Không giới hạn | Không |
 | Ăn một bữa | Tối đa 1 lần | Không |
 | Uống, dùng thuốc | Không giới hạn | Không |
-| Mua đồ, việc tiền bạc (ứng lương, vay, xin tiền) | Không giới hạn | Không |
+| Mua đồ, việc tiền bạc (ứng lương, xin tiền) | Không giới hạn | Không |
 | Hoạt động chính (lên lớp, làm ca, nghỉ, giải trí…) | Đúng 1 lần | Có, sang buổi sau |
 
 **Lịch tuần của Minh** (ngày 1 là thứ Hai):
@@ -73,7 +73,7 @@ Minh, 18 tuổi, rời Tuy Hòa vào Sài Gòn học năm nhất ngành Thiết 
 | Chiều | Ca part-time, thư viện, CLB | Ca part-time hoặc tự do |
 | Tối | Ca part-time (lương cao hơn) hoặc nghỉ | Ca part-time hoặc tự do |
 
-Qua đêm: độ no giảm, năng lượng hồi, đồ hết hạn bị bỏ. Sáng hôm sau hóa đơn đến hạn tự trừ và có 2 việc hằng ngày mới.
+Qua đêm: độ no giảm, năng lượng hồi, đồ hết hạn bị bỏ, phòng bừa thêm. Sáng hôm sau hóa đơn đến hạn tự trừ và có 2 việc hằng ngày mới.
 
 ## 4. Hệ thống chỉ số
 
@@ -88,11 +88,21 @@ Qua đêm: độ no giảm, năng lượng hồi, đồ hết hạn bị bỏ. S
 
 **Lợi ích giảm dần:** ăn khi độ no > 80 chỉ được 50%; giải trí khi tinh thần > 85 chỉ được 60%.
 
+**Độ bừa bộn phòng** (chỉ số ẩn 0–100, hiện bằng 3 vạch trong khung lịch và bằng chính căn phòng):
+
+| Mức | Ngưỡng | Ảnh hưởng | Dọn phòng |
+| --- | --- | --- | --- |
+| Gọn gàng | 0–33 | Sáng hôm sau tinh thần +2 | Tinh thần +5 |
+| Hơi bừa | 34–66 | Mỗi buổi ở phòng tinh thần −1 | Tinh thần +8 |
+| Bừa bộn | 67–100 | Mỗi buổi ở phòng tinh thần −2; ngủ hồi 40 năng lượng thay vì 50 | Tinh thần +12 |
+
+Tăng +10 mỗi đêm, +6 mỗi bữa ăn trong phòng, +4 mỗi lần nấu (nấu là một bữa nên tổng +10), +2 mỗi buổi ở phòng. Dọn phòng −50, năng lượng −6, mất một buổi.
+
 ## 5. Địa điểm và hành động
 
 | Địa điểm | Mở cửa | Đi lại | Hành động chính |
 | --- | --- | --- | --- |
-| Phòng trọ `home` | Cả ngày | 0 | Đặt đồ ăn (68k), ngủ trưa, lướt mạng, dọn phòng, nhận vẽ thuê (+80k, từ chiều), ngủ sớm; **Tiền bạc:** xin thêm tiền bố mẹ (+500k), vay app, trả nợ |
+| Phòng trọ `home` | Cả ngày | 0 | Đặt đồ ăn (68k), ngủ trưa, lướt mạng, dọn phòng, nhận vẽ thuê (+80k, từ chiều), ngủ sớm; **Tiền bạc** mở điện thoại: tin nhắn, gọi xin thêm tiền bố mẹ (+500k), ví, đặt đồ ăn |
 | Quán ăn `street` | Cả ngày | 0 | Cơm tấm 40k, phở 55k, bún bò 75k, mua bánh mì/xôi, trà đá, ăn ốc buổi tối 150k |
 | Chợ `market` | Sáng–chiều | 0 | Mua nguyên liệu, mì gói, trái cây, sữa, thuốc; dạo chợ |
 | Công viên `park` | Cả ngày | 0 | Chạy bộ (không chạy buổi trưa), đi dạo, ghế đá, bắp xào |
@@ -101,7 +111,7 @@ Qua đêm: độ no giảm, năng lượng hồi, đồ hết hạn bị bỏ. S
 | Cửa hàng tiện lợi `store` | 24 giờ | 0 | Phỏng vấn xin việc; làm ca part-time; xin ứng lương 300k; cơm hộp 30k; mua mì, cà phê lon, sữa |
 | TTTM `mall` | Trưa–tối | 12k | Buffet 199k, xem phim 110k, quần áo 350k, đi dạo (35% gặp giày sale), mua quà sinh nhật mẹ 300k (nhiệm vụ) |
 
-Hết tiền xăng thì đi bộ: năng lượng −8, tinh thần −2. Xe hỏng: phí đi lại ×3 trong 4 ngày. Khi đang ở cửa hàng, Minh mặc đồng phục xanh lá.
+Hết tiền xăng thì đi bộ: năng lượng −8, tinh thần −2. Xe hỏng: phí đi lại ×3 trong 4 ngày. Trên bản đồ, 4 nơi miễn phí nằm quanh phòng trọ, 3 nơi tốn tiền xa dần theo giá. Trang phục: áo xanh ngày thường, áo cam cuối tuần, đồng phục xanh lá khi ở cửa hàng sau khi đã được nhận việc (nữ mặc váy).
 
 **Ca part-time** (chỉ sau khi phỏng vấn):
 
@@ -144,7 +154,7 @@ Túi khởi đầu: 3 mì gói, 1 nguyên liệu (cô Tư cho), 1 cà phê lon.
 | 2 | `q2_club` | Đêm nhạc chào tân sinh viên | Chị Linh | Dự đêm nhạc tối ngày 13 (vé 100k) | 13 | tt +6 |
 | 2 | `q2_mood` | Đừng để mình kiệt quệ | Minh | Tinh thần ≥ 30 suốt ngày 8–14 | 14 | tt +5, sk +3 |
 | 3 | `q3_study` | Ôn bài ở thư viện | Thầy Hải | 3 buổi thư viện ngày 15–21 | 21 | tt +5 |
-| 3 | `q3_indep` | Tự lập tài chính | Minh | Không vay app, không xin thêm tiền bố mẹ | 21 | tt +6 |
+| 3 | `q3_indep` | Tự lập tài chính | Minh | Không xin thêm tiền bố mẹ | 21 | tt +6 |
 | 3 | `q3_khoa` | Cà phê với Khoa | Khoa | Gặp Khoa chiều ngày 20 hoặc 21 | 21 | tt +8 |
 | 4 | `q4_exam` | Kiểm tra giữa kỳ | Thầy Hải | Có mặt sáng ngày 29, đạt ≥ 55 điểm học tập | 29 | tt +8 |
 | 4 | `q4_gift` | Quà sinh nhật mẹ | Mẹ | Mua quà 300k ở TTTM | 30 | tt +15 |
@@ -189,26 +199,30 @@ Trò chơi chỉ kéo dài một tháng nên **không có tính năng gửi ti�
 | Điện, nước, internet | 10 | 200.000đ |
 | Giáo trình và quỹ lớp | 20 | 300.000đ |
 
-Thiếu tiền trả hóa đơn: ghi nợ + phạt 10%, tinh thần −12.
+Thiếu tiền trả hóa đơn (và viện phí): trừ hết tiền trong ví, tinh thần −12, không ghi nợ, không phạt. Thẻ sang ngày báo bằng dòng đỏ; thiếu tiền nhà ngày 5 thì nhiệm vụ "Tiền nhà cho cô Tư" thất bại và cô Tư nhắc khéo ở kết cục.
 
 **Các cách xoay xở khi kẹt tiền:**
 
 | Cách | Hoạt động | Hệ quả |
 | --- | --- | --- |
 | Xin ứng lương | Ứng 300k từ lương đang chờ, mỗi kỳ 1 lần, không lãi | Cách lành mạnh |
-| Xin thêm tiền bố mẹ | +500k, tối đa 2 lần | Tinh thần −8, thất bại nhiệm vụ Tự lập |
-| Vay nhanh qua app | +1tr, cuối tháng trả 1,3tr, tối đa 2 lần | Tinh thần −3, thất bại nhiệm vụ Tự lập, còn nợ thì thành "Con nợ cuối tháng" |
+| Xin thêm tiền bố mẹ (gọi điện ở phòng trọ, hoặc khi mẹ gọi ngày 18) | +500k, tối đa 2 lần | Tinh thần −8, thất bại nhiệm vụ Tự lập |
 
 Ngân sách nửa đầu tháng: (3,0tr − 1,2tr − 0,2tr) / 14 ngày ≈ **114.000đ/ngày** trước khi có lương part-time.
 
-**Kết quả mô phỏng** (`npm run sim`, 150 ván mỗi kiểu):
+**Kết quả mô phỏng** (`npm run sim`, 150 ván mỗi kiểu, v0.3.0):
 
-| Bot | Điểm trung vị | Nhiệm vụ | Điểm học tập | Ca part-time | Tài sản cuối |
-| --- | --- | --- | --- | --- | --- |
-| Thận trọng | 824 | 12/14 | 100 | 37 | ~1,97tr |
-| Ngẫu nhiên | ~160 | 3/14 | 0 | 2 | âm (nợ viện phí) |
+| Bot | Điểm trung vị | Hạng S / A / B / C / D | Nhiệm vụ TB | Điểm học tập | Ca part-time | Tài sản cuối | Tinh thần TB | Dọn phòng |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Thận trọng | 817 | 79% / 20% / 0% / 1% / 1% | 12,1/14 | 100 | 36 | ~1,77tr | 83 | 11 lần |
+| Ví trống ngày 5 | 445 | 0% / 0% / 1% / 42% / 57% | 9,0/14 | 100 | 33 | ~1,41tr | 35 | 9 lần |
+| Ngẫu nhiên | 168 | 100% hạng D | 3,2/14 | 0 | 3 | ~0,1tr | 32 | 0 |
 
-Bot thận trọng thường không đủ tiền dự đêm nhạc ngày 13 (bot chỉ chi khi ví còn dư nhiều), cho thấy áp lực tiền bạc trước ngày lương vẫn còn.
+So với v0.2.0 (Thận trọng 824 điểm, 12/14 nhiệm vụ, ~1,97tr), bot thận trọng giữ nguyên độ khó; tài sản giảm nhẹ vì phải dành buổi tối dọn phòng (khoảng 3 ngày một lần). Bot ngẫu nhiên không còn tài sản âm vì đã bỏ nợ.
+
+**Bỏ nợ có tạo lỗ hổng không?** Bot "Ví trống ngày 5" chơi như bot thận trọng nhưng chiều tối ngày 4 dồn hết tiền vào thuốc, mì, cà phê lon để ví trống khi trừ tiền nhà. Bot né được 1,2tr tiền nhà nhưng đói tới ngày lương, tinh thần trung bình chỉ 35 và điểm trung vị 445 so với 817. Vì vậy giữ mức phạt −12 tinh thần, không cần phạt tăng theo số tiền thiếu.
+
+Bot thận trọng thường không đủ tiền dự đêm nhạc ngày 13 và mua quà mẹ (bot chỉ chi khi ví còn dư nhiều), cho thấy áp lực tiền bạc trước ngày lương vẫn còn.
 
 ## 10. Tính điểm và kết cục
 
@@ -218,30 +232,39 @@ Bot thận trọng thường không đủ tiền dự đêm nhạc ngày 13 (bot
 
 | | Yếu tố | Quy đổi 0–1 |
 | --- | --- | --- |
-| T | Tài sản = tiền mặt + lương part-time kỳ 2 + thưởng chăm chỉ − nợ | ÷ 2.500.000, tối đa 1,25 |
+| T | Tài sản = tiền mặt + lương part-time kỳ 2 + thưởng chăm chỉ | ÷ 2.500.000, tối đa 1,25 |
 | N | Độ no trung bình cả tháng | ÷ 100 |
 | M | Tinh thần trung bình cả tháng | ÷ 100 |
 | S | Sức khỏe cuối ngày 30 | ÷ 100 |
 
 Hạng: S ≥ 800 · A ≥ 700 · B ≥ 580 · C ≥ 450 · D.
 
-Kiểu người chơi: Con nợ cuối tháng · Cỗ máy làm thêm (sức khỏe thấp, từ 24 ca) · Kẻ khổ hạnh · Sống cho hiện tại · Người cân bằng · Người sống sót.
+Kiểu người chơi: Cỗ máy làm thêm (sức khỏe thấp, từ 24 ca) · Kẻ khổ hạnh · Sống cho hiện tại · Người cân bằng · Người sống sót.
 
-Kết cục theo nhân vật: thầy Hải (kết quả kiểm tra giữa kỳ), chị Mai (số ca đã làm), mẹ (có nhận quà không, có phải gửi thêm tiền không), Khoa và chị Linh (nếu đã gặp), cô Tư (còn nợ hay không).
+Kết cục theo nhân vật: thầy Hải (kết quả kiểm tra giữa kỳ), chị Mai (số ca đã làm), mẹ (có nhận quà không, có phải gửi thêm tiền không), Khoa và chị Linh (nếu đã gặp), cô Tư (có thiếu tiền nhà ngày 5 hay không).
 
-Thành tựu: Chuyên cần (không vắng buổi học), Đầu bếp tại gia (15 bữa tự nấu), Tự lập tài chính, Chăm chỉ làm thêm (18 ca), Hoàn thành mọi nhiệm vụ, Fan cứng mì gói.
+Thành tựu: Chuyên cần (không vắng buổi học), Đầu bếp tại gia (15 bữa tự nấu), Tự lập tài chính (không xin thêm tiền bố mẹ), Chăm chỉ làm thêm (18 ca), Hoàn thành mọi nhiệm vụ, Fan cứng mì gói.
 
 ## 11. Giao diện
 
-Một màn hình 16:9 tự co giãn; trên điện thoại dọc chuyển sang bố cục cảnh trên, bảng dưới.
+Thiết kế chi tiết từng màn hình nằm trong `design/`, đặc tả trong [DESIGN_SPEC.md](DESIGN_SPEC.md).
+
+**Luồng màn hình:** trang bìa → tạo nhân vật (Nam/Nữ, tên 1–12 ký tự chỉ gồm chữ cái và khoảng trắng) → chuyển cảnh ngày 1 (có nút Bỏ qua) → thẻ chương 1 → vào game. Mỗi sáng từ ngày 2 có thẻ sang ngày; ngày 8, 15, 22 thêm thẻ chương. Ngày 30 kết thúc bằng màn tổng kết.
+
+**HUD** (một màn hình 16:9, lưới 640×360):
 
 | Vị trí | Thành phần |
 | --- | --- |
-| Trên trái | Ngày, 4 buổi, 4 thanh chỉ số mini |
-| Giữa trên | Biển tên địa điểm |
-| Trên phải | Ví tiền, lương part-time đang chờ, khung theo dõi nhiệm vụ |
-| Giữa dưới | Thanh lệnh: Ăn uống · Mua · Hoạt động · Tiền bạc (menu mở khi bấm) |
-| Dưới trái | Túi đồ · Lịch · Nhiệm vụ · Nhật ký · Luật |
-| Dưới phải | Bản đồ |
+| Trên trái | Thứ, chương, ngày, 4 buổi, nơi đang đứng, độ bừa bộn phòng (khi ở phòng trọ) |
+| Trên phải | Ví và lương chờ; nhiệm vụ đang theo dõi, hạn, việc hôm nay |
+| Dưới trái | 4 chỉ số dạng cột, vạch đỏ ở mức 25 |
+| Giữa dưới | Thanh lệnh: Ăn uống · Mua · Hoạt động · Tiền bạc (phím 1–4) · Túi đồ · Lịch · Nhiệm vụ · Bản đồ · Menu (Nhật ký, Luật chơi, Màn hình chính) |
+| Giữa trên | Cảnh báo kèm nút làm ngay: giờ học, nơi đóng cửa, phòng bừa bộn |
 
-Tiến trình tự lưu vào `localStorage` (khóa `ba-muoi-ngay-sg-v4`) sau mỗi hành động.
+**Cửa sổ:** Bản đồ toàn màn hình; Túi đồ, Lịch, Nhiệm vụ chung một khung có tab; hội thoại có chân dung, lời thoại hiện dần, chọn bằng chuột hoặc phím số; điện thoại trong game ở phòng trọ; tổng kết có đồ thị 30 ngày.
+
+**Điện thoại nằm ngang** (`pointer: coarse`, `orientation: landscape`): cảnh phủ kín màn hình, giao diện chừa vùng an toàn, 3 nút hành động 64×56 ở góc phải dưới, công cụ 48×48 ở góc trái dưới, menu mở thành ngăn bên phải. Điện thoại dọc hiện lời nhắc xoay ngang.
+
+**Trợ năng:** phím tắt B, L, J, M, N, 1–4, Space, Esc; vùng có `aria-label`, cửa sổ có tiêu điểm bàn phím; tắt hoạt ảnh khi bật `prefers-reduced-motion`.
+
+Tiến trình tự lưu vào `localStorage` (khóa `ba-muoi-ngay-sg-v5`) sau mỗi hành động. Bản lưu của v0.2.0 (khóa `v4`) không dùng được.
