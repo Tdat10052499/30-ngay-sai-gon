@@ -98,6 +98,7 @@ const QUESTS=[
 ];
 /* những buổi sáng ngày thường không lên lớp (vắng hoặc nghỉ có phép), để báo rõ ngày nào */
 const missedIn=(s,a,b)=>(s.absentDays||[]).filter(d=>d>=a&&d<=b);
+const NGAN_DAYS={11:'“Chiều nay rảnh hông? Mình ra quán cà phê ngồi vẽ phác thảo nha.”',17:'“Tuần này mệt quá trời. Đi cà phê với mình một chút cho đỡ ngán nha?”',24:'“Sắp thi rồi, ra quán ngồi ôn với vẽ chung hông?”'};
 const QBY=Object.fromEntries(QUESTS.map(q=>[q.id,q]));
 const DAILY={
   class1:{t:'Lên lớp buổi sáng',prog:s=>[s.classToday?1:0,1]},
@@ -123,6 +124,7 @@ const ITEMS={
 const TYPE_LABEL={food:'Đồ ăn',drink:'Đồ uống',med:'Thuốc'};
 const bagCount=id=>s.bag.filter(x=>x.id===id).length;
 function bagAdd(id,q=1){const sh=ITEMS[id].shelf;for(let i=0;i<q;i++)s.bag.push({id,exp:sh?s.day+sh-1:null})}
+function bagAddFit(id,q){if(!bagCount(id)&&bagStacks().length>=12)return;bagAdd(id,q)}
 function bagTake(id){let bi=-1,be=Infinity;s.bag.forEach((x,i)=>{if(x.id!==id)return;const e=x.exp===null?Infinity:x.exp;if(bi<0||e<be){bi=i;be=e}});if(bi>=0)s.bag.splice(bi,1)}
 function bagStacks(){const m={};s.bag.forEach(x=>{(m[x.id]=m[x.id]||[]).push(x.exp)});
   return Object.keys(ITEMS).filter(id=>m[id]).map(id=>{const ex=m[id].filter(e=>e!==null);return{id,q:m[id].length,exp:ex.length?Math.min(...ex):null}})}
@@ -137,7 +139,7 @@ function expText(exp){if(exp===null)return 'Không có hạn';const n=exp-s.day;
 
 /* ============ State ============ */
 function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',money:START_MONEY,no:70,nl:80,tt:65,sk:80,
-  name:'Minh',gender:'nam',diff:'thuong',mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
+  name:'Minh',gender:'nam',diff:'thuong',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
   classToday:0,shiftToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,
   classCh:{1:0,2:0,3:0,4:0},shiftCh:{1:0,2:0,3:0,4:0},studyCh:{1:0,2:0,3:0,4:0},
   ateThisSlot:false,bikeBroken:0,lent:0,flags:{},log:[],hist:[],sumNo:0,sumTt:0,samples:0,
@@ -216,7 +218,7 @@ const A={
   home:[
     {id:'ship',k:'meal',n:'Đặt đồ ăn qua app',d:'Tiện, nhưng gánh thêm phí giao hàng.',cost:68000,eff:{no:40,tt:5}},
     {id:'nap',k:'act',n:'Ngủ một giấc',d:'Hồi năng lượng.',eff:{nl:22,tt:3},when:s=>s.slot===3?'Buổi tối thì đi ngủ luôn':null},
-    {id:'net',k:'act',n:'Lướt mạng, xem phim',d:'Giải trí miễn phí.',eff:{tt:7,nl:-2,sk:-1}},
+    {id:'net',k:'act',n:'Lướt mạng, xem phim',d:'Giải trí miễn phí.',eff:{tt:7,nl:-2,sk:-1},when:s=>s.flags.blackout===s.day*10+s.slot?'Cúp điện, không lướt mạng được':null},
     {id:'clean',k:'act',n:'Dọn phòng, giặt đồ',d:'Phòng gọn thì đầu óc nhẹ.',eff:()=>({tt:[5,8,12][messLv()],nl:-6}),note:()=>`Phòng: ${MESS_LV[messLv()]} → ${MESS_LV[lvOf(Math.max(0,s.mess-50))]}`,run:()=>addMess(-50)},
     {id:'free',k:'act',n:'Nhận vẽ thuê',d:'Vẽ minh họa cho khách quen trên mạng. Trả tiền ngay.',gain:80000,eff:{nl:-18,tt:-4},when:s=>s.slot>=2?null:'Khách chỉ gửi việc từ chiều'},
     {id:'sleep',k:'act',n:'Đi ngủ sớm',d:'Kết thúc ngày, hồi thêm năng lượng khi ngủ.',eff:{},note:s=>'Năng lượng +15 khi ngủ'+(s.slot===3&&s.no<HUNGRY_BED?' · Bụng đói: ngủ sẽ mệt và buồn hơn':''),when:s=>s.slot===3?null:'Chỉ ngủ sớm vào buổi tối'},
@@ -258,7 +260,7 @@ const A={
       pre:s=>{s.classes++;s.classToday=1;s.classCh[chOf(s.day)]++;s.flags.examTaken=1;s.flags.examScore=studyScore()},
       run:s=>{const p=s.flags.examScore;queue.push(ev('Kết quả kiểm tra giữa kỳ',p>=75?`“Bài của em được ${p} điểm, thuộc nhóm cao nhất lớp. Giữ phong độ nhé!”`:p>=55?`“Em được ${p} điểm, đạt yêu cầu. Chịu khó tự học thêm thì sẽ khá hơn.”`:`“Em chỉ được ${p} điểm, chưa đạt. Phần này em phải học lại.”`,[{l:p>=55?'Dạ, em cảm ơn thầy':'Dạ, em sẽ cố hơn'}],'hai'))}},
     {id:'class',k:'act',n:'Lên lớp',d:'Học trên giảng đường. Mỗi buổi tăng điểm học tập; vắng buổi sáng ngày thường bị tính vắng học.',eff:{nl:-10,tt:-2,no:-4},show:s=>s.day!==29,when:s=>s.slot===0?null:'Lớp học buổi sáng',note:()=>'Điểm học tập tăng',pre:s=>{s.classes++;s.classToday=1;s.classCh[chOf(s.day)]++}},
-    {id:'library',k:'act',n:'Học ở thư viện',d:'Tự học, làm bài tập nhóm. Tăng điểm học tập.',eff:{nl:-8,tt:-2},when:s=>(s.slot===1||s.slot===2)?null:'Thư viện mở buổi trưa và chiều',note:()=>'Điểm học tập tăng',pre:s=>{s.study++;s.studyCh[chOf(s.day)]++}},
+    {id:'library',k:'act',n:'Học ở thư viện',d:'Tự học, làm bài tập nhóm. Tăng điểm học tập.',eff:{nl:-8,tt:-2},when:s=>(s.flags.noLibUntil>=s.day)?'Đang mượn sạc của bạn, chưa mang laptop lên thư viện được':(s.slot===1||s.slot===2)?null:'Thư viện mở buổi trưa và chiều',note:s=>s.groupwork>0?'Điểm học tập tăng · bài nhóm +2':'Điểm học tập tăng',pre:s=>{s.study++;s.studyCh[chOf(s.day)]++;if(s.groupwork>0){s.studyBonus=(s.studyBonus||0)+2;s.groupwork--}}},
     {id:'club',k:'act',n:'Sinh hoạt CLB',d:'Gặp các anh chị khóa trên, vui và có thêm bạn.',eff:{tt:9,nl:-6},when:s=>s.slot===2?null:'CLB sinh hoạt buổi chiều'},
     {id:'campusnap',k:'act',n:'Chợp mắt ở ghế đá',d:'Nghỉ trưa dưới tán cây sân trường.',eff:{nl:12},when:s=>s.slot===1?null:'Chỉ nghỉ được giờ trưa'},
   ],
@@ -320,7 +322,7 @@ function chipsHTML(o,withMoney=true){
 function doAction(a){
   if(s.over||win||reason(a))return false;
   const m0=s.money;
-  if(a.k==='act'&&s.slot===3)s.noBed=s.no; // độ no lúc chọn hành động cuối ngày, trước mọi lần trừ
+  if(a.k==='act'){s.lastAct=a.id;if(s.slot===3)s.noBed=s.no} // độ no lúc chọn hành động cuối ngày, trước mọi lần trừ
   startActScene(a);
   if(a.pre)a.pre(s);
   if(a.cost){s.money-=a.cost;s.spentToday+=a.cost}
@@ -421,7 +423,7 @@ function travel(id){
   const st=$('stage');st.classList.add('fade');setTimeout(()=>st.classList.remove('fade'),230);
   if(c)popFx({},-c);
   if(id==='home'||id==='store')sfx('door');
-  if((s.slot===1||s.slot===2)&&!s.flags['rain'+s.day]&&Math.random()<0.15)queue.push(rainEv(s));
+  if((s.slot===1||s.slot===2)&&deckOk({...s,loc:'park'},DECK_BY.rain)&&Math.random()<0.08){deckUse(s,DECK_BY.rain);queue.push(rainEv(s))}
   if(id==='school'&&!s.flags.metHai){s.flags.metHai=1;queue.push(ev('Chào mừng tân sinh viên','“Chào em Minh! Lớp mình học buổi sáng từ thứ Hai đến thứ Sáu. Thầy chấm điểm học tập dựa trên chuyên cần, giờ tự học ở thư viện và bài kiểm tra giữa kỳ sáng ngày 29. Có gì khó cứ tìm thầy.”',[{l:'Dạ, em cảm ơn thầy'}],'hai'))}
   afterChange();
 }
@@ -473,31 +475,9 @@ const dueText=q=>q.due===s.day?'hạn hết hôm nay':`hạn ngày ${q.due} · c
 const ev=(title,text,choices,who)=>({title,text,choices,who});
 const evImpulse=()=>ev('Giày đang sale 40%','Đôi giày bạn để ý từ lâu đang giảm giá, chỉ còn 420.000đ.',[
   {l:'Mua luôn',cost:420000,eff:{tt:14}},{l:'Thôi, không cần',eff:{tt:-3}}]);
-function rainEv(s){s.flags['rain'+s.day]=1;return ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
+function rainEv(s){return ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
   {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{...rulesOf(s).rain},run:s=>{s.flags.rainSickDay=s.day}}])}
-const EVENTS=[
-  {id:'lau',w:3,when:s=>s.slot===3&&!isWE(s.day),mk:()=>ev('Lớp rủ đi ăn lẩu','“Tối nay cả lớp đi lẩu nướng, mày đi không?” Khoa hỏi.',[
-    {l:'Đi luôn',cost:150000,eff:{tt:14,no:20,nl:-8}},{l:'Ở nhà',eff:{tt:-4}}],'khoa')},
-  {id:'bike',w:2,when:s=>s.slot===0&&s.bikeBroken===0&&(s.flags.bikeN||0)<2,mk:s=>{s.flags.bikeN=(s.flags.bikeN||0)+1;return ev('Xe chết máy','Chiếc xe máy cũ bố cho đề không nổ. Thợ đầu hẻm báo giá sửa 250.000đ.',[
-    {l:'Sửa ngay',cost:250000,eff:{tt:-2}},{l:'Đi xe ôm công nghệ vài hôm',eff:{tt:-4},x:'Phí đi lại ×3 trong 4 ngày',run:s=>{s.bikeBroken=4}}])}},
-  {id:'found',w:.6,once:1,when:()=>true,mk:()=>ev('Nhặt được tiền','Tờ 50.000đ rơi trên vỉa hè, xung quanh không có ai.',[
-    {l:'Bỏ túi',gain:50000,eff:{tt:3}},{l:'Gửi bảo vệ gần đó',eff:{tt:8}}])},
-  {id:'praise',w:5,once:1,when:s=>s.loc==='store'&&s.shifts>=8&&s.slot>=2,mk:()=>ev('Chị Mai khen','“Mấy ca của Minh quầy lúc nào cũng gọn gàng. Chị thưởng nóng nè.”',[
-    {l:'Em cảm ơn chị',gain:100000,eff:{tt:10}}],'mai')},
-  /* mưa: ở công viên buổi trưa hoặc chiều (khi đi lại thì xét trong travel), tối đa 1 lần mỗi ngày */
-  {id:'rain',w:2,when:s=>s.loc==='park'&&(s.slot===1||s.slot===2)&&!s.flags['rain'+s.day],mk:s=>rainEv(s)},
-  /* hai nơi trong nhà thay cho mưa; mỗi sự kiện chỉ một lần trong tháng */
-  {id:'cafeFull',w:2,once:1,when:s=>s.loc==='cafe'&&s.slot>=1,mk:()=>ev('Quán hết chỗ','“Quán kín bàn rồi, em ngồi chung với bạn này được không?” Người ngồi cùng là một anh năm ba cùng ngành Thiết kế.',[
-    {l:'Ngồi chung, bắt chuyện',eff:{tt:6},x:'Có thêm một người quen'},{l:'Mua mang về',eff:{tt:-1}}])},
-  {id:'mallCard',w:2,once:1,when:s=>s.loc==='mall'&&s.slot>=1,mk:()=>ev('Mời làm thẻ thành viên','Nhân viên mời đăng ký thẻ thành viên 99.000đ, hứa tích điểm đổi quà.',[
-    {l:'Đăng ký thẻ 99k',cost:99000,eff:{tt:2},x:'Điểm tích lũy chưa dùng được trong tháng này'},{l:'Cảm ơn, để sau',eff:{tt:1}}])},
-  {id:'lend',w:1.5,once:1,when:s=>s.day>=6&&s.day<=19,mk:()=>ev('Khoa hỏi mượn tiền','“Cho tao mượn 300k, cuối tháng trả nha. Tháng này nhà tao gửi tiền trễ.”',[
-    {l:'Cho mượn',cost:300000,eff:{tt:3},x:'Hẹn trả ngày 28',run:s=>{s.lent=300000}},{l:'Từ chối',eff:{tt:-6}}],'khoa')},
-  {id:'phone',w:1,once:1,when:()=>true,mk:()=>ev('Rơi điện thoại','Điện thoại tuột tay, màn hình nứt một đường dài.',[
-    {l:'Thay màn hình',cost:400000},{l:'Dùng tạm',eff:{tt:-10}}])},
-  {id:'bday',w:2,once:1,when:s=>isWE(s.day)&&s.slot===3&&s.day!==13,mk:()=>ev('Sinh nhật bạn cùng lớp','Lớp tổ chức sinh nhật cho một bạn ở quán nướng, Khoa cũng đi.',[
-    {l:'Góp quà, đi dự',cost:150000,eff:{tt:12,no:15}},{l:'Nhắn tin chúc mừng',eff:{tt:-4}}],'khoa')},
-];
+/* sự kiện ngẫu nhiên: xem src/events.js (bộ bài) */
 function slotEvents(){
   if(s.over)return;
   if(s.sk<=0){queue.push(ev('Ngất xỉu','Cơ thể kiệt quệ, Minh được đưa vào viện. Viện phí 1.200.000đ, nghỉ hết hôm nay.',[
@@ -515,13 +495,17 @@ function slotEvents(){
     {l:'Kệ, ráng chịu',eff:{...rulesOf(s).ignoreSick},run:s=>{if(rulesOf(s).ignoreSickRelapse&&Math.random()<rulesOf(s).ignoreSickRelapse)s.flags.relapseDay=s.day+1}}]));s.flags.sickN=(s.flags.sickN||0)+1;return}
   if(s.noodleToday>=2&&!s.flags['st'+s.day]&&Math.random()<0.55){s.flags['st'+s.day]=1;queue.push(ev('Đau bụng','Ăn mì gói liên tục, bụng bắt đầu biểu tình.',[
     {l:'Mua men tiêu hóa',cost:30000,eff:{sk:-3}},{l:'Ráng chịu',eff:{sk:-8,tt:-5,nl:-8}}]));return}
+  /* Ngân rủ đi cà phê: chiều ngày 11, 17, 24 */
+  if(s.slot===2&&NGAN_DAYS[s.day]&&!s.flags['ngan'+s.day]){s.flags['ngan'+s.day]=1;queue.push(ev('Ngân nhắn tin',NGAN_DAYS[s.day],[
+    {l:'Đi cà phê với Ngân',cost:30000,eff:{tt:12,nl:4},x:'Đi tới quán cà phê · hết buổi',run:s=>{s.loc='cafe';s.nganCount=(s.nganCount||0)+1;skipSlot('Đi cà phê với Ngân')}},
+    {l:'Hẹn lần sau',eff:{tt:-2}}]));return}
+  /* ngày 30 mẹ lên Sài Gòn: đưa mẹ đi ăn mừng sinh nhật ở TTTM */
+  if(s.day===30&&s.slot===1&&!s.flags.momVisit){s.flags.momVisit=1;queue.push(ev('Mẹ lên Sài Gòn','“Mẹ lên thăm con nè. Sinh nhật mẹ, hai mẹ con đi đâu ăn một bữa nha?”',[
+    {l:'Đưa mẹ đi ăn mừng ở TTTM',cost:300000,eff:{tt:10},x:'Đi tới TTTM · hết buổi trưa',run:s=>{s.loc='mall';s.flags.momParty=1;skipSlot('Đưa mẹ đi ăn mừng sinh nhật ở TTTM')}},
+    {l:'Mời mẹ bữa cơm ở phòng trọ',eff:{tt:4}}],'me'));return}
   if(Math.random()>0.22)return;
-  const pool=EVENTS.filter(e=>!(e.once&&s.flags[e.id])&&e.when(s));
-  if(!pool.length)return;
-  let r=Math.random()*pool.reduce((a,e)=>a+e.w,0),pick=pool[0];
-  for(const e of pool){r-=e.w;if(r<=0){pick=e;break}}
-  if(pick.once)s.flags[pick.id]=1;
-  queue.push(pick.mk(s));
+  const pick=deckDraw(s,Math.random);
+  if(pick)queue.push(pick.mk(s));
 }
 function dayEvents(){
   queue.push({kind:'day',title:`Ngày ${s.day}`,choices:[{l:'Bắt đầu buổi sáng'}]});
@@ -569,9 +553,10 @@ function endingLines(){
   const L=[],p=s.flags.examScore;
   L.push(['hai',!s.flags.examTaken?'Minh vắng bài kiểm tra giữa kỳ và phải thi lại vào tháng sau.':p>=75?`Kiểm tra giữa kỳ đạt ${p} điểm. Thầy Hải khen Minh trước lớp.`:p>=55?`Kiểm tra giữa kỳ đạt ${p} điểm, đủ để theo kịp chương trình.`:`Kiểm tra giữa kỳ chỉ đạt ${p} điểm. Thầy Hải nhắc Minh phải học lại phần này.`]);
   L.push(['mai',!s.flags.hired?'Minh không đi làm thêm, cả tháng sống nhờ tiền bố mẹ gửi.':s.shifts>=18?`Làm ${s.shifts} ca trong tháng. Chị Mai giữ Minh lại và thưởng thêm 200.000đ.`:s.shifts>=8?`Làm ${s.shifts} ca trong tháng. Chị Mai tiếp tục xếp ca cho tháng sau.`:`Chỉ làm ${s.shifts} ca. Chị Mai hỏi Minh có muốn làm tiếp không.`]);
-  L.push(['me',(s.flags.gift?'Mẹ nhận được món quà Minh mua bằng tiền tự làm, cầm khoe khắp xóm.':'Sinh nhật mẹ, Minh chỉ kịp gọi điện chúc mừng.')+(s.askCount?' Bố mẹ vẫn phải gửi thêm tiền giữa tháng.':'')]);
+  L.push(['me',(s.flags.momParty?'Mẹ lên Sài Gòn đúng ngày sinh nhật, hai mẹ con đi ăn mừng ở TTTM. ':'')+(s.flags.gift?'Mẹ nhận được món quà Minh mua bằng tiền tự làm, cầm khoe khắp xóm.':'Sinh nhật mẹ, Minh chỉ kịp gọi điện chúc mừng.')+(s.askCount?' Bố mẹ vẫn phải gửi thêm tiền giữa tháng.':'')]);
   if(s.flags.metKhoa)L.push(['khoa','Ở chung một tháng, Khoa đã thành bạn thân của Minh.']);
   if(s.flags.clubGo)L.push(['linh','Chị Linh rủ Minh vào ban truyền thông của CLB.']);
+  if((s.nganCount||0)>=2&&Portraits.CH.ngan)L.push(['ngan','Ngân rủ Minh cùng làm bài tập nhóm học kỳ sau.']);
   L.push(['tu',s.flags.rentShort?'Tháng này thiếu tiền nhà. Cô Tư nhắc khéo: tháng sau nhớ để dành đủ trước mùng 5.':'Cô Tư khen Minh là sinh viên ngoan nhất xóm trọ.']);
   return L;
 }

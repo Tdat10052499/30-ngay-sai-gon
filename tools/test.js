@@ -15,7 +15,7 @@ function withRandom(v,fn){Math.random=()=>v;try{return fn()}finally{Math.random=
 /* test lỗi cũ chạy ở độ khó Dễ (số v0.2.0) để chỉ kiểm đúng phần đã sửa; luật mới có test riêng ở cuối */
 function fresh(diff='de'){newGame({name:'Lan',gender:'nu'});s.diff=diff;clearEvents();}
 function clearEvents(){let g=0;while(win==='event'&&g++<50){finishType();const i=curEvent.choices.findIndex(c=>!(c.cost&&s.money<c.cost)&&!(c.need&&c.need(s)));pickChoice(i<0?0:i)}hideWin();queue=[]}
-const poolIds=()=>EVENTS.filter(e=>!(e.once&&s.flags[e.id])&&e.when(s)).map(e=>e.id);
+const poolIds=()=>DECK.filter(e=>deckOk(s,e,true)).map(e=>e.id);
 
 /* ---------- B1: mưa chỉ khi đi lại hoặc ở công viên; sự kiện mới trong nhà ---------- */
 fresh();
@@ -27,12 +27,40 @@ s.slot=3;check('B1 công viên buổi tối không mưa',!poolIds().includes('ra
 s.loc='cafe';s.slot=1;check('B1 quán cà phê buổi trưa có sự kiện Quán hết chỗ',poolIds().includes('cafeFull'));
 s.slot=0;check('B1 quán cà phê buổi sáng không có Quán hết chỗ',!poolIds().includes('cafeFull'));
 s.loc='mall';s.slot=2;check('B1 TTTM buổi chiều có sự kiện Mời làm thẻ thành viên',poolIds().includes('mallCard'));
-// đi lại: 15%, chỉ trưa hoặc chiều, tối đa 1 lần mỗi ngày
+// đi lại: 8%, chỉ trưa hoặc chiều, theo giới hạn bộ bài (1 sự kiện mỗi ngày, tối đa 2 lần, cách 5 ngày)
+const isRain=()=>win==='event'&&curEvent.title==='Mưa to bất chợt';
 fresh();s.slot=1;s.loc='home';
-withRandom(0.1,()=>travel('street'));check('B1 đi lại buổi trưa có thể gặp mưa',win==='event'&&curEvent.title==='Mưa to bất chợt');
-clearEvents();withRandom(0.1,()=>travel('park'));check('B1 mưa khi đi lại tối đa 1 lần mỗi ngày',!(win==='event'&&curEvent.title==='Mưa to bất chợt'));
-clearEvents();s.slot=0;s.flags={...s.flags,rain1:0};withRandom(0.1,()=>travel('street'));check('B1 đi lại buổi sáng không mưa',!(win==='event'&&curEvent.title==='Mưa to bất chợt'));
-clearEvents();s.slot=2;s.flags.rain1=0;withRandom(0.2,()=>travel('home'));check('B1 xác suất mưa khi đi lại là 15%',!(win==='event'&&curEvent.title==='Mưa to bất chợt'));
+withRandom(0.05,()=>travel('street'));check('B1 đi lại buổi trưa có thể gặp mưa',isRain());
+clearEvents();withRandom(0.05,()=>travel('park'));check('B1 mưa khi đi lại tối đa 1 lần mỗi ngày',!isRain());
+clearEvents();s.slot=0;s.evUse={};s.evDay=0;withRandom(0.05,()=>travel('street'));check('B1 đi lại buổi sáng không mưa',!isRain());
+clearEvents();s.slot=2;s.evUse={};s.evDay=0;withRandom(0.1,()=>travel('home'));check('B1 xác suất mưa khi đi lại là 8%',!isRain());
+clearEvents();s.evUse={rain:{n:1,last:1}};s.evDay=0;s.day=4;withRandom(0.05,()=>travel('street'));check('B1 mưa cách nhau ít nhất 5 ngày',!isRain());
+clearEvents();s.evUse={rain:{n:2,last:1}};s.day=20;withRandom(0.05,()=>travel('street'));check('B1 mưa tối đa 2 lần mỗi tháng',!isRain());
+
+/* ---------- bộ bài sự kiện ---------- */
+fresh('thuong');s.day=3;s.slot=3;s.loc='home';
+let cnt=0;for(let i=0;i<40;i++){s.evDay=0;s.evLast=null;const e=deckDraw(s,()=>0.01);if(e&&e.id==='lau')cnt++}
+check('Bài: Lớp rủ đi lẩu tối đa 3 lần',(s.evUse.lau||{}).n<=3&&cnt<=3,cnt);
+fresh('thuong');s.day=3;s.slot=3;s.loc='home';s.evDay=3;check('Bài: mỗi ngày tối đa 1 sự kiện ngẫu nhiên',deckDraw(s,()=>0.5)===null);
+fresh('thuong');s.day=4;s.slot=3;s.loc='home';s.evLast={day:3,loai:'ban'};
+check('Bài: không ra cùng loại hai ngày liên tiếp',DECK.filter(e=>deckOk(s,e)).every(e=>e.loai!=='ban'));
+fresh('thuong');s.day=15;check('Bài: ngày 14–19 bạn bè ×2',deckWeight(s,DECK_BY.lau)===6&&deckWeight(s,DECK_BY.phone)===1);
+fresh('thuong');s.day=3;s.slot=2;s.loc='store';s.lastAct='shift';check('Bài: Khách để quên điện thoại chỉ ra khi đang làm ca',poolIds().includes('lostitem'));
+s.lastAct='idle';check('Bài: không làm ca thì không có Khách để quên điện thoại',!poolIds().includes('lostitem'));
+// sự kiện mới chạy được (chọn lựa chọn đầu, đủ tiền)
+for(const e of DECK){fresh('thuong');s.money=2000000;s.day=12;s.slot=3;s.loc='home';let ok=true;
+  try{queue=[];queue.push(e.mk(s));processQueue();clearEvents()}catch(err){ok=false}
+  check('Bài: sự kiện '+e.id+' chạy được',ok)}
+fresh('thuong');const nm0=bagCount('mi');bagAddFit('mi',3);
+check('Bài: thùng đồ quê thêm đồ vào túi',bagCount('mi')===nm0+3&&bagStacks().length<=12);
+fresh('thuong');s.day=5;s.slot=1;s.flags.noLibUntil=6;check('Bài: mượn sạc thì khóa thư viện',!!A.school.find(a=>a.id==='library').when(s));
+// Ngân và sinh nhật mẹ
+fresh('thuong');s.day=11;s.slot=2;s.money=500000;queue=[];withRandom(0.99,()=>slotEvents());
+check('Ngân rủ đi cà phê chiều ngày 11',queue.some(e=>e.title==='Ngân nhắn tin'));
+processQueue();pickChoice(0);check('Đi cà phê với Ngân: −30.000đ, đến quán, đếm lời mời',s.money===470000&&s.nganCount===1);
+fresh('thuong');s.day=30;s.slot=1;s.money=500000;queue=[];withRandom(0.99,()=>slotEvents());
+check('Ngày 30 mẹ lên Sài Gòn',queue.some(e=>e.title==='Mẹ lên Sài Gòn'));
+processQueue();pickChoice(0);check('Ăn mừng ở TTTM: −300.000đ',s.money===200000&&s.flags.momParty===1);
 
 /* ---------- B2: bụng đói khi đi ngủ xét theo độ no lúc chọn hành động cuối ngày (dưới 30) ---------- */
 function bedtime(no,actId){

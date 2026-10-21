@@ -91,21 +91,21 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
   - Điểm = 1000 × Tài sản^0,30 × No^0,15 × Tinh thần^0,20 × Sức khỏe^0,15 × Học tập^0,20; Học tập = điểm học tập / 100, tối thiểu 0,05.
   - Kiểm tra: test `computeScore` với số liệu mẫu tính tay.
   - Màn tổng kết (thanh thứ 5) để giai đoạn 3 vì là giao diện.
-- [ ] **2.8 Mưa: tối đa 2 lần mỗi tháng, cách nhau ít nhất 5 ngày; khi di chuyển 8%, chỉ trưa hoặc chiều; vẫn ở công viên trưa hoặc chiều** (`src/events.js`, `src/game.js`)
+- [x] **2.8 Mưa: tối đa 2 lần mỗi tháng, cách nhau ít nhất 5 ngày; khi di chuyển 8%, chỉ trưa hoặc chiều; vẫn ở công viên trưa hoặc chiều** (`src/events.js`, `src/game.js`)
   - Kiểm tra: test lần 3 không xảy ra; test lần 2 trong vòng 5 ngày không xảy ra.
-- [ ] **2.9 Bộ bài sự kiện** (`src/events.js`)
+- [x] **2.9 Bộ bài sự kiện** (`src/events.js`)
   - Mỗi sự kiện ngẫu nhiên có `tags` (nơi, buổi), `loai`, `max`, `cooldown`. Mỗi ngày tối đa 1 sự kiện ngẫu nhiên; không cùng `loai` hai ngày liên tiếp. Sự kiện cốt truyện và sự kiện theo điều kiện (ốm, đau bụng, ngất xỉu) không bị giới hạn.
   - Gán thuộc tính cho các sự kiện cũ (lẩu, xe chết máy, nhặt tiền, chị Mai khen, mưa, Khoa mượn tiền, rơi điện thoại, sinh nhật bạn, quán hết chỗ, mời làm thẻ).
   - Ngày 14 đến 19: sự kiện bạn bè và chuyện vui có trọng số ×2.
   - Kiểm tra: mô phỏng 300 ván, đếm mỗi ngày không quá 1 sự kiện ngẫu nhiên, không có 2 ngày liền cùng loại, không vượt `max`.
-- [ ] **2.10 Luật của 10 sự kiện mới (mục 5.2)** (`src/events.js`, `src/game.js`)
+- [x] **2.10 Luật của 10 sự kiện mới (mục 5.2)** (`src/events.js`, `src/game.js`)
   - `scam`, `wallet`, `homebox`, `tufood`, `friendhome`, `charger` (khóa thư viện 2 ngày), `blackout` (khóa lướt mạng buổi đó), `lostitem` (khi đang làm ca), `groupwork` (+2 điểm học tập mỗi buổi thư viện ở 2 buổi tiếp theo), `khoapark` (tối đa 3 lần).
   - Văn bản chưa có trong đề bài sẽ viết ngắn và đưa vào báo cáo để duyệt (ví dụ thông báo sau khi chuyển tiền lừa đảo, lời cô Tư, lời Khoa).
   - Kiểm tra: test từng sự kiện: điều kiện xuất hiện, hiệu ứng, khóa thư viện và lướt mạng đúng thời hạn, túi không quá 12 ô.
-- [ ] **2.11 Lời mời của Ngân (luật)** (`src/game.js`)
+- [x] **2.11 Lời mời của Ngân (luật)** (`src/game.js`)
   - Chiều ngày 11, 17, 24 có lời mời. "Đi cà phê với Ngân": đi tới quán cà phê, −30.000đ, tinh thần +12, năng lượng +4, hết buổi. "Hẹn lần sau": tinh thần −2. Đi đủ 2 lần thì có lời kết “Ngân rủ [tên] cùng làm bài tập nhóm học kỳ sau.”
   - Kiểm tra: test ba ngày mời và lời kết.
-- [ ] **2.12 Sinh nhật mẹ ở TTTM (luật)** (`src/game.js`)
+- [x] **2.12 Sinh nhật mẹ ở TTTM (luật)** (`src/game.js`)
   - Ngày 30 mẹ lên Sài Gòn. Thêm lựa chọn đưa mẹ đi ăn mừng ở TTTM, 300.000đ ngoài tiền quà. Lời thoại và cảnh làm ở giai đoạn 4.
   - Câu hỏi thêm: ăn mừng có phải là điều kiện để hoàn thành nhiệm vụ "Quà sinh nhật mẹ" không? Đề xuất: nhiệm vụ vẫn chỉ cần mua quà; ăn mừng là lựa chọn thêm, cho tinh thần và lời kết riêng.
 - [ ] **2.13 Mô phỏng** (`tools/simulate.js`, `tools/test.js`)
