@@ -18,30 +18,20 @@
     <canvas id="scene" width="320" height="180" role="img" aria-label="Khung cảnh địa điểm hiện tại"></canvas>
 
     <div class="ui" id="ui" hidden>
-      <div class="hudc glass">
-        <div class="dayrow"><span class="lbl">Ngày</span><span class="num big" id="dayNum">1</span><span class="num of">/30</span><span class="dow" id="dow"></span></div>
-        <ol class="slots" id="slots" aria-label="Buổi trong ngày"></ol>
-        <div class="mstats" id="mstats"></div>
+      <div class="pn clock" aria-label="Thời gian và địa điểm">
+        <div class="r1"><span id="dow"></span><b id="chap"></b></div>
+        <div class="r2"><span class="w">Ngày</span><span class="num d" id="dayNum">1</span><span class="num of">/30</span></div>
+        <div class="slots well" id="slots" aria-label="Buổi trong ngày"></div>
+        <div class="where"><i class="ic" data-ic="pin"></i><div><span id="placeName"></span><small id="placeSub"></small><span id="placeShut"></span></div></div>
+        <div class="room" id="roomState" data-l="0" title="Độ bừa bộn của phòng" hidden><span class="rl">Phòng</span><b id="roomName"></b><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span></div>
       </div>
-      <div class="plaque" id="plaque"><b id="placeName"></b><small id="placeSub"></small><span id="placeShut"></span></div>
-      <div class="wallet glass"><span class="coin" data-ico="coin"></span><div style="min-width:0"><span class="num money" id="money"></span><span class="ledger" id="ledger"></span></div></div>
-      <button class="tracker glass" id="tracker" type="button" title="Mở danh sách nhiệm vụ (phím J)"></button>
-
-      <div class="cmd-wrap" id="cmdWrap">
-        <div class="pop-menu" id="popMenu" hidden></div>
-        <div class="cmd-note" id="cmdNote" hidden></div>
-        <div class="cmdbar glass" id="cmdbar" role="toolbar" aria-label="Hành động"></div>
-      </div>
-
-      <nav class="tools" aria-label="Công cụ">
-        <button class="tool" type="button" data-open="bag" title="Túi đồ (phím B)"><span data-ico="bag"></span><span class="tn">Túi đồ</span><span class="badge" id="bagBadge" hidden></span></button>
-        <button class="tool" type="button" data-open="cal" title="Lịch tháng (phím L)"><span data-ico="cal"></span><span class="tn">Lịch</span><span class="badge dot" id="calBadge" hidden></span></button>
-        <button class="tool" type="button" data-open="tasks" title="Nhiệm vụ (phím J)"><span data-ico="scroll"></span><span class="tn">Nhiệm vụ</span><span class="badge" id="taskBadge" hidden></span></button>
-        <button class="tool" type="button" data-open="log" title="Nhật ký (phím N)"><span data-ico="book"></span><span class="tn">Nhật ký</span></button>
-        <button class="tool" type="button" data-open="rules" title="Luật chơi"><span data-ico="help"></span><span class="tn">Luật</span></button>
-      </nav>
-      <button class="mapbtn" type="button" data-open="map" title="Bản đồ (phím M)"><span data-ico="pin"></span>Bản đồ</button>
-      <div class="toast out" id="toast" role="status"></div>
+      <div class="pn wallet"><i class="ic" data-ic="coin"></i><div><div class="num m" id="money"></div><div class="sub" id="ledger"></div></div></div>
+      <button class="pn quest" type="button" id="tracker" data-tip="Mở Nhiệm vụ (J)"></button>
+      <div class="pn stats" id="mstats" aria-label="Chỉ số"></div>
+      <div class="pn note" id="cmdNote" role="status" hidden><i class="ic" data-ic="warn"></i><span id="noteT"></span><button type="button" id="noteBtn"></button></div>
+      <div class="pn amenu" id="popMenu" hidden role="dialog" aria-modal="false" aria-labelledby="popT"></div>
+      <nav class="pn hotbar" id="cmdbar" aria-label="Thanh lệnh"></nav>
+      <div class="pn toast out" id="toast" role="status"></div>
     </div>
 
     <div class="fx" id="fx"></div>

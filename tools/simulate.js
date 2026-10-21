@@ -110,7 +110,7 @@ for(const [name,fn,prudent] of [['Thận trọng',prudentSlot,true],['Ví trốn
     if(!s.over){stuck++;continue}
     const R=computeScore();sc.push(R.score);gr[grade(R.score)]++;pr.push(studyScore());sh.push(s.shifts);as.push(R.asset);mo.push(s.money);cl.push(CLEANS);tb.push(s.sumTt/Math.max(1,s.samples));if(s.flags.rentShort)short++;
     const done=QUESTS.filter(q=>s.q[q.id]==='done');qd.push(done.length);done.forEach(q=>rate[q.id]=(rate[q.id]||0)+1);
-    endHTML();tasksHTML();calHTML();bagHTML();mapHTML();renderTracker();
+    endHTML();tasksHTML();calHTML();bagHTML();mapHTML();render();
   }
   failures+=stuck;
   const pct=n=>Math.round(n/Math.max(1,sc.length)*100)+'%';

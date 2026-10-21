@@ -18,7 +18,7 @@ const CLASS_DAYS=22;
 const KEY='ba-muoi-ngay-sg-v5';
 const RELAX=['net','trada','oc','walk','bench','chill','movie','shop','window','stroll','club','khoa','clean'];
 
-let s, queue=[], curEvent=null, win=null, bagSel=null, calSel=1, toastTimer=0, menuCat=null, menuSel=null;
+let s, queue=[], curEvent=null, win=null, bagSel=null, calSel=1, toastTimer=0, menuCat=null;
 
 /* ============ Pixel icons (12×12 grids → SVG) ============ */
 const F3="..hssssssh..",F4="..ssssssss..",F5="..sesssses..",F6="..ssssssss..",F7="..sssmmsss..",F8="...ssssss...",F9="..cccccccc..",F10=".cccccccccc.";
@@ -144,7 +144,7 @@ function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',mone
 const nm=t=>s&&s.name&&s.name!=='Minh'?String(t).replace(/Minh/g,s.name):t;
 /* Độ bừa bộn phòng: 0 gọn gàng (0–33), 1 hơi bừa (34–66), 2 bừa bộn (67–100) */
 const MESS_LV=['Gọn gàng','Hơi bừa','Bừa bộn'];
-const messLv=()=>s.mess>=67?2:s.mess>=34?1:0;
+const lvOf=m=>m>=67?2:m>=34?1:0,messLv=()=>lvOf(s.mess);
 const addMess=n=>{s.mess=clamp(s.mess+n)};
 function addLog(text,tone=''){text=nm(text);s.log.unshift({d:s.day,sl:s.slot,text,tone});if(s.log.length>50)s.log.length=50;showToast(text,tone)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
@@ -170,7 +170,7 @@ const A={
     {id:'ship',k:'meal',n:'Đặt đồ ăn qua app',d:'Tiện, nhưng gánh thêm phí giao hàng.',cost:68000,eff:{no:40,tt:5}},
     {id:'nap',k:'act',n:'Ngủ một giấc',d:'Hồi năng lượng.',eff:{nl:22,tt:3},when:s=>s.slot===3?'Buổi tối thì đi ngủ luôn':null},
     {id:'net',k:'act',n:'Lướt mạng, xem phim',d:'Giải trí miễn phí.',eff:{tt:7,nl:-2,sk:-1}},
-    {id:'clean',k:'act',n:'Dọn phòng, giặt đồ',d:'Phòng gọn thì đầu óc nhẹ.',eff:()=>({tt:[5,8,12][messLv()],nl:-6}),note:()=>`Phòng đang ${MESS_LV[messLv()].toLowerCase()}`,run:()=>addMess(-50)},
+    {id:'clean',k:'act',n:'Dọn phòng, giặt đồ',d:'Phòng gọn thì đầu óc nhẹ.',eff:()=>({tt:[5,8,12][messLv()],nl:-6}),note:()=>`Phòng: ${MESS_LV[messLv()]} → ${MESS_LV[lvOf(Math.max(0,s.mess-50))]}`,run:()=>addMess(-50)},
     {id:'free',k:'act',n:'Nhận vẽ thuê',d:'Vẽ minh họa cho khách quen trên mạng. Trả tiền ngay.',gain:80000,eff:{nl:-18,tt:-4},when:s=>s.slot>=2?null:'Khách chỉ gửi việc từ chiều'},
     {id:'sleep',k:'act',n:'Đi ngủ sớm',d:'Kết thúc ngày, hồi thêm năng lượng khi ngủ.',eff:{},note:()=>'Năng lượng +15 khi ngủ',when:s=>s.slot===3?null:'Chỉ ngủ sớm vào buổi tối'},
     {id:'askparents',k:'quick',n:'Gọi xin thêm tiền bố mẹ',d:'Bố mẹ gửi thêm 500.000đ, nhưng Minh thấy áy náy.',eff:{tt:-8},when:s=>s.askCount<2?null:'Đã xin 2 lần rồi',note:()=>'+500k · ảnh hưởng nhiệm vụ Tự lập',run:s=>{s.money+=500000;s.askCount++}},
@@ -235,10 +235,10 @@ const A={
   ],
 };
 const CATS=[
-  {id:'eat',n:'Ăn uống',ic:'no',ks:['meal','drink'],verb:'Ăn'},
+  {id:'eat',n:'Ăn uống',ic:'eat',ks:['meal','drink'],verb:'Ăn'},
   {id:'buy',n:'Mua',ic:'basket',ks:['buy'],verb:'Mua'},
-  {id:'act',n:'Hoạt động',ic:'star',ks:['act'],verb:'Làm'},
-  {id:'bank',n:'Tiền bạc',ic:'coin',ks:['quick'],verb:'Thực hiện'},
+  {id:'act',n:'Hoạt động',ic:'act',ks:['act'],verb:'Làm'},
+  {id:'bank',n:'Tiền bạc',ic:'money',ks:['quick'],verb:'Thực hiện'},
 ];
 const locActs=()=>[...A[s.loc].filter(a=>!a.show||a.show(s)),IDLE];
 
@@ -496,74 +496,100 @@ function endingLines(){
 function finish(){s.over=true;queue=[];closeMenu();save();render();openWin('end')}
 
 /* ============ HUD rendering ============ */
-function render(){renderTop();renderTracker();renderCmd();renderToolbar();if(win&&win!=='event'&&win!=='end')renderWin()}
+/* HUD theo design/04: biểu tượng dùng nền CSS (--i) để co giãn theo lưới --p */
+const icURL=k=>{const n=ICO_NEW[k]||k;return Icons.has(n)?Icons.url(n):'data:image/svg+xml,'+encodeURIComponent(ico(k).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))};
+const icTag=k=>`<i class="ic" style="--i:url(${icURL(k)})"></i>`;
+const SLOT_IC=['dawn','noon','dusk','night'];
+function render(){renderTop();renderTracker();renderCmd();if(win&&win!=='event'&&win!=='end')renderWin()}
 function renderTop(){
   $('dayNum').textContent=s.day;
   $('dow').textContent=DOW[dowOf(s.day)];
-  $('slots').innerHTML=SLOTS.map((n,i)=>`<li class="${i<s.slot?'done':i===s.slot?'now':''}"${i===s.slot?' aria-current="true"':''}>${n}</li>`).join('');
-  $('mstats').innerHTML=STATS.map(S=>`<div class="ms${s[S.k]<25?' low':''}" title="${S.n}: ${s[S.k]}/100" aria-label="${S.n} ${s[S.k]}">${ico(S.k)}<div class="bar"><i style="width:${s[S.k]}%;background:${SCOL[S.k]}"></i><b></b></div><span class="v" style="color:${s[S.k]<25?'':SCOL[S.k]}">${s[S.k]}</span></div>`).join('');
+  $('chap').textContent=`Chương ${chOf(s.day)}`;
+  $('slots').innerHTML=SLOT_IC.map((ic,i)=>`<span class="s${i===s.slot?' on':i<s.slot?' past':''}" title="Buổi ${SLOTS[i].toLowerCase()}"${i===s.slot?' aria-current="true"':''}>${icTag(ic)}</span>`).join('')+`<span class="nm">${SLOTS[s.slot]}</span>`;
+  $('mstats').innerHTML=STATS.map(S=>{const v=s[S.k];return `<div class="st${v<25?' low':''}" title="${S.n}: ${v}/100" role="img" aria-label="${S.n} ${v}" style="--c:${SCOL[S.k]}"><span class="num v" style="color:${v<25?'':SCOL[S.k]}">${v}</span><span class="sbar well"><i style="height:calc((100% - var(--p)*2) * ${v/100})"></i></span>${icTag(S.k)}</div>`}).join('');
   $('money').textContent=fmt(s.money);
-  $('ledger').textContent=`Lương part-time chờ ${fk(s.accrued)}`;
+  $('ledger').textContent=`Lương chờ ${fk(s.accrued)}`;
   const L=LOCS[s.loc],cl=L.open(s);
   $('placeName').textContent=L.name;$('placeSub').textContent=nm(L.sub);
   $('placeShut').innerHTML=cl?'<span class="shut">Đang đóng cửa</span>':'';
+  const rs=$('roomState');rs.hidden=s.loc!=='home';rs.dataset.l=messLv();$('roomName').textContent=MESS_LV[messLv()];
 }
 function dailyRow(d){const D=DAILY[d.id],[c,m]=D.prog(s);const lbl=D.label?D.label(s):`${c}/${m}`;
   return `<span class="tr-day${d.st==='done'?' done':''}"><span class="ck${d.st==='done'?' on':d.st==='fail'?' fail':''}"></span><span class="tx">${D.t}</span><span class="pc">${lbl}</span></span>`}
 function renderTracker(){
-  const q=trackedQuest(),ch=chOf(s.day),total=QUESTS.filter(x=>x.ch===ch).length,done=QUESTS.filter(x=>x.ch===ch&&s.q[x.id]==='done').length;
-  let h=`<span class="tr-h"><span>Chương ${ch} · ${CHAPTERS[ch].t}</span><span>${done}/${total}</span></span>`;
-  if(q){const p=questProg(q);
-    h+=`<span class="tr-t">${q.t}</span><span class="tr-d">${q.hint}</span><span class="bar"><i style="width:${p.pct}%;background:var(--lantern)"></i></span><span class="tr-p"><span>${p.lbl}</span><span>${dueText(q)}</span></span>`}
-  else h+=`<span class="tr-t">Đã xong nhiệm vụ chương này</span><span class="tr-d">${ch<4?`Chương ${ch+1} mở vào ngày ${CHAPTERS[ch+1].from}.`:'Sống trọn những ngày cuối tháng.'}</span>`;
-  h+=`<span class="tr-sep"></span>`+s.daily.map(dailyRow).join('');
+  const q=trackedQuest(),ch=chOf(s.day),dn=s.daily.filter(d=>d.st==='done').length;
+  const daily=`<span>Việc hôm nay ${dn}/${s.daily.length}</span>`;
+  const h=q?`<div class="h">${icTag('quest')}<div><b>${q.t}</b><p>${q.d}</p></div></div><div class="f"><span class="qtag">${q.due===s.day?'Hạn: hôm nay':`Hạn: ngày ${q.due}`}</span>${daily}</div>`
+    :`<div class="h">${icTag('quest')}<div><b>Đã xong nhiệm vụ chương này</b><p>${ch<4?`Chương ${ch+1} mở vào ngày ${CHAPTERS[ch+1].from}.`:'Sống trọn những ngày cuối tháng.'}</p></div></div><div class="f"><span></span>${daily}</div>`;
   $('tracker').innerHTML=nm(h);
 }
 function catActs(c){return locActs().filter(a=>c.ks.includes(a.k))}
+const visCats=()=>CATS.filter(c=>catActs(c).length);
+let noteAct=null;
 function renderCmd(){
-  const closed=LOCS[s.loc].open(s);
-  $('cmdbar').innerHTML=CATS.map(c=>{const list=catActs(c);if(!list.length)return '';const any=list.some(a=>!reason(a));
-    return `<button class="cbtn${menuCat===c.id?' on':''}" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}">${ico(c.ic)}<span>${c.n}</span>${any&&list.some(a=>a.story)?'<span class="dot"></span>':''}</button>`}).join('');
-  const note=$('cmdNote');let t='',cls='';
-  if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;cls='bad'}
-  else if(!isWE(s.day)&&s.slot===0&&s.loc!=='school'){t='Đang giờ học. Không lên lớp sẽ bị tính vắng học.';cls='warn'}
-  note.hidden=!t||!!menuCat;note.textContent=nm(t);note.className='cmd-note '+cls;
+  const cats=visCats(),n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
+  const bill=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&d-s.day<=2),act=QUESTS.filter(q=>s.q[q.id]==='active').length;
+  const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}">${icTag(ic)}<span class="lb">${lb}</span>${bd}</button>`;
+  $('cmdbar').innerHTML=cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
+    return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+
+    '<span class="sep" aria-hidden="true"></span>'+
+    tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
+    tool('cal','cal','Lịch',bill?`Lịch tháng (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch tháng (L)',bill?'<span class="bd dot"></span>':'')+
+    tool('tasks','quest','Nhiệm vụ','Nhiệm vụ (J)',act?`<span class="bd">${act}</span>`:'')+
+    tool('map','map','Bản đồ','Bản đồ (M)')+
+    `<span class="sep" aria-hidden="true"></span><button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}</button>`;
+  /* cảnh báo giữa trên, kèm nút làm ngay */
+  const closed=LOCS[s.loc].open(s);let t='',btn='',cls='';noteAct=null;
+  if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;btn='Bản đồ';noteAct='map';cls='bad'}
+  else if(!isWE(s.day)&&s.slot===0&&s.loc!=='school'){const c=travelCost('school');t='Đang giờ học. Không lên lớp sẽ bị tính vắng học.';btn=`Đến trường${c?` (${fk(c)})`:''}`;noteAct='school'}
+  else if(s.loc==='home'&&messLv()===2){t='Phòng bừa bộn quá. Ở phòng mỗi buổi tinh thần −2, ngủ hồi ít năng lượng hơn.';btn='Dọn phòng';noteAct='clean'}
+  const note=$('cmdNote');note.hidden=!t||!!menuCat;note.className='pn note '+cls;$('noteT').textContent=nm(t);$('noteBtn').textContent=btn;
   renderMenu();
 }
+const effSpans=e=>STATS.filter(S=>e[S.k]).map(S=>{const v=e[S.k];return `<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`}).join('');
+function menuRow(x){
+  const r=reason(x),e=effOf(x),ml=messLv();
+  const pr=x.cost?`<span class="num pr">${fk(x.cost)}</span>`:x.gain?`<span class="num pr gain">+${fk(x.gain)}</span>`:'<span class="num pr free">0đ</span>';
+  const note=typeof x.note==='function'?x.note(s):x.note;
+  const extra=(note?`<span class="k">${note}</span>`:'')+(x.k==='act'&&x.id!=='clean'&&s.loc==='home'&&ml?`<span class="neg" style="--c:var(--c-tt)">Phòng bừa: Tinh thần −${ml}</span>`:'')+(x.k==='quick'||x.k==='buy'?'<span class="k">Không tốn thời gian</span>':'');
+  return `<button class="row well" type="button" data-pa="${x.id}" ${r?'disabled':''}><b>${x.n}${x.story?'<span class="qt">Nhiệm vụ</span>':''}</b>${pr}<span class="d">${x.d}</span><span class="efx">${effSpans(e)}${extra}</span>${r?`<span class="why">${r}</span>`:''}</button>`;
+}
+const SYS_ROWS=[['log','Nhật ký','Những việc đã làm và đã xảy ra (phím N).'],['rules','Luật chơi','Cách chơi, công thức điểm, phím tắt.'],['home','Màn hình chính','Tiến trình đã tự lưu, chơi tiếp lúc nào cũng được.']];
 function renderMenu(){
   const pm=$('popMenu');
   if(!menuCat){pm.hidden=true;pm.innerHTML='';return}
+  const close='<span class="x">Esc để đóng</span><button class="xbtn" type="button" data-pmclose aria-label="Đóng">×</button>';
+  if(menuCat==='sys'){
+    pm.innerHTML=`<h3 id="popT">${icTag('menu')}Menu${close}</h3><div class="rows">${SYS_ROWS.map(([id,n,d])=>`<button class="row well" type="button" data-sys="${id}"><b>${n}</b><span></span><span class="d">${d}</span></button>`).join('')}</div>`;
+    pm.hidden=false;return}
   const c=CATS.find(x=>x.id===menuCat),list=catActs(c);
   if(!list.length){menuCat=null;pm.hidden=true;return}
-  if(!menuSel||!list.find(a=>a.id===menuSel))menuSel=(list.find(a=>!reason(a))||list[0]).id;
-  const a=list.find(x=>x.id===menuSel),r=reason(a);
-  const tag=c.id==='eat'?`<span class="tag ${s.ateThisSlot?'':'good'}">${s.ateThisSlot?'Đã ăn buổi này':'Chưa ăn buổi '+SLOTS[s.slot].toLowerCase()}</span>`:c.id==='act'?`<span class="tag">${s.slot===3?'Xong là đi ngủ':'Sang buổi sau'}</span>`:'<span class="tag">Không tốn thời gian</span>';
-  const price=x=>x.cost?`<span class="pr">−${fk(x.cost)}</span>`:x.gain?`<span class="pr gain">+${fk(x.gain)}</span>`:'<span class="pr free">0đ</span>';
-  pm.innerHTML=nm(`<div class="pm-h"><b>${c.n}</b>${tag}<button class="xbtn" type="button" data-pmclose aria-label="Đóng">×</button></div>
-    <div class="pm-list" role="listbox">${list.map(x=>`<button class="pm-row${x.id===menuSel?' sel':''}${reason(x)?' off':''}" type="button" role="option" aria-selected="${x.id===menuSel}" data-pa="${x.id}"><span>${x.n}${x.story?'<span class="qt">Nhiệm vụ</span>':''}</span>${price(x)}</button>`).join('')}</div>
-    <div class="pm-detail"><p>${a.d}</p><div class="chips">${chipsHTML(a)}</div>
-      <div class="pm-foot"><span class="pm-why">${r||''}</span><button class="btn primary sm" type="button" data-do ${r?'disabled':''}>${c.verb}</button></div></div>`);
+  const tag=c.id==='eat'?(s.ateThisSlot?'Đã ăn buổi này':'Chưa ăn buổi '+SLOTS[s.slot].toLowerCase()):c.id==='act'?(s.slot===3?'Xong là đi ngủ':'Sang buổi sau'):'Không tốn thời gian';
+  pm.innerHTML=nm(`<h3 id="popT">${icTag(c.ic)}${c.n}<span class="x">· ${tag}</span>${close}</h3><div class="rows">${list.map(menuRow).join('')}</div>`);
   pm.hidden=false;
 }
-function closeMenu(){menuCat=null;menuSel=null}
-function renderToolbar(){
-  const n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
-  const b=$('bagBadge');b.hidden=!n;b.textContent=n;b.className='badge'+(expiring?' warn':'');
-  $('calBadge').hidden=!Object.keys(BILLS).map(Number).some(d=>d>=s.day&&d-s.day<=2);
-  const act=QUESTS.filter(q=>s.q[q.id]==='active').length,tb=$('taskBadge');tb.hidden=!act;tb.textContent=act;
+function openCat(id,focusId){
+  if(win)return;
+  if(menuCat===id){closeMenu();renderCmd();return}
+  menuCat=id;renderCmd();
+  const f=(focusId&&$('popMenu').querySelector(`[data-pa="${focusId}"]:not(:disabled)`))||$('popMenu').querySelector('.row:not(:disabled)');
+  if(f)f.focus({preventScroll:true});
 }
-$('cmdbar').addEventListener('click',e=>{const b=e.target.closest('[data-cat]');if(!b||win)return;
-  if(menuCat===b.dataset.cat)closeMenu();else{menuCat=b.dataset.cat;menuSel=null}renderCmd()});
+function closeMenu(){menuCat=null}
+$('cmdbar').addEventListener('click',e=>{
+  const b=e.target.closest('[data-cat]');if(b){openCat(b.dataset.cat);return}
+  const t=e.target.closest('[data-tool]');if(!t)return;
+  if(t.dataset.tool==='sys')openCat('sys');else{closeMenu();toggleWin(t.dataset.tool)}
+});
 $('popMenu').addEventListener('click',e=>{
   if(e.target.closest('[data-pmclose]')){closeMenu();renderCmd();return}
-  const row=e.target.closest('[data-pa]');if(row){menuSel=row.dataset.pa;renderMenu();return}
-  if(e.target.closest('[data-do]')){const a=locActs().find(x=>x.id===menuSel);if(a)doAction(a)}
+  const sy=e.target.closest('[data-sys]');if(sy){closeMenu();renderCmd();if(sy.dataset.sys==='home')cmd('home');else toggleWin(sy.dataset.sys);return}
+  const row=e.target.closest('[data-pa]');if(!row||row.disabled)return;
+  const a=locActs().find(x=>x.id===row.dataset.pa);if(a)doAction(a);
 });
-$('popMenu').addEventListener('dblclick',e=>{const row=e.target.closest('[data-pa]');if(!row)return;const a=locActs().find(x=>x.id===row.dataset.pa);if(a&&!reason(a))doAction(a)});
-document.querySelector('.tools').addEventListener('click',e=>{const b=e.target.closest('[data-open]');if(b)toggleWin(b.dataset.open)});
-document.querySelector('.mapbtn').addEventListener('click',()=>toggleWin('map'));
+$('noteBtn').addEventListener('click',()=>{if(noteAct==='map')toggleWin('map');else if(noteAct==='school')travel('school');else if(noteAct==='clean')openCat('act','clean')});
 $('tracker').addEventListener('click',()=>toggleWin('tasks'));
-$('stage').addEventListener('pointerdown',e=>{if(menuCat&&!e.target.closest('#cmdWrap')&&!e.target.closest('#layer')){closeMenu();renderCmd()}});
+$('stage').addEventListener('pointerdown',e=>{if(menuCat&&!e.target.closest('#popMenu')&&!e.target.closest('#cmdbar')&&!e.target.closest('#layer')){closeMenu();renderCmd()}});
 
 function popFx(out,dm){
   const items=[];
@@ -579,7 +605,7 @@ function showBanner(){
 }
 function showToast(text,tone){
   if(!s||!s.started)return;
-  const t=$('toast');t.textContent=nm(text);t.className='toast '+(tone||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('out'),2800);
+  const t=$('toast');t.textContent=nm(text);t.className='pn toast '+(tone||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('out'),2800);
 }
 function refresh(){checkQuests();checkDaily();save();render()}
 function afterChange(){refresh();processQueue()}
@@ -839,7 +865,9 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){if(win==='bag'&&bagSel){bagSel=null;renderWin();return}if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd()}return}
   if(!s.started||$('ui').hidden)return;
   const k={b:'bag',l:'cal',m:'map',n:'log',j:'tasks'}[e.key.toLowerCase()];
-  if(k){e.preventDefault();toggleWin(k)}
+  if(k){e.preventDefault();toggleWin(k);return}
+  const c=/^[1-9]$/.test(e.key)&&visCats()[+e.key-1];
+  if(c&&!win){e.preventDefault();openCat(c.id)}
 });
 
 /* ============ Pixel scene ============ */
@@ -906,7 +934,7 @@ function loop(t){if(t-lastDraw>110){lastDraw=t;try{drawScene(t)}catch(e){console
 
 /* ============ Boot ============ */
 function boot(data){
-  document.querySelectorAll('[data-ico]').forEach(el=>{el.innerHTML=ico(el.dataset.ico)});
+  document.querySelectorAll('[data-ic]').forEach(el=>el.style.setProperty('--i',`url(${icURL(el.dataset.ic)})`));
   if(data&&data.state&&data.state.started&&data.state.q){s=data.state;startGame();if(s.over)openWin('end');else processQueue()}
   else{s=newState();showTitle()}
   requestAnimationFrame(loop);
