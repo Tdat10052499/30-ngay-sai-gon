@@ -52,6 +52,29 @@ fresh();s.slot=3;s.no=29;const sl=A.home.find(a=>a.id==='sleep');
 check('B2 dòng Đi ngủ sớm ghi chú khi bụng đói',sl.note(s).includes('Bụng đói: ngủ sẽ mệt và buồn hơn'));
 s.no=40;check('B2 không ghi chú khi no',!sl.note(s).includes('Bụng đói'));
 
+/* ---------- B3: ngày 8–12 lên lớp qua đúng luồng giao diện (bản đồ → dòng "Lên lớp" → cảnh giảng đường) ---------- */
+function attend(){clearEvents();travel('school');clearEvents();const a=locActs().find(x=>x.id==='class');return !!a&&!reason(a)&&doAction(a)}
+function restOfDay(){const d=s.day;let g=0;while(s.day===d&&!s.over&&g++<12){clearEvents();if(s.day!==d)break;doAction(locActs().find(x=>x.id==='idle'));clearEvents()}}
+function week2(plan){
+  withRandom(0.99,()=>{fresh();while(s.day<8)restOfDay();s.money+=500000;s.absences=0});
+  const rows=[];
+  withRandom(0.99,()=>{for(let d=8;d<=12;d++){const how=plan[d]||'attend';let ok=false,scene=null;
+    if(how==='attend'){ok=attend();scene=actScene&&actScene.name}
+    if(how==='sick'){clearEvents();s.money+=300000;queue.unshift(ev('Bị ốm','Sáng dậy đầu nặng, người nóng hầm hập. Sức khỏe đang yếu.',[{l:'Đi khám phòng khám',cost:200000,eff:{sk:25,nl:5},x:'Hết buổi sáng · có giấy xin nghỉ học',run:()=>skipSlot('Nghỉ học có phép vì ốm')}]));processQueue();finishType();pickChoice(0)}
+    if(how==='skip'){clearEvents();doAction(locActs().find(x=>x.id==='idle'))}
+    rows.push({d,day:s.day,ok,scene,classToday:s.classToday,cls:s.classCh[2],absences:s.absences,q:s.q.q2_class});
+    restOfDay()}});
+  return {rows,q:s.q.q2_class,absences:s.absences,fail:s.log.find(l=>l.text.startsWith('Nhiệm vụ thất bại: Không bỏ buổi học nào')),lbl:questProg(QBY.q2_class).lbl};
+}
+let w=week2({});
+w.rows.forEach(x=>check(\`B3 ngày \${x.d}: lên lớp được tính có mặt (cảnh \${x.scene})\`,x.day===x.d&&x.ok&&x.scene==='hall'&&x.classToday===1&&x.cls===x.d-7&&x.absences===0,JSON.stringify(x)));
+check('B3 đủ 5 buổi ngày 8–12: nhiệm vụ Không bỏ buổi học nào hoàn thành',w.q==='done'&&w.absences===0&&!w.fail,JSON.stringify({q:w.q,absences:w.absences}));
+w=week2({9:'skip'});
+check('B3 vắng ngày 9: thất bại và thông báo ghi rõ ngày vắng',w.q==='fail'&&w.fail&&w.fail.text==='Nhiệm vụ thất bại: Không bỏ buổi học nào (vắng ngày 9)'&&w.absences===1,w.fail&&w.fail.text);
+check('B3 tiến độ trong cửa sổ Nhiệm vụ hiện vắng ngày 9',w.lbl==='4/5 buổi · vắng ngày 9',w.lbl);
+w=week2({10:'sick'});
+check('B3 nghỉ có phép vì ốm ngày 10: không trừ điểm vắng nhưng thông báo ghi rõ ngày',w.q==='fail'&&w.absences===0&&w.fail&&w.fail.text.endsWith('(vắng ngày 10)'),JSON.stringify({q:w.q,absences:w.absences,fail:w.fail&&w.fail.text,rows:w.rows}));
+
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');
