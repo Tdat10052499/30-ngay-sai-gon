@@ -614,7 +614,7 @@ function openWin(name){
   win=name;bagSel=null;if(name==='cal')calSel=s.day;
   closeMenu();renderCmd();
   const kind=name==='event'&&curEvent?curEvent.kind||'dlg':null;
-  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
+  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||name==='log'||name==='rules'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
   if(name==='map')mapPick();
   $('layer').hidden=false;renderWin();
   const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
@@ -629,11 +629,11 @@ function toggleWin(name){
 }
 function renderWin(){
   const kind=win==='event'&&curEvent?curEvent.kind||'dlg':null,isDlg=kind==='dlg';
-  const w=$('win');w.className=TAB_WINS.includes(win)?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
+  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
   w.setAttribute('aria-labelledby',kind==='chapter'?'chT':win==='end'?'endT':'');
   const html=win==='bag'?bagHTML():win==='cal'?calHTML():win==='tasks'?tasksHTML():win==='map'?mapHTML()
-    :win==='log'?head('book','Nhật ký')+`<div class="win-b"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
-    :win==='rules'?head('help','Luật chơi')+`<div class="win-b">${rulesHTML()}</div>`
+    :win==='log'?docHead('book','Nhật ký')+`<div class="t-det well t-doc"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
+    :win==='rules'?docHead('help','Luật chơi')+`<div class="t-det well t-doc">${rulesHTML()}</div>`
     :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():eventHTML())
     :win==='end'?endHTML():win==='phone'?phoneHTML():'';
   w.innerHTML=nm(html);
@@ -709,6 +709,8 @@ function pickChoice(i){
 const TAB_WINS=['bag','cal','tasks'];
 let questSel=null;
 const VERB={food:'Ăn',drink:'Uống',med:'Dùng'};
+/* Nhật ký và Luật chơi: cùng khung, chỉ có tiêu đề và nút đóng */
+const docHead=(ic,title)=>`<div class="t-wh"><h2 class="t-ttl">${icTag(ic)}${title}</h2><span class="sp"></span><button class="t-x" type="button" data-close>Esc ✕</button></div>`;
 function tabHead(extra=''){
   const t=(id,ic,l,k)=>`<button class="t-wt" type="button" role="tab" data-tab="${id}" aria-selected="${win===id}">${icTag(ic)}${l}<kbd>${k}</kbd></button>`;
   return `<div class="t-wh" role="tablist">${t('bag','bag','Túi đồ','B')}${t('cal','cal','Lịch','L')}${t('tasks','quest','Nhiệm vụ','J')}<span class="sp"></span>${extra}<button class="t-x" type="button" data-close>Esc ✕</button></div>`;
@@ -820,15 +822,17 @@ $('layer').addEventListener('pointerdown',e=>{
 function rulesHTML(){return `<ul class="rules">
   <li>Câu chuyện chia 4 chương theo 4 tuần. Mỗi chương có nhiệm vụ chính (xem ở <b>Nhiệm vụ</b> hoặc khung theo dõi góc phải) và 2 việc nhỏ mỗi ngày.</li>
   <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và các việc tiền bạc không tốn thời gian.</li>
-  <li>Thanh lệnh ở giữa dưới cùng: chọn nhóm, chọn một dòng để xem chi tiết, rồi bấm nút xác nhận. Bấm đúp một dòng để làm ngay.</li>
+  <li>Thanh lệnh dưới cùng: bấm một nhóm (hoặc phím 1–4) để mở danh sách, rồi bấm một dòng để làm ngay. Dòng bị khóa ghi rõ lý do.</li>
   <li>Sáng thứ Hai đến thứ Sáu Minh phải lên lớp; vắng học bị trừ điểm học tập. Sáng thứ Hai ngày 29 là kiểm tra giữa kỳ.</li>
-  <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương.</li>
+  <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương hoặc gọi xin thêm bố mẹ bằng điện thoại ở phòng trọ.</li>
+  <li>Hóa đơn tự trừ vào buổi sáng ngày 5, 10 và 20. Ví không đủ thì bị trừ hết tiền trong ví và tinh thần −12.</li>
   <li><b>Túi đồ</b> chứa đồ mua mang về. Bánh mì, xôi, bánh ngọt hỏng sau 1 ngày; nguyên liệu và sữa giữ được 3 ngày.</li>
+  <li>Phòng trọ bừa dần sau mỗi đêm, mỗi bữa ăn và mỗi lần nấu trong phòng. Phòng bừa làm tinh thần giảm khi ở nhà; dọn phòng giúp tinh thần tốt lên.</li>
   <li>Độ no, năng lượng, tinh thần tự giảm theo thời gian. Chỉ số nào xuống dưới 25 sẽ kéo các chỉ số khác giảm theo.</li>
 </ul>
 <div class="formula">Điểm = 1000 × Tài sản<sup>0,35</sup> × Độ no TB<sup>0,2</sup> × Tinh thần TB<sup>0,25</sup> × Sức khỏe cuối<sup>0,2</sup></div>
 <p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
-<p class="note-line">Phím tắt: B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Esc đóng.</p>`}
+<p class="note-line">Phím tắt: 1–4 nhóm hành động · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
 
 /* Thẻ chương (design/12 thẻ 2): tranh nhỏ khung gỗ, nội dung chương, nhiệm vụ của chương */
 function chapterHTML(e){

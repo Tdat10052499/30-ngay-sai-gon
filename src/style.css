@@ -528,12 +528,15 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .m-legend{left:calc(var(--p)*6);bottom:calc(var(--p)*6);padding:calc(var(--p)*4) calc(var(--p)*6);display:flex;gap:calc(var(--p)*8);font-size:.7em;font-weight:700;align-items:center}
 .m-legend i{display:inline-block;width:calc(var(--p)*7);height:calc(var(--p)*7);margin-right:.3em;vertical-align:-.1em}
 
-/* Log & rules */
-.loglist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.35em;font-size:.86em}
-.loglist li{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:.6em;padding:.3em 0;border-bottom:1px solid rgba(255,255,255,.05)}
-.loglist .lt{font-family:var(--f-num);font-size:1.15em;color:var(--muted)}
-.loglist .bad{color:var(--bad)}.loglist .good{color:var(--good)}.loglist .quest{color:var(--lantern)}
-.rules{margin:0 0 .9em;padding-left:1.2em;display:flex;flex-direction:column;gap:.35em;max-width:65ch;font-size:.92em}
-.formula{background:var(--panel2);border-radius:.55em;padding:.6em .8em;font-weight:700;font-size:.88em;overflow-x:auto}
+/* Log & rules: khung pixel chung với Túi đồ, Lịch, Nhiệm vụ */
+.t-ttl{margin:0;display:flex;align-items:center;gap:.4em;font-size:1.05em;font-weight:900;padding:calc(var(--p)*2) calc(var(--p)*4)}
+.t-doc{font-size:1.1em;line-height:1.5;gap:calc(var(--p)*3)}
+.loglist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.2em;font-size:.86em}
+.loglist li{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:.6em;padding:.3em 0;border-bottom:var(--p) solid #20264c}
+.loglist .lt{font-family:var(--f-num);font-size:1.2em;color:var(--muted)}
+.loglist .bad{color:#ff9aa6}.loglist .good{color:var(--good)}.loglist .quest{color:var(--lantern)}
+.rules{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:.35em;max-width:80ch;font-size:.86em;color:var(--fg)}
+.t-doc .formula{background:#2c335c;padding:.6em .8em;font-weight:700;font-size:.82em;overflow-x:auto;color:var(--fg)}
+.t-doc .note-line{margin:0;font-size:.78em;color:var(--muted)}
 
 @media (prefers-reduced-motion:reduce){.pop{animation-duration:.01s}.st.low .sbar i{animation:none}#scene,.toast,.sbar i,.bar i{transition:none}}
