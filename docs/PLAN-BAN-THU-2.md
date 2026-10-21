@@ -30,11 +30,11 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 Âm thanh, mưa, đi ngủ đói, vắng học ngày 12 đã làm ở v0.3.0 (commit `4792f66`, `743f7b2`, `1a5b104`, `bf91014`). Giai đoạn này chỉ kiểm tra lại và sửa phần âm thanh bạn báo chưa nghe được.
 
-- [ ] **1.1 Kiểm tra lại 4 việc đã làm**
+- [x] **1.1 Kiểm tra lại 4 việc đã làm**
   - Sửa: không sửa gì.
   - Kiểm tra: `npm test` (27 test B1–B3), Playwright đo mức âm thanh ở đầu ra sau khi bấm "Bắt đầu câu chuyện".
   - Đạt: test đạt hết; đỉnh tín hiệu đầu ra lớn hơn 0,05.
-- [ ] **1.2 Âm thanh chắc chắn phát được trên máy người chơi**
+- [x] **1.2 Âm thanh chắc chắn phát được trên máy người chơi**
   - Sửa: `index.html`, `src/game.js` (không sửa `src/audio.js`).
   - Gắn số phiên bản vào đường dẫn mọi script và CSS (`?v=0.4.0`) để trình duyệt không dùng bản cũ trong bộ nhớ đệm.
   - Safari: đặt `navigator.audioSession.type='playback'` trước `GameAudio.init()` để nút gạt im lặng trên iPhone không chặn âm thanh.

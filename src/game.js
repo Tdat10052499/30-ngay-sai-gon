@@ -165,6 +165,8 @@ try{const r=localStorage.getItem(AUDIO_KEY);if(r)audioPref={...audioPref,...JSON
 function audioSave(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioPref))}catch(e){}}
 function audioStart(){
   const A=typeof window!=='undefined'?window.GameAudio:null;if(!A||A.ctx)return;
+  /* Safari: nút gạt im lặng trên iPhone không chặn âm thanh của game */
+  try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
   try{A.init();A.setVolume('music',audioPref.music);A.setVolume('sfx',audioPref.sfx);A.setMuted(audioPref.muted)}catch(e){}
 }
 const LOC_MUSIC={home:'home',school:'school',store:'store',street:'street',market:'street',cafe:'cafe',park:'park',mall:'mall'};
@@ -181,7 +183,10 @@ function warnSfx(){
   const w=new Set();if(noteAct==='school'||noteAct==='clean')w.add(noteAct);STATS.forEach(S=>{if(s[S.k]<25)w.add(S.k)});
   if([...w].some(k=>!prevWarn.has(k)))sfx('warn');prevWarn=w;
 }
-document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('button'))sfx('click')},true);
+document.addEventListener('click',e=>{
+  /* iOS tạm dừng âm thanh khi có cuộc gọi hoặc chuyển ứng dụng: lần bấm kế tiếp cho chạy lại */
+  const A=typeof window!=='undefined'&&window.GameAudio;if(A&&A.ctx&&A.ctx.state!=='running')try{A.ctx.resume()}catch(err){}
+  if(e.target&&e.target.closest&&e.target.closest('button'))sfx('click')},true);
 function audioPanelHTML(){
   const pct=v=>Math.round(v*100)+'%';
   return `<div class="aud well">
