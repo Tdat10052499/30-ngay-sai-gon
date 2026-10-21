@@ -46,6 +46,7 @@ Tài liệu này mô tả bộ thiết kế trong thư mục `design/` và các 
 | 10-hoi-thoai-chan-dung | Khung hội thoại và 7 chân dung có biểu cảm | Cửa sổ sự kiện |
 | 11-tui-do-lich-nhiem-vu | Cửa sổ Túi đồ, Lịch, Nhiệm vụ; 9 biểu tượng vật phẩm | Thay 3 cửa sổ hiện tại |
 | 12-hoan-thien-giao-dien | Tổng kết cuối tháng, thẻ chương, thẻ sang ngày, biến thể nhân vật, bố cục điện thoại nằm ngang, điện thoại trong game | Màn kết thúc, thẻ, nhân vật, CSS di động, cửa sổ điện thoại |
+| 13-nhac-nen-va-am-thanh | Trang nghe thử 9 bản nhạc nền, đoạn bình minh, 17 hiệu ứng; có thanh âm lượng, tắt tiếng, chế độ buổi tối | Dùng `src/audio.js` có sẵn trong gói |
 
 Mã vẽ trong các file trùng nhau một phần (ví dụ hàm `outlined`, `canopy`, font pixel, nhân vật). Khi đưa vào game nên gom về một chỗ, không chép lặp.
 
@@ -68,6 +69,14 @@ Mã vẽ trong các file trùng nhau một phần (ví dụ hàm `outlined`, `ca
 | Số liệu độ bừa bộn | Dùng số ở mục 4, chạy mô phỏng rồi báo lại | Dùng số ở mục 4; bot thận trọng dọn phòng khoảng 3 ngày một lần, điểm không đổi |
 | Sự kiện ngẫu nhiên khi phòng bừa bộn (gián, Khoa than phiền) | Chưa làm | Chưa làm |
 
-## 6. Ngoài phạm vi v0.3
+## 6. Âm thanh
 
-Âm thanh, nhạc nền, chạy trên điện thoại dọc, bản nữ quay lưng ở trang bìa.
+- **File có sẵn:** `src/audio.js` (JavaScript thuần, Web Audio, không cần file nhạc). Cung cấp `window.GameAudio` với `init()`, `play(id)`, `stop()`, `sting('dawn')`, `sfx(name)`, `setVolume('music'|'sfx', 0..1)`, `setMuted(bool)`, `setNight(bool)`.
+- **Bản nhạc theo cảnh:** `title` (trang bìa, tạo nhân vật), `home`, `school`, `store`, `street` (quán ăn và chợ), `cafe`, `park`, `mall`, `summary` (tổng kết). Đoạn ngắn `dawn` cho chuyển cảnh ngày 1.
+- **Hiệu ứng:** `click`, `open`, `close`, `coinIn`, `coinOut`, `statUp`, `statDown`, `eat`, `sleep`, `dayStart`, `questDone`, `questFail`, `warn`, `message`, `text`, `door`, `register`. Bảng gắn hiệu ứng với sự kiện nằm trong file thiết kế 13.
+- **Quy tắc:** gọi `init()` ở lần bấm đầu tiên của người chơi (trình duyệt chặn tự phát). Đổi địa điểm thì `play()` bài mới, bài cũ tự nhỏ dần. Buổi tối gọi `setNight(true)`. Mở bản đồ, túi đồ, lịch, nhiệm vụ không đổi bài. Tiếng `text` chỉ phát mỗi 3 đến 4 chữ. Menu có thanh âm lượng nhạc, hiệu ứng và nút tắt tiếng, lưu vào localStorage. Mặc định nhạc 0,6, hiệu ứng 0,8.
+- **Mức âm lượng đã đo:** độ to trung bình −21 đến −18 dBFS, đỉnh không vượt −5 dBFS ở mức mặc định.
+
+## 7. Ngoài phạm vi v0.3
+
+Chạy trên điện thoại dọc, bản nữ quay lưng ở trang bìa.
