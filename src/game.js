@@ -14,6 +14,7 @@ const STATS=[{k:'no',n:'Độ no'},{k:'nl',n:'Năng lượng'},{k:'tt',n:'Tinh t
 const SCOL={no:'#f5a742',nl:'#5cc8ff',tt:'#ff86b3',sk:'#72de90'};
 const BILLS={5:['Tiền nhà',1200000],10:['Điện, nước, internet',200000],20:['Giáo trình và quỹ lớp',300000]};
 const START_MONEY=3000000;
+const HUNGRY_BED=30; // độ no dưới mức này lúc đi ngủ thì ngủ không ngon
 const CLASS_DAYS=22;
 const KEY='ba-muoi-ngay-sg-v5';
 const RELAX=['net','trada','oc','walk','bench','chill','movie','shop','window','stroll','club','khoa','clean'];
@@ -209,7 +210,7 @@ const A={
     {id:'net',k:'act',n:'Lướt mạng, xem phim',d:'Giải trí miễn phí.',eff:{tt:7,nl:-2,sk:-1}},
     {id:'clean',k:'act',n:'Dọn phòng, giặt đồ',d:'Phòng gọn thì đầu óc nhẹ.',eff:()=>({tt:[5,8,12][messLv()],nl:-6}),note:()=>`Phòng: ${MESS_LV[messLv()]} → ${MESS_LV[lvOf(Math.max(0,s.mess-50))]}`,run:()=>addMess(-50)},
     {id:'free',k:'act',n:'Nhận vẽ thuê',d:'Vẽ minh họa cho khách quen trên mạng. Trả tiền ngay.',gain:80000,eff:{nl:-18,tt:-4},when:s=>s.slot>=2?null:'Khách chỉ gửi việc từ chiều'},
-    {id:'sleep',k:'act',n:'Đi ngủ sớm',d:'Kết thúc ngày, hồi thêm năng lượng khi ngủ.',eff:{},note:()=>'Năng lượng +15 khi ngủ',when:s=>s.slot===3?null:'Chỉ ngủ sớm vào buổi tối'},
+    {id:'sleep',k:'act',n:'Đi ngủ sớm',d:'Kết thúc ngày, hồi thêm năng lượng khi ngủ.',eff:{},note:s=>'Năng lượng +15 khi ngủ'+(s.slot===3&&s.no<HUNGRY_BED?' · Bụng đói: ngủ sẽ mệt và buồn hơn':''),when:s=>s.slot===3?null:'Chỉ ngủ sớm vào buổi tối'},
     {id:'askparents',k:'quick',n:'Gọi xin thêm tiền bố mẹ',d:'Bố mẹ gửi thêm 500.000đ, nhưng Minh thấy áy náy.',eff:{tt:-8},when:s=>s.askCount<2?null:'Đã xin 2 lần rồi',note:()=>'+500k · ảnh hưởng nhiệm vụ Tự lập',run:s=>{s.money+=500000;s.askCount++}},
   ],
   street:[
@@ -310,6 +311,7 @@ function chipsHTML(o,withMoney=true){
 function doAction(a){
   if(s.over||win||reason(a))return false;
   const m0=s.money;
+  if(a.k==='act'&&s.slot===3)s.noBed=s.no; // độ no lúc chọn hành động cuối ngày, trước mọi lần trừ
   startActScene(a);
   if(a.pre)a.pre(s);
   if(a.cost){s.money-=a.cost;s.spentToday+=a.cost}
@@ -342,6 +344,7 @@ function endSlot(a){
   if(!isWE(s.day)&&s.slot===0&&a.id!=='class'&&a.id!=='exam'&&!a.excused){
     s.absences++;addLog(s.absences===1?'Vắng buổi học sáng. Điểm học tập bị trừ.':'Lại vắng một buổi học.','bad');
   }
+  if(s.slot===3&&s.noBed==null)s.noBed=s.no;
   s.no-=9;s.tt-=2;
   if(s.loc==='home'){s.tt-=[0,1,2][messLv()];addMess(2)}
   if(!['nap','bench','campusnap'].includes(a.id))s.nl-=4;
@@ -355,12 +358,14 @@ function endSlot(a){
   else endDay(a.id==='sleep');
 }
 function endDay(early){
-  s.no-=10;
+  /* bụng đói khi đi ngủ: xét độ no lúc chọn hành động cuối ngày (dưới 30), rồi mới trừ độ no qua đêm */
+  const noBed=s.noBed!=null?s.noBed:s.no;s.noBed=null;
   const ml=messLv(),messy=ml===2?10:0;
-  if(s.no>=35){s.nl+=50-messy;s.sk+=2}
+  if(noBed>=HUNGRY_BED){s.nl+=50-messy;s.sk+=2}
   else{s.nl+=35-messy;s.tt-=6;s.sk-=2;addLog('Đi ngủ với cái bụng đói, ngủ không ngon.','bad')}
   if(early){s.nl+=15;s.tt+=2}
   if(ml===0)s.tt+=2;
+  s.no-=10;
   addMess(10);
   for(const {k} of STATS)s[k]=clamp(Math.round(s[k]));
   checkQuests();
