@@ -507,7 +507,7 @@ function renderTop(){
   $('dow').textContent=DOW[dowOf(s.day)];
   $('chap').textContent=`Chương ${chOf(s.day)}`;
   $('slots').innerHTML=SLOT_IC.map((ic,i)=>`<span class="s${i===s.slot?' on':i<s.slot?' past':''}" title="Buổi ${SLOTS[i].toLowerCase()}"${i===s.slot?' aria-current="true"':''}>${icTag(ic)}</span>`).join('')+`<span class="nm">${SLOTS[s.slot]}</span>`;
-  $('mstats').innerHTML=STATS.map(S=>{const v=s[S.k];return `<div class="st${v<25?' low':''}" title="${S.n}: ${v}/100" role="img" aria-label="${S.n} ${v}" style="--c:${SCOL[S.k]}"><span class="num v" style="color:${v<25?'':SCOL[S.k]}">${v}</span><span class="sbar well"><i style="height:calc((100% - var(--p)*2) * ${v/100})"></i></span>${icTag(S.k)}</div>`}).join('');
+  $('mstats').innerHTML=STATS.map(S=>{const v=s[S.k];return `<div class="st${v<25?' low':''}" title="${S.n}: ${v}/100" role="img" aria-label="${S.n} ${v}" style="--c:${SCOL[S.k]}"><span class="num v" style="color:${v<25?'':SCOL[S.k]}">${v}</span><span class="sbar well"><i style="--v:${v/100}"></i></span>${icTag(S.k)}</div>`}).join('');
   $('money').textContent=fmt(s.money);
   $('ledger').textContent=`Lương chờ ${fk(s.accrued)}`;
   const L=LOCS[s.loc],cl=L.open(s);
@@ -531,14 +531,14 @@ function renderCmd(){
   const cats=visCats(),n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
   const bill=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&d-s.day<=2),act=QUESTS.filter(q=>s.q[q.id]==='active').length;
   const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}">${icTag(ic)}<span class="lb">${lb}</span>${bd}</button>`;
-  $('cmdbar').innerHTML=cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
-    return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+
+  $('cmdbar').innerHTML='<span class="hb-grp hb-acts">'+cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
+    return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+'</span><span class="hb-grp hb-tools">'+
     '<span class="sep" aria-hidden="true"></span>'+
     tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
     tool('cal','cal','Lịch',bill?`Lịch tháng (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch tháng (L)',bill?'<span class="bd dot"></span>':'')+
     tool('tasks','quest','Nhiệm vụ','Nhiệm vụ (J)',act?`<span class="bd">${act}</span>`:'')+
     tool('map','map','Bản đồ','Bản đồ (M)')+
-    `<span class="sep" aria-hidden="true"></span><button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}</button>`;
+    `<span class="sep" aria-hidden="true"></span><button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}<span class="lb">Menu</span></button></span>`;
   /* cảnh báo giữa trên, kèm nút làm ngay */
   const closed=LOCS[s.loc].open(s);let t='',btn='',cls='';noteAct=null;
   if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;btn='Bản đồ';noteAct='map';cls='bad'}
@@ -814,7 +814,7 @@ function drawMap(t=0){
   Scenes.map.frame(cv.getContext('2d'),t,{animate:!reduceMotion(),slot:s.slot,at:s.loc,sel:mapSel,weekend:isWE(s.day),quests:Object.keys(mapQuests()),broken:s.bikeBroken>0,gender:s.gender});
 }
 $('layer').addEventListener('pointerdown',e=>{
-  if(e.target.id!=='mapCv')return;const r=e.target.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*320,y=(e.clientY-r.top)/r.height*180;
+  if(e.target.id!=='mapCv')return;const r=e.target.getBoundingClientRect(),k=Math.min(r.width/320,r.height/180),x=(e.clientX-r.left)/k,y=(e.clientY-r.top-(r.height-180*k)/2)/k;
   const hit=Scenes.map.PLACES.find(p=>{const [bx,by,bw,bh]=p.box;return x>=bx-3&&x<=bx+bw+3&&y>=by-12&&y<=by+bh+3});if(hit){mapSel=hit.id;renderWin()}
 });
 
@@ -873,7 +873,7 @@ function endHTML(){
   return `<div class="hd3"><b id="endT">Kết thúc tháng đầu tiên của ${s.name}</b><span>Ngày 30 · Sinh nhật mẹ · ${qd}/${QUESTS.length} nhiệm vụ</span></div>
     <div class="scorebox well"><div class="sc"><span class="num">${r.score}</span><span class="rank" style="--rk:${RC[g]}" aria-label="Hạng ${g}">${g}</span></div>
       <div class="arch"><b>${an}</b><span>${ad}</span></div>
-      <div class="fac">${fac.map(([n,v,c,w,val])=>`<div><div class="row"><b>${n}</b><span>${val} · mũ ${w}</span></div><div class="fbar"><i style="--c:${c};width:${Math.min(1,v)*100}%"></i></div></div>`).join('')}</div>
+      <div class="fac">${fac.map(([n,v,c,w,val])=>`<div><div class="frow"><b>${n}</b><span>${val} · mũ ${w}</span></div><div class="fbar"><i style="--c:${c};width:${Math.min(1,v)*100}%"></i></div></div>`).join('')}</div>
       <div class="formula">Điểm = 1000 × Tài sản<sup>0,35</sup> × No<sup>0,2</sup> × Tinh thần<sup>0,25</sup> × Sức khỏe<sup>0,2</sup>. Hạng S từ 800, A từ 700, B từ 580, C từ 450.</div></div>
     <div class="chartbox well"><div class="tl"><span>30 ngày của ${s.name}</span><span class="lg">${lg}</span></div>
       <canvas id="chartCv" width="220" height="92" role="img" aria-label="Đồ thị 30 ngày"></canvas>
