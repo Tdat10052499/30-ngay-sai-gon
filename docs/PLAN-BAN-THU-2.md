@@ -129,19 +129,19 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ## Giai đoạn 3: thẻ hành động, chế độ ăn, cảnh báo bật lên, chọn độ khó (mục 3, 4.2)
 
-- [ ] **3.1 Hàm thuần `pickCards(s)`** (`src/cards.js`)
+- [x] **3.1 Hàm thuần `pickCards(s)`** (`src/cards.js`)
   - Trả 3 đến 5 thẻ cho buổi hiện tại; thẻ cuối luôn là "Tự chọn".
   - Sáng ngày thường: "Đi học" đứng đầu và được tô nổi; ngày 29 là "Đi thi giữa kỳ".
   - Thẻ nhiệm vụ đúng ngày được ưu tiên (ví dụ "Cà phê với Khoa" chiều ngày 20, 21; "Mua quà sinh nhật mẹ"; lời mời của Ngân), kể cả khi đang khóa (hiện lý do).
   - Các thẻ còn lại: việc làm được ở mọi nơi trong buổi đó, ưu tiên việc giúp chỉ số đang thấp nhất (năng lượng thấp → "Ngủ một giấc"; phòng bừa → "Dọn phòng"; tinh thần thấp → việc thư giãn; sức khỏe thấp → chạy bộ hoặc nghỉ). Không gợi ý việc bị khóa vì giờ mở cửa.
   - Mỗi thẻ có: tên việc, nơi diễn ra và tiền đi lại, nhãn hiệu ứng chính theo màu chỉ số, cái giá (tiền, chỉ số giảm), dấu chấm than nếu gắn nhiệm vụ, lý do khóa, nhãn cảnh báo nếu sau hành động một chỉ số xuống dưới 25.
   - Kiểm tra: test cho sáng ngày thường, ngày 29, chiều ngày 20, năng lượng thấp, phòng bừa, buổi tối.
-- [ ] **3.2 Thanh thẻ thay thanh lệnh** (`index.html`, `src/style.css`, `src/game.js`)
+- [x] **3.2 Thanh thẻ thay thanh lệnh** (`index.html`, `src/style.css`, `src/game.js`)
   - Bấm một thẻ là làm trọn: tự đi tới nơi (trừ tiền đi lại, hết tiền thì đi bộ với năng lượng −8, tinh thần −2), làm hành động, chạy cảnh hành động 1 đến 2 giây không cần bấm, rồi sang buổi sau. Phím 1 đến 5 chọn thẻ.
   - "Tự chọn" mở menu đầy đủ hiện có (bản đồ, các nhóm hành động).
   - Túi đồ, Lịch, Nhiệm vụ, Bản đồ, Menu dời lên một cột biểu tượng nhỏ ở góc phải.
   - Kiểm tra: Playwright bấm thẻ "Đi học" từ phòng trọ, kiểm tra đã ở trường, `classToday`=1, sang buổi trưa, trừ 6.000đ.
-- [ ] **3.3 Chế độ ăn** (`src/cards.js`, `src/game.js`, `src/style.css`)
+- [x] **3.3 Chế độ ăn** (`src/cards.js`, `src/game.js`, `src/style.css`)
   - Trong khung lịch có ô chọn Chế độ ăn: Tự nấu, Bình dân (mặc định), Thoải mái, Tự chọn bữa; cạnh đó là ước tính tiền ăn mỗi ngày.
   - Đầu mỗi buổi, nếu độ no dưới 45 và buổi đó chưa ăn thì tự ăn theo bảng dưới, hiện thông báo ngắn (ví dụ “Ăn cơm căng tin: −25.000đ, no +33”) và ghi nhật ký.
   - **Bảng chế độ ăn × địa điểm (chờ duyệt):** "đồ trong túi" là đồ ăn trong túi dùng được ở nơi đó, ưu tiên món sắp hỏng nhất.
@@ -160,20 +160,20 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
   - Câu hỏi: Bình dân có nên tránh mì gói (rẻ nhất nhưng hại sức khỏe) như bảng trên không?
   - Ước tính tiền ăn mỗi ngày hiện cạnh ô chọn (3 bữa): Tự nấu khoảng 32.000đ, Bình dân khoảng 95.000đ, Thoải mái khoảng 190.000đ. Số này tính lại theo mô phỏng.
   - Kiểm tra: test `autoMeal(s)` cho từng ô của bảng; test không tự ăn khi độ no từ 45 hoặc đã ăn; test chế độ Tự chọn bữa.
-- [ ] **3.4 Đếm số lần bấm** (`tools/test.js` hoặc Playwright)
+- [x] **3.4 Đếm số lần bấm** (`tools/test.js` hoặc Playwright)
   - Kịch bản một ngày thường (đi học, ăn trưa, làm ca chiều, làm ca tối), đếm mọi lần bấm, kể cả bấm đóng thông báo.
   - Đạt: không quá 6 lần bấm. Báo số lần bấm trung bình mỗi ngày trước khi sửa (bản v0.3.0) và sau khi sửa.
-- [ ] **3.5 Cảnh báo bật lên** (`src/game.js`, `src/style.css`)
+- [x] **3.5 Cảnh báo bật lên** (`src/game.js`, `src/style.css`)
   - Hộp giữa màn hình có nút hành động nhanh và nút "Để sau", phát `warn`, mỗi cảnh báo chỉ một lần:
     - Tối ngày 4: “Sáng mai cô Tư thu tiền nhà 1.200.000đ.” kèm số dư ví hiện tại.
     - Tối ngày 28 và sáng ngày 29: “Sáng nay là bài kiểm tra giữa kỳ. Vắng là không có điểm.” Nút "Đi thi ngay" (tới trường và làm bài luôn). Ghi chú: tối ngày 28 câu "Sáng nay" chưa đúng, đề xuất dùng “Sáng mai là bài kiểm tra giữa kỳ. Vắng là không có điểm.” cho tối ngày 28 (chờ duyệt).
     - Sáng ngày 29 và ngày 30: nhắc nhiệm vụ sinh nhật mẹ nếu chưa xong, nút "Đi TTTM".
     - Ngày cuối của mọi nhiệm vụ chính còn đang làm: đề xuất “Hôm nay là hạn cuối của nhiệm vụ “[tên]”.” kèm gợi ý cách làm và nút đi tới nơi cần đến nếu có (chờ duyệt).
   - Kiểm tra: test thời điểm hiện và chỉ hiện một lần; Playwright chụp hộp cảnh báo.
-- [ ] **3.6 Chọn độ khó ở màn tạo nhân vật** (`index.html`, `src/game.js`, `src/style.css`)
+- [x] **3.6 Chọn độ khó ở màn tạo nhân vật** (`index.html`, `src/game.js`, `src/style.css`)
   - Hai lựa chọn Thường (mặc định) và Dễ; lưu vào bản lưu; hiện ở menu Luật chơi.
   - Văn bản đề xuất: “Thường: hao hụt và hình phạt tăng dần theo chương.” “Dễ: nhẹ nhàng, hợp để làm quen.”
-- [ ] **3.7 Màn tổng kết có thanh "Điểm học tập"** cạnh 4 thanh cũ, ghi số mũ; cập nhật công thức hiển thị.
+- [x] **3.7 Màn tổng kết có thanh "Điểm học tập"** cạnh 4 thanh cũ, ghi số mũ; cập nhật công thức hiển thị.
 
 ---
 

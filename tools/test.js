@@ -110,7 +110,7 @@ function idleAt(day,diff,setup){fresh(diff);s.day=day;s.slot=1;s.loc='park';s.no
   const b={no:s.no,nl:s.nl,tt:s.tt,sk:s.sk},n0=s.log.length;withRandom(0.99,()=>doAction(locActs().find(x=>x.id==='idle')));
   return {d:{no:s.no-b.no,nl:s.nl-b.nl,tt:s.tt-b.tt,sk:s.sk-b.sk},log:s.log.slice(0,s.log.length-n0).map(l=>l.text).join(' | ')}}
 // ngồi nghỉ: năng lượng +3, tinh thần −1, rồi hao hụt cuối buổi
-for(const [day,no] of [[1,-10],[8,-10],[15,-11],[22,-11]]){const r=idleAt(day,'thuong');check(\`T hao hụt cuối buổi ngày \${day} (Thường, hệ số chương): no \${no}\`,r.d.no===no,JSON.stringify(r.d))}
+for(const [day,no] of [[1,-9],[8,-9],[15,-9],[22,-10]]){const r=idleAt(day,'thuong');check(\`T hao hụt cuối buổi ngày \${day} (Thường, hệ số chương): no \${no}\`,r.d.no===no,JSON.stringify(r.d))}
 let r2=idleAt(22,'de');check('T hao hụt ở Dễ không tăng theo chương: no −9, tinh thần −3, năng lượng −1',r2.d.no===-9&&r2.d.tt===-3&&r2.d.nl===-1,JSON.stringify(r2.d));
 r2=idleAt(1,'thuong',()=>{s.no=30});check('T đói (no dưới 25): ghi "Đói: tinh thần −5, sức khỏe −2"',r2.log.includes('Đói: tinh thần −5, sức khỏe −2')&&r2.d.sk===-2,r2.log);
 r2=idleAt(1,'de',()=>{s.no=30});check('T đói ở Dễ: tinh thần −4, sức khỏe −2',r2.log.includes('Đói: tinh thần −4, sức khỏe −2'),r2.log);
@@ -171,6 +171,52 @@ check('Ăn: Thoải mái ở TTTM: buffet',meal('thoaimai','mall',1,[])==='{"act
 check('Ăn: no từ 45 thì không tự ăn',meal('binhdan','street',1,[],45)==='null');
 check('Ăn: Tự chọn bữa thì không tự ăn',meal('tuchon','street',1,[])==='null');
 meal('binhdan','street',1,[]);s.money=100000;autoEat();check('Ăn: autoEat gọi cơm tấm, trừ 40.000đ',s.money===60000&&s.ateThisSlot);
+/* ---------- thẻ hành động (src/cards.js) ---------- */
+const pc=(set)=>{fresh('thuong');s.flags.hired=1;s.q.q1_job='done';set();return pickCards(s)};
+let C=pc(()=>{s.day=3;s.slot=0;s.loc='home'});
+check('Thẻ: sáng ngày thường Đi học đứng đầu, tô nổi',C[0].id==='class'&&C[0].hl&&C[0].n==='Đi học');
+check('Thẻ: 3 đến 5 thẻ, thẻ cuối là Tự chọn',C.length>=3&&C.length<=5&&C[C.length-1].custom);
+C=pc(()=>{s.day=29;s.slot=0;s.loc='home';s.q.q4_exam='active'});check('Thẻ: sáng ngày 29 là Đi thi giữa kỳ',C[0].id==='exam'&&C[0].n==='Đi thi giữa kỳ');
+C=pc(()=>{s.day=20;s.slot=0;s.loc='home';s.q.q3_khoa='active'});const kc=C.find(c=>c.id==='khoa');
+check('Thẻ: ngày 20 có thẻ Cà phê với Khoa, buổi sáng hiện lý do khóa',kc&&!!kc.lock&&kc.quest,kc&&kc.lock);
+C=pc(()=>{s.day=20;s.slot=2;s.loc='home';s.q.q3_khoa='active'});check('Thẻ: chiều ngày 20 Cà phê với Khoa mở',C.find(c=>c.id==='khoa'&&!c.lock));
+C=pc(()=>{s.day=6;s.slot=1;s.loc='home';s.nl=10});check('Thẻ: năng lượng thấp gợi ý nghỉ ngơi trước',['nap','bench','campusnap'].includes(C[0].id),C.map(c=>c.id).join(','));
+C=pc(()=>{s.day=6;s.slot=2;s.loc='home';s.mess=95});check('Thẻ: phòng bừa gợi ý Dọn phòng',C.some(c=>c.id==='clean'),C.map(c=>c.id).join(','));
+C=pc(()=>{s.day=6;s.slot=3;s.loc='home'});check('Thẻ: buổi tối có Đi ngủ sớm',C.some(c=>c.id==='sleep'),C.map(c=>c.id).join(','));
+check('Thẻ: không gợi ý việc bị khóa (trừ thẻ nhiệm vụ)',C.every(c=>c.custom||!c.lock||c.quest));
+C=pc(()=>{s.day=6;s.slot=3;s.loc='home'});check('Thẻ: buổi tối không gợi ý trường, chợ',C.every(c=>c.custom||!['school','market'].includes(c.loc)));
+C=pc(()=>{s.day=6;s.slot=2;s.loc='home';s.nl=22});const shc=C.find(c=>c.id==='shift');check('Thẻ: cảnh báo khi một chỉ số sẽ xuống dưới 25',!shc||shc.warn.includes('nl'));
+// bấm thẻ Đi học từ phòng trọ
+fresh('thuong');s.day=3;s.slot=0;s.loc='home';s.money=500000;s.no=80;queue=[];hideWin();cards=pickCards(s);
+withRandom(0.99,()=>{runCard(0);clearEvents()});
+check('Thẻ: bấm Đi học thì tới trường, lên lớp, sang buổi trưa, trừ 6.000đ',s.loc==='school'&&s.classToday===1&&s.slot===1&&s.money===494000,JSON.stringify({loc:s.loc,c:s.classToday,sl:s.slot,m:s.money}));
+fresh('thuong');s.day=3;s.slot=1;s.loc='home';s.money=0;s.nl=60;queue=[];hideWin();cards=[makeCard(s,'school',A.school.find(a=>a.id==='library'))];
+withRandom(0.99,()=>{runCard(0);clearEvents()});check('Thẻ: hết tiền thì đi bộ (năng lượng −8, tinh thần −2)',s.loc==='school'&&s.log.some(l=>l.text.startsWith('Hết tiền xăng, đi bộ')));
+/* ---------- cảnh báo bật lên ---------- */
+const warns=()=>queue.filter(e=>e.kind==='warn').map(e=>e.id);
+fresh('thuong');s.day=4;s.slot=3;queue=[];withRandom(0.99,()=>slotEvents());check('Cảnh báo: tối ngày 4 tiền nhà, kèm số dư',warns().includes('rent')&&queue.find(e=>e.id==='rent').text.includes(fmt(s.money)));
+queue=[];withRandom(0.99,()=>slotEvents());check('Cảnh báo: chỉ hiện một lần',!warns().includes('rent'));
+fresh('thuong');s.day=28;s.slot=3;queue=[];withRandom(0.99,()=>slotEvents());check('Cảnh báo: tối ngày 28 bài kiểm tra (Sáng mai)',queue.some(e=>e.id==='exam28'&&e.text.includes('Sáng mai')));
+fresh('thuong');s.day=29;s.slot=0;queue=[];withRandom(0.99,()=>slotEvents());check('Cảnh báo: sáng ngày 29 bài kiểm tra, nút Đi thi ngay',queue.some(e=>e.id==='exam29'&&e.choices[0].l==='Đi thi ngay'));
+fresh('thuong');s.day=29;s.slot=1;s.q.q4_gift='active';queue=[];withRandom(0.99,()=>slotEvents());check('Cảnh báo: ngày 29 nhắc quà sinh nhật mẹ, nút Đi TTTM',queue.some(e=>e.id==='gift29'&&e.choices[0].l==='Đi TTTM'));
+fresh('thuong');s.day=14;s.slot=0;s.q.q2_shift='active';queue=[];withRandom(0.99,()=>slotEvents());check('Cảnh báo: ngày cuối của nhiệm vụ còn đang làm',queue.some(e=>e.id==='due_q2_shift'&&e.text.includes('Quen việc ở cửa hàng')));
+fresh('thuong');s.day=29;s.slot=0;s.loc='home';s.money=500000;s.q.q4_exam='active';queue=[];hideWin();withRandom(0.99,()=>{slotEvents();processQueue()});
+check('Cảnh báo: hộp cảnh báo mở giữa màn hình',win==='event'&&curEvent.kind==='warn');
+withRandom(0.99,()=>pickChoice(0));clearEvents();check('Cảnh báo: Đi thi ngay thì tới trường và làm bài',s.flags.examTaken===1&&s.loc==='school');
+/* ---------- tự ăn đầu buổi, độ khó ---------- */
+fresh('thuong');s.day=3;s.slot=1;s.loc='school';s.no=30;s.money=100000;s.mealChk=0;queue=[];hideWin();processQueue();
+check('Tự ăn đầu buổi: cơm căng tin, ghi nhật ký',s.money===75000&&s.ateThisSlot&&s.log[0].text.includes('Ăn cơm căng tin: −25.000đ, no +33'),s.log[0].text);
+newGame({name:'Lan',gender:'nu',diff:'de'});check('Độ khó: chọn Dễ khi tạo nhân vật',s.diff==='de');clearEvents();
+newGame({name:'Lan',gender:'nu'});check('Độ khó: mặc định Thường',s.diff==='thuong');clearEvents();
+/* ---------- đếm số lần bấm một ngày thường (đi học, ăn trưa, ca chiều, ca tối) ---------- */
+fresh('thuong');s.flags.hired=1;s.flags.metHai=1;QUESTS.forEach(q=>{if(q.ch===1)s.q[q.id]='done'});s.day=2;s.slot=3;s.loc='home';s.money=900000;s.nl=90;s.no=80;s.tt=80;s.sk=90;queue=[];hideWin();
+let clicks=0;const tap=f=>{clicks++;f()};
+withRandom(0.99,()=>{doAction(locActs().find(a=>a.id==='sleep'));clicks=0;
+  if(win==='event')tap(()=>pickChoice(0));                       // thẻ ngày mới
+  const go=id=>{cards=pickCards(s);let i=cards.findIndex(c=>c.id===id);if(i<0){cards.push(makeCard(s,id==='shift'?'store':'school',(id==='shift'?A.store:A.school).find(a=>a.id===id)));i=cards.length-1}tap(()=>runCard(i));let g=0;while(win==='event'&&s.day===3&&g++<5)tap(()=>pickChoice(0))};
+  go('class');go('campusnap');go('shift');go('shift')});
+check('Bấm: một ngày thường không quá 6 lần bấm',clicks<=6&&s.day===4&&s.shifts===2,clicks+' lần, ngày '+s.day+', ca '+s.shifts);
+console.log('  (số lần bấm một ngày thường: '+clicks+')');
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

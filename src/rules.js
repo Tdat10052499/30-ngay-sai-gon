@@ -4,7 +4,7 @@
 const DIFFS={
   thuong:{
     n:'Thường',
-    decay:{no:10,tt:2,nl:5},            // hao hụt cuối mỗi buổi (mô phỏng: tinh thần −3 làm Thận trọng chỉ còn 500 điểm)
+    decay:{no:9,tt:2,nl:4},             // hao hụt cuối mỗi buổi (mô phỏng: tinh thần −3 làm Thận trọng chỉ còn 500 điểm)
     chap:[1,1,1,1.05,1.1],             // hệ số hao hụt theo chương (chỉ số 1–4)
     hungry:{tt:-5,sk:-2},               // no dưới 25
     starve:{sk:-8,nl:-5},               // no về 0
@@ -37,6 +37,8 @@ const DIFFS={
     faintRest:false,
   },
 };
+/* mô tả hiện ở màn tạo nhân vật và Luật chơi */
+const DIFF_TXT={thuong:'Thường: hao hụt và hình phạt tăng dần theo chương.',de:'Dễ: nhẹ nhàng, hợp để làm quen.'};
 const rulesOf=s=>DIFFS[(s&&s.diff)||'thuong']||DIFFS.thuong;
 /* hao hụt cuối buổi đã nhân hệ số chương (làm tròn) */
 function slotDecay(s,ch){const R=rulesOf(s),m=R.chap[ch]||1;return {no:Math.round(R.decay.no*m),tt:Math.round(R.decay.tt*m),nl:Math.round(R.decay.nl*m)}}

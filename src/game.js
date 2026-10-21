@@ -339,6 +339,17 @@ function doAction(a){
   else if(a.k==='meal'||a.k==='drink')closeMenu();
   afterChange();return true;
 }
+/* đầu mỗi buổi (sau khi các sự kiện đã xong): tự ăn theo chế độ ăn, mỗi buổi xét một lần */
+function slotStart(){if(s.mealChk===s.day*10+s.slot)return;s.mealChk=s.day*10+s.slot;tryAutoEat()}
+const MEAL_LBL={ship:'Đặt đồ ăn qua app',nguyenlieu:'Nấu cơm',mi:'Ăn mì gói'};
+function tryAutoEat(){
+  const m0=s.money,n0=s.no,top=s.log[0],p=autoEat();if(!p)return null;
+  const id=p.act||p.item,lb=MEAL_LBL[id]||('Ăn '+(p.act?A[s.loc].find(a=>a.id===id).n:ITEMS[id].n).toLowerCase());
+  /* bỏ dòng nhật ký riêng của món ăn (và của lần mua), thay bằng một dòng tự ăn */
+  for(let i=0;i<s.log.length&&s.log[i]!==top;)if(!s.log[i].tone&&/^(Dùng |Nấu cơm ăn|Ăn mì|.+ [(]−[0-9.,]+k[)]$)/.test(s.log[i].text))s.log.splice(i,1);else i++;
+  const msg=`${lb}: ${s.money<m0?`−${fmt(m0-s.money)}, `:''}no +${s.no-n0}`;
+  showToast(msg);addLog('Tự ăn theo chế độ '+DIETS[s.diet].n+': '+msg);return p;
+}
 /* ăn theo chế độ ăn (src/cards.js); trả bữa đã ăn hoặc null */
 function autoEat(){
   const p=autoMeal(s);if(!p)return null;
@@ -486,8 +497,24 @@ const evImpulse=()=>ev('Giày đang sale 40%','Đôi giày bạn để ý từ l
 function rainEv(s){return ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
   {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{...rulesOf(s).rain},run:s=>{s.flags.rainSickDay=s.day}}])}
 /* sự kiện ngẫu nhiên: xem src/events.js (bộ bài) */
+/* hộp cảnh báo giữa màn hình: nút làm ngay và nút "Để sau"; mỗi cảnh báo chỉ hiện một lần */
+const warnEv=(id,title,text,act)=>({kind:'warn',id,title,text,choices:[...(act?[act]:[]),{l:'Để sau'}]});
+function cardFor(id){return pickCards(s).find(c=>c.id===id)||(()=>{for(const loc of Object.keys(LOCS)){const a=A[loc].find(x=>x.id===id);if(a)return makeCard(s,loc,a)}})()}
+function warnCheck(){
+  const W=[],d=s.day,sl=s.slot,once=id=>{if(s.flags['w_'+id])return false;s.flags['w_'+id]=1;return true};
+  if(d===4&&sl===3&&once('rent'))W.push(warnEv('rent','Tiền nhà sắp đến hạn',`“Sáng mai cô Tư thu tiền nhà 1.200.000đ.” Trong ví đang có ${fmt(s.money)}.`,
+    s.money<1200000&&s.flags.hired&&s.accrued>=300000&&!s.flags.adv1?{l:'Xin ứng lương',x:'Đi tới cửa hàng · +300.000đ',run:()=>{travel('store');const a=locActs().find(x=>x.id==='advance');if(a&&!reason(a))doAction(a)}}:{l:'Xem lịch',run:()=>setTimeout(()=>toggleWin('cal'),0)}));
+  if(d===28&&sl===3&&once('exam28'))W.push(warnEv('exam28','Bài kiểm tra giữa kỳ','“Sáng mai là bài kiểm tra giữa kỳ. Vắng là không có điểm.”',{l:'Về phòng ngủ sớm',x:'Hết ngày',run:()=>{travel('home');const a=locActs().find(x=>x.id==='sleep');if(a&&!reason(a))doAction(a)}}));
+  if(d===29&&sl===0&&!s.flags.examTaken&&once('exam29'))W.push(warnEv('exam29','Bài kiểm tra giữa kỳ','“Sáng nay là bài kiểm tra giữa kỳ. Vắng là không có điểm.”',{l:'Đi thi ngay',x:'Tới trường và làm bài',run:()=>{const c=cardFor('exam');if(c)doCard(c)}}));
+  if((d===29||d===30)&&sl===1&&s.q.q4_gift==='active'&&once('gift'+d))W.push(warnEv('gift'+d,'Quà sinh nhật mẹ',`“Chưa mua quà sinh nhật mẹ. ${d===30?'Hôm nay là ngày cuối.':'Hạn chót là hết ngày 30.'}”`,{l:'Đi TTTM',x:'Mua quà 300.000đ',need:s=>s.money<300000+travelCost('mall')?'Không đủ tiền':null,run:()=>{const c=cardFor('gift');if(c)doCard(c)}}));
+  if(sl===0)QUESTS.filter(q=>q.due===d&&s.q[q.id]==='active'&&!q.endCheck&&!['q1_class','q1_rent','q4_exam','q4_gift'].includes(q.id)).forEach(q=>{if(!once('due_'+q.id))return;
+    const go=q.goal&&q.goal!==s.loc&&!LOCS[q.goal].open(s);
+    W.push(warnEv('due_'+q.id,'Hạn cuối nhiệm vụ',`“Hôm nay là hạn cuối của nhiệm vụ “${q.t}”.” ${q.hint}.`,go?{l:`Đi tới ${LOCS[q.goal].short}`,run:()=>travel(q.goal)}:{l:'Đã hiểu'}))});
+  queue.push(...W);
+}
 function slotEvents(){
   if(s.over)return;
+  warnCheck();
   if(s.sk<=0){queue.push(ev('Ngất xỉu','Cơ thể kiệt quệ, Minh được đưa vào viện. Viện phí 1.200.000đ, nghỉ hết hôm nay.',[
     {l:'Chấp nhận',run:s=>{payBill(1200000,'viện phí');s.sk=45;s.nl=60;s.no=Math.max(s.no,50);s.tt=clamp(s.tt-15);if(!isWE(s.day)&&s.slot===0){s.absences++;(s.absentDays=s.absentDays||[]).push(s.day)}if(rulesOf(s).faintRest)s.flags.restDay=s.day+1;s.slot=3;endDay(false)}}]));return}
   if(s.day===13&&s.slot===3&&!s.flags.club){s.flags.club=1;queue.push(ev('Đêm nhạc chào tân sinh viên','“Tối nay CLB mình diễn ở sân trường, em tới chơi nha! Vé ủng hộ 100 nghìn.”',[
@@ -601,18 +628,39 @@ function renderTracker(){
 function catActs(c){return locActs().filter(a=>c.ks.includes(a.k))}
 const visCats=()=>CATS.filter(c=>catActs(c).length);
 let noteAct=null;
-function renderCmd(){
-  const cats=visCats(),n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
+/* thẻ hành động theo buổi (src/cards.js); "Tự chọn" chuyển thanh về các nhóm hành động như cũ */
+let cardMode=true,cardKey=-1,cards=[];
+const cardChips=c=>{const o=[];
+  if(c.cost||c.travel)o.push(`<span class="money">−${fk(c.cost+c.travel)}</span>`);
+  if(c.gain||c.pay)o.push(`<span class="gain">+${fk(c.gain+c.pay)}${c.pay?' lương':''}</span>`);
+  const ups=STATS.filter(S=>c.eff[S.k]>0).sort((a,b)=>c.eff[b.k]-c.eff[a.k]).slice(0,2),dn=STATS.filter(S=>c.eff[S.k]<0).sort((a,b)=>c.eff[a.k]-c.eff[b.k]).slice(0,2);
+  ups.concat(dn).forEach(S=>{const v=c.eff[S.k];o.push(`<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`)});
+  if(o.length<2&&c.note)o.push(`<span class="k">${c.note.split(' · ')[0]}</span>`);
+  return o.join('')};
+function cardHTML(c,i){
+  if(c.custom)return `<button class="cd custom" type="button" data-card="${i}" aria-pressed="${!cardMode}"><span class="key">${i+1}</span><b>${cardMode?'Tự chọn':'Thẻ gợi ý'}</b><span class="pl">${cardMode?'Bản đồ, ăn uống, mua đồ':'Quay lại các thẻ'}</span></button>`;
+  const here=c.loc===s.loc,pl=here?`Tại ${c.place}`:`Đi ${c.place}${c.travel?` · ${fk(c.travel)}`:''}`;
+  return `<button class="cd${c.hl?' hl':''}${c.lock?' locked':''}" type="button" data-card="${i}"${c.lock?' aria-disabled="true"':''}><span class="key">${i+1}</span>${c.quest?'<span class="qx" title="Nhiệm vụ">!</span>':''}<b>${c.n}</b><span class="pl">${icTag('pin')}${pl}</span><span class="efx">${cardChips(c)}</span>${c.lock?`<span class="why">${c.lock}</span>`:c.warn.length?`<span class="wn">${c.warn.map(k=>STATS.find(S=>S.k===k).n).join(', ')} xuống dưới 25</span>`:''}</button>`;
+}
+function renderTools(){
+  const n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
   const bill=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&d-s.day<=2),act=QUESTS.filter(q=>s.q[q.id]==='active').length;
-  const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}">${icTag(ic)}<span class="lb">${lb}</span>${bd}</button>`;
-  $('cmdbar').innerHTML='<span class="hb-grp hb-acts">'+cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
-    return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+'</span><span class="hb-grp hb-tools">'+
-    '<span class="sep" aria-hidden="true"></span>'+
-    tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
-    tool('cal','cal','Lịch',bill?`Lịch tháng (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch tháng (L)',bill?'<span class="bd dot"></span>':'')+
+  const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}" aria-label="${lb}">${icTag(ic)}${bd}</button>`;
+  $('toolbar').innerHTML=tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
+    tool('cal','cal','Lịch',bill?`Lịch, chế độ ăn (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch, chế độ ăn (L)',bill?'<span class="bd dot"></span>':'')+
     tool('tasks','quest','Nhiệm vụ','Nhiệm vụ (J)',act?`<span class="bd">${act}</span>`:'')+
     tool('map','map','Bản đồ','Bản đồ (M)')+
-    `<span class="sep" aria-hidden="true"></span><button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}<span class="lb">Menu</span></button></span>`;
+    `<button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}</button>`;
+}
+function renderCmd(){
+  const key=s.day*10+s.slot;if(key!==cardKey){cardKey=key;cardMode=true}
+  renderTools();
+  cards=pickCards(s);
+  if(cardMode)$('cmdbar').innerHTML='<span class="hb-grp cards">'+cards.map(cardHTML).join('')+'</span>';
+  else{const cats=visCats();
+  $('cmdbar').innerHTML='<span class="hb-grp hb-acts">'+cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
+    return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+
+    `<button class="hb act" type="button" data-tool="map" data-tip="Bản đồ (M)">${icTag('map')}<span class="lb">Bản đồ</span></button><button class="hb act back" type="button" data-back data-tip="Thẻ gợi ý (Esc)">${icTag('scroll')}<span class="lb">Thẻ gợi ý</span></button></span>`}
   /* cảnh báo giữa trên, kèm nút làm ngay */
   const closed=LOCS[s.loc].open(s);let t='',btn='',cls='';noteAct=null;
   if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;btn='Bản đồ';noteAct='map';cls='bad'}
@@ -655,10 +703,33 @@ function openCat(id,focusId){
 }
 function closeMenu(){menuCat=null}
 $('cmdbar').addEventListener('click',e=>{
+  const cd=e.target.closest('[data-card]');if(cd){runCard(+cd.dataset.card);return}
+  if(e.target.closest('[data-back]')){closeMenu();cardMode=true;renderCmd();return}
+  if(e.target.closest('[data-tool="map"]')){closeMenu();toggleWin('map');return}
   const b=e.target.closest('[data-cat]');if(b){openCat(b.dataset.cat);return}
+});
+$('toolbar').addEventListener('click',e=>{
   const t=e.target.closest('[data-tool]');if(!t)return;
   if(t.dataset.tool==='sys')openCat('sys');else{closeMenu();toggleWin(t.dataset.tool)}
 });
+/* bấm 1 thẻ là làm trọn: đi tới nơi, (tự ăn nếu đói), làm việc, sang buổi sau */
+let pendingCard=null;
+function runCard(i){
+  const c=cards[i];if(!c||s.over||win)return;
+  if(c.custom){closeMenu();cardMode=!cardMode;renderCmd();return}
+  if(c.lock){showToast(c.lock,'bad');sfx('warn');return}
+  doCard(c);
+}
+function doCard(c){
+  const at=s.day*10+s.slot;
+  if(c.loc!==s.loc){travel(c.loc);if(win||queue.length){pendingCard={c,at};return}}
+  finishCard(c,at);
+}
+function finishCard(c,at){
+  if(s.over||s.day*10+s.slot!==at||s.loc!==c.loc)return;
+  tryAutoEat();if(win)return;
+  const a=locActs().find(x=>x.id===c.id);if(a&&!reason(a))doAction(a);
+}
 $('popMenu').addEventListener('click',e=>{
   if(e.target.closest('[data-pmclose]')){closeMenu();renderCmd();return}
   if(e.target.closest('#audMute')){audioPref.muted=!audioPref.muted;au('setMuted',audioPref.muted);audioSave();renderMenu();$('audMute').focus();return}
@@ -694,10 +765,10 @@ function openWin(name){
   win=name;bagSel=null;if(name==='cal')calSel=s.day;
   closeMenu();renderCmd();
   const kind=name==='event'&&curEvent?curEvent.kind||'dlg':null;
-  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||name==='log'||name==='rules'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
+  $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='warn'?' full dim':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||name==='log'||name==='rules'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
   if(name==='map')mapPick();
   $('layer').hidden=false;renderWin();
-  if(kind==='day')sfx('dayStart');else if(kind==='dlg'){if(curEvent.who==='me')sfx('message')}else sfx('open');
+  if(kind==='day')sfx('dayStart');else if(kind==='warn')sfx('warn');else if(kind==='dlg'){if(curEvent.who==='me')sfx('message')}else sfx('open');
   const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
@@ -710,12 +781,12 @@ function toggleWin(name){
 }
 function renderWin(){
   const kind=win==='event'&&curEvent?curEvent.kind||'dlg':null,isDlg=kind==='dlg';
-  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
-  w.setAttribute('aria-labelledby',kind==='chapter'?'chT':win==='end'?'endT':'');
+  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='warn'?'pn warnc':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
+  w.setAttribute('aria-labelledby',kind==='warn'?'wnT':kind==='chapter'?'chT':win==='end'?'endT':'');
   const html=win==='bag'?bagHTML():win==='cal'?calHTML():win==='tasks'?tasksHTML():win==='map'?mapHTML()
     :win==='log'?docHead('book','Nhật ký')+`<div class="t-det well t-doc"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
     :win==='rules'?docHead('help','Luật chơi')+`<div class="t-det well t-doc">${rulesHTML()}</div>`
-    :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():eventHTML())
+    :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():kind==='warn'?warnHTML(curEvent):eventHTML())
     :win==='end'?endHTML():win==='phone'?phoneHTML():'';
   w.innerHTML=nm(html);
   if(win==='map')drawMap();
@@ -769,7 +840,8 @@ function finishType(){
 }
 const typingNow=()=>win==='event'&&evType&&!evType.done;
 function processQueue(){
-  if(!s.started||s.over||win||!queue.length)return;
+  if(!s.started||s.over||win)return;
+  if(!queue.length){if(pendingCard){const p=pendingCard;pendingCard=null;finishCard(p.c,p.at)}else slotStart();return}
   curEvent=queue.shift();openWin('event');
 }
 function pickChoice(i){
@@ -836,7 +908,8 @@ function calHTML(){
   const dueQ=QUESTS.filter(q=>q.due===d&&s.q[q.id]==='active');
   dueQ.forEach(q=>{det+=`<p><span class="t-dot" style="--c:#d99a1e"></span><b>Hạn nhiệm vụ: ${q.t}</b></p>`});
   det+=notes.length||dueQ.length?notes.map(n=>`<p><span class="t-dot" style="--c:${n.c}"></span><b>${n.t}</b></p>`).join(''):'<p>Không có việc gì đặc biệt.</p>';
-  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${det}</div></div>`;
+  const diet=`<div class="diet"><label for="dietSel">Chế độ ăn</label><select id="dietSel">${Object.entries(DIETS).map(([k,D])=>`<option value="${k}"${s.diet===k?' selected':''}>${D.n}</option>`).join('')}</select><span class="est">${DIETS[s.diet].perDay?`Khoảng ${fk(DIETS[s.diet].perDay)} mỗi ngày`:'Tự bấm ăn như cũ'}</span></div>`;
+  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${diet}${det}</div></div>`;
 }
 function tasksHTML(){
   const ch=chOf(s.day),active=QUESTS.filter(q=>s.q[q.id]==='active').sort((a,b)=>a.due-b.due);
@@ -903,18 +976,20 @@ $('layer').addEventListener('pointerdown',e=>{
 /* Rules */
 function rulesHTML(){return `<ul class="rules">
   <li>Câu chuyện chia 4 chương theo 4 tuần. Mỗi chương có nhiệm vụ chính (xem ở <b>Nhiệm vụ</b> hoặc khung theo dõi góc phải) và 2 việc nhỏ mỗi ngày.</li>
+  <li>Độ khó: <b>${rulesOf(s).n}</b>. ${DIFF_TXT[(s&&s.diff)||'thuong']}</li>
   <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và các việc tiền bạc không tốn thời gian.</li>
-  <li>Thanh lệnh dưới cùng: bấm một nhóm (hoặc phím 1–4) để mở danh sách, rồi bấm một dòng để làm ngay. Dòng bị khóa ghi rõ lý do.</li>
+  <li>Thẻ gợi ý dưới cùng (phím 1–5): bấm một thẻ là tự đi tới nơi, làm việc đó rồi sang buổi sau. Thẻ <b>Tự chọn</b> mở các nhóm hành động như cũ. Thẻ bị khóa ghi rõ lý do.</li>
+  <li><b>Chế độ ăn</b> chọn trong <b>Lịch</b>. Đầu mỗi buổi, nếu độ no dưới 45 và chưa ăn, Minh tự ăn theo chế độ đó; chọn Tự chọn bữa để tự bấm ăn.</li>
   <li>Sáng thứ Hai đến thứ Sáu Minh phải lên lớp; vắng học bị trừ điểm học tập. Sáng thứ Hai ngày 29 là kiểm tra giữa kỳ.</li>
-  <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương hoặc gọi xin thêm bố mẹ bằng điện thoại ở phòng trọ.</li>
-  <li>Hóa đơn tự trừ vào buổi sáng ngày 5, 10 và 20. Ví không đủ thì bị trừ hết tiền trong ví và tinh thần −12.</li>
+  <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca trưa, ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương hoặc gọi xin thêm bố mẹ bằng điện thoại ở phòng trọ.</li>
+  <li>Hóa đơn tự trừ vào buổi sáng ngày 5, 10 và 20. Ví không đủ thì bị trừ hết tiền trong ví và tinh thần −12${rulesOf(s).billScale?' (thêm −1 mỗi 50.000đ thiếu, tối đa −30)':''}.</li>
   <li><b>Túi đồ</b> chứa đồ mua mang về. Bánh mì, xôi, bánh ngọt hỏng sau 1 ngày; nguyên liệu và sữa giữ được 3 ngày.</li>
   <li>Phòng trọ bừa dần sau mỗi đêm, mỗi bữa ăn và mỗi lần nấu trong phòng. Phòng bừa làm tinh thần giảm khi ở nhà; dọn phòng giúp tinh thần tốt lên.</li>
   <li>Độ no, năng lượng, tinh thần tự giảm theo thời gian. Chỉ số nào xuống dưới 25 sẽ kéo các chỉ số khác giảm theo.</li>
 </ul>
-<div class="formula">Điểm = 1000 × Tài sản<sup>0,35</sup> × Độ no TB<sup>0,2</sup> × Tinh thần TB<sup>0,25</sup> × Sức khỏe cuối<sup>0,2</sup></div>
-<p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
-<p class="note-line">Phím tắt: 1–4 nhóm hành động · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
+<div class="formula">Điểm = 1000 × Tài sản<sup>0,30</sup> × Độ no TB<sup>0,15</sup> × Tinh thần TB<sup>0,20</sup> × Sức khỏe cuối<sup>0,15</sup> × Học tập<sup>0,20</sup></div>
+<p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1, học tập là điểm học tập chia 100). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
+<p class="note-line">Phím tắt: 1–5 thẻ gợi ý (trong Tự chọn: nhóm hành động) · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
 
 /* Thẻ chương (design/12 thẻ 2): tranh nhỏ khung gỗ, nội dung chương, nhiệm vụ của chương */
 function chapterHTML(e){
@@ -925,13 +1000,17 @@ function chapterHTML(e){
     <button class="btnp" type="button" data-ch="0">${e.n===1?'Bắt đầu tháng mới':'Vào chương '+e.n}</button></div>`;
 }
 /* Thẻ sang ngày (design/12 thẻ 2): hiện mỗi sáng từ ngày 2, tóm tắt hôm qua và việc hôm nay */
+function warnHTML(e){
+  return `<div class="wn-h">${icTag('warn')}<h2 id="wnT">${e.title}</h2></div><p class="wn-t">${e.text}</p><div class="wn-b">${e.choices.map((c,i)=>{const no=c.need?c.need(s):null;
+    return `<button class="${i===0&&e.choices.length>1?'btnp':'btns'}" type="button" data-ch="${i}" ${no?'disabled':''}>${c.l}${c.x?`<small>${c.x}</small>`:''}${no?`<small>${no}</small>`:''}</button>`}).join('')}</div>`;
+}
 function dayCardHTML(){
   const d=s.day,h=s.hist.find(x=>x.d===d-1),marks=[5,10,13,15,20,29,30];
   const yd=[`<li><i style="--c:#a4a9c8"></i>Ví còn ${fmt(h?h.money:s.money)} cuối ngày ${d-1}</li>`]
     .concat(s.log.filter(l=>l.d===d-1&&l.tone==='bad').slice(0,3).map(l=>`<li class="bad"><i style="--c:#ff6474"></i>${l.text}</li>`));
   const td=[];
   if(BILLS[d]){const [n,amt]=BILLS[d],short=s.flags['bill'+d];
-    if(short){td.push([`Trừ ${n.toLowerCase()} ${fmt(amt)}: ví thiếu ${fmt(short)}`,'#ff8a96']);td.push(['Ví về 0đ · tinh thần −12 · không ghi nợ','#ff8a96'])}
+    if(short){td.push([`Trừ ${n.toLowerCase()} ${fmt(amt)}: ví thiếu ${fmt(short)}`,'#ff8a96']);td.push([`Ví về 0đ · tinh thần −${billPenalty(s,short)} · không ghi nợ`,'#ff8a96'])}
     else td.push([`Trừ ${n.toLowerCase()}: −${fmt(amt)}`,'#ff8a96'])}
   if(d===15)td.push([s.flags.pay1?`Nhận lương part-time kỳ 1: +${fmt(s.flags.pay1)}`:'Chưa có lương part-time vì chưa làm ca nào','#72de90']);
   if(CHAPTERS[chOf(d)].from===d)td.push([`Bắt đầu chương ${chOf(d)}: ${CHAPTERS[chOf(d)].t}`,'#5cc8ff']);
@@ -949,14 +1028,15 @@ let endChart='stat';
 function endHTML(){
   const r=computeScore(),[an,ad]=archetype(r),g=grade(r.score),qd=QUESTS.filter(q=>s.q[q.id]==='done').length;
   const RC={S:'#ffc94d',A:'#72de90',B:'#5cc8ff',C:'#c9a0e8',D:'#ff8a96'};
-  const fac=[['Tài sản',r.F.tien,'#ffc94d','0,35',fmt(r.asset)],['Độ no trung bình',r.F.no,SCOL.no,'0,2',Math.round(r.F.no*100)],['Tinh thần trung bình',r.F.tt,SCOL.tt,'0,25',Math.round(r.F.tt*100)],['Sức khỏe cuối tháng',r.F.sk,SCOL.sk,'0,2',Math.round(r.F.sk*100)]];
+  const ex=k=>String(SCORE_W[k].toFixed(2)).replace('.',',');
+  const fac=[['Tài sản',r.F.tien,'#ffc94d',ex('tien'),fmt(r.asset)],['Độ no trung bình',r.F.no,SCOL.no,ex('no'),Math.round(r.F.no*100)],['Tinh thần trung bình',r.F.tt,SCOL.tt,ex('tt'),Math.round(r.F.tt*100)],['Sức khỏe cuối tháng',r.F.sk,SCOL.sk,ex('sk'),Math.round(r.F.sk*100)],['Điểm học tập',r.F.hoc,'#c9a0e8',ex('hoc'),studyScore()]];
   const ach=[['Chuyên cần',s.absences===0,'📘'],['Đầu bếp tại gia',s.cooked>=15,'🍳'],['Tự lập tài chính',s.askCount===0,'💪'],['Chăm chỉ làm thêm',s.shifts>=18,'🏪'],['Hoàn thành mọi nhiệm vụ',qd===QUESTS.length,'⭐'],['Fan cứng mì gói',s.noodleTotal>=12,'🍜']];
   const lg=endChart==='stat'?STATS.map(S=>`<span><i style="--c:${SCOL[S.k]}"></i>${S.n}</span>`).join(''):'<span><i style="--c:#ffc94d"></i>Tiền trong ví</span><span><i style="--c:#ff6474"></i>Mốc 1,2 triệu</span>';
   return `<div class="hd3"><b id="endT">Kết thúc tháng đầu tiên của ${s.name}</b><span>Ngày 30 · Sinh nhật mẹ · ${qd}/${QUESTS.length} nhiệm vụ</span></div>
     <div class="scorebox well"><div class="sc"><span class="num">${r.score}</span><span class="rank" style="--rk:${RC[g]}" aria-label="Hạng ${g}">${g}</span></div>
       <div class="arch"><b>${an}</b><span>${ad}</span></div>
       <div class="fac">${fac.map(([n,v,c,w,val])=>`<div><div class="frow"><b>${n}</b><span>${val} · mũ ${w}</span></div><div class="fbar"><i style="--c:${c};width:${Math.min(1,v)*100}%"></i></div></div>`).join('')}</div>
-      <div class="formula">Điểm = 1000 × Tài sản<sup>0,35</sup> × No<sup>0,2</sup> × Tinh thần<sup>0,25</sup> × Sức khỏe<sup>0,2</sup>. Hạng S từ 800, A từ 700, B từ 580, C từ 450.</div></div>
+      <div class="formula">Điểm = 1000 × Tài sản<sup>0,30</sup> × No<sup>0,15</sup> × Tinh thần<sup>0,20</sup> × Sức khỏe<sup>0,15</sup> × Học tập<sup>0,20</sup>. Hạng S từ 800, A từ 700, B từ 580, C từ 450.</div></div>
     <div class="chartbox well"><div class="tl"><span>30 ngày của ${s.name}</span><span class="lg">${lg}</span></div>
       <canvas id="chartCv" width="220" height="92" role="img" aria-label="Đồ thị 30 ngày"></canvas>
       <div class="lg" style="justify-content:space-between;color:var(--muted)"><span>Ngày 1</span><span>8</span><span>15</span><span>22</span><span>30</span></div>
@@ -1051,7 +1131,7 @@ function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScree
 function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
 /* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
-function newGame(ch){s=newState();s.name=ch.name;s.gender=ch.gender;s.started=true;txAdd('Bố mẹ gửi',START_MONEY);startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
+function newGame(ch){s=newState();s.name=ch.name;s.gender=ch.gender;s.diff=DIFFS[ch.diff]?ch.diff:'thuong';s.started=true;txAdd('Bố mẹ gửi',START_MONEY);startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
   activateChapter(1);
   queue.push(ev('Tin nhắn của mẹ','“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”',[{l:'Dạ, con biết rồi mẹ'}],'me'));
   queue.push(ev('Phòng ghép với Khoa','“Chìa khóa nè. Con ở chung với thằng Khoa, tiền nhà phần con 1 triệu 2, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
@@ -1077,8 +1157,10 @@ function openCreate(){hideWin();showScreen('create');crCheck();$('crName').focus
   $(gd==='nam'?'icNam':'icNu').style.backgroundImage='url('+c.toDataURL()+')'});
 $('crName').addEventListener('input',crCheck);
 document.querySelectorAll('input[name="gender"]').forEach(r=>r.addEventListener('change',()=>{crGender=r.value;$('crAva').setAttribute('aria-label',CR_LABEL[crGender])}));
-$('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;pendingChar={name,gender:crGender};startIntro()});
+$('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;const dv=document.querySelector('input[name="diff"]:checked');pendingChar={name,gender:crGender,diff:dv?dv.value:'thuong'};startIntro()});
 $('crBack').addEventListener('click',showTitle);
+document.querySelectorAll('input[name="diff"]').forEach(r=>r.addEventListener('change',()=>{$('crDtx').textContent=DIFF_TXT[r.value]}));
+$('win').addEventListener('change',e=>{if(e.target.id==='dietSel'&&DIETS[e.target.value]){s.diet=e.target.value;save();renderWin();const f=$('dietSel');if(f)f.focus()}});
 
 /* Chuyển cảnh ngày 1 (design/03): đêm → bình minh → mặt trời mọc → thẻ Ngày 1 */
 const IN_T={fade:1.2,p0:1.0,p1:7.5,card:7.8,ready:8.5};
@@ -1111,14 +1193,16 @@ $('titleBtns').addEventListener('click',e=>{const b=e.target.closest('[data-m]')
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   if(e.key==='Escape'&&mode==='create'&&!win){showTitle();return}
-  if(e.key==='Escape'){if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd()}return}
+  if(e.key==='Escape'){if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd();return}if(!cardMode&&s.started){cardMode=true;renderCmd()}return}
   if(!s.started||$('ui').hidden)return;
+  if(win==='event'&&curEvent&&curEvent.kind==='warn'){const n=+e.key;if(n>=1&&n<=curEvent.choices.length){e.preventDefault();pickChoice(n-1)}return}
   if(win==='event'&&curEvent&&curEvent.kind!=='chapter'){
     if(e.key===' '&&typingNow()){e.preventDefault();finishType();return}
     const n=+e.key;if(!typingNow()&&n>=1&&n<=curEvent.choices.length){const b=$('win').querySelectorAll('.e-ch')[n-1];if(b&&!b.disabled){e.preventDefault();pickChoice(n-1)}}
     return}
   const k={b:'bag',l:'cal',m:'map',n:'log',j:'tasks'}[e.key.toLowerCase()];
   if(k){e.preventDefault();if(TAB_WINS.includes(win)&&TAB_WINS.includes(k)&&win!==k)openWin(k);else toggleWin(k);return}
+  if(cardMode){const n=/^[1-5]$/.test(e.key)?+e.key:0;if(n&&!win&&cards[n-1]){e.preventDefault();runCard(n-1)}return}
   const c=/^[1-9]$/.test(e.key)&&visCats()[+e.key-1];
   if(c&&!win){e.preventDefault();openCat(c.id)}
 });

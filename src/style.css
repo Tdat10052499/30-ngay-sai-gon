@@ -175,7 +175,7 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .chip[data-k=no]{--k:var(--c-no)}.chip[data-k=nl]{--k:var(--c-nl)}.chip[data-k=tt]{--k:var(--c-tt)}.chip[data-k=sk]{--k:var(--c-sk)}
 
 /* Thông báo nổi (dưới phải) */
-.toast{right:calc(var(--p)*6);bottom:calc(var(--p)*6);max-width:calc(var(--p)*130);padding:calc(var(--p)*6) calc(var(--p)*8);font-size:.82em;font-weight:600;transition:opacity .25s,transform .25s;pointer-events:none}
+.toast{right:calc(var(--p)*6);bottom:calc(var(--p)*62);max-width:calc(var(--p)*130);padding:calc(var(--p)*6) calc(var(--p)*8);font-size:.82em;font-weight:600;transition:opacity .25s,transform .25s;pointer-events:none}
 .toast.bad{color:#ff9aa6}.toast.good{color:var(--good)}.toast.quest{color:var(--lantern)}
 .toast.out{opacity:0;transform:translateY(calc(var(--p)*3))}
 
@@ -554,6 +554,49 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
    Mọi nút từ 48×48 điểm, dòng menu cao từ 52 điểm, chữ nhỏ nhất 11 điểm.
    Cửa sổ co theo chiều cao màn hình (--p theo cqh). */
 .rotate{display:none}
+/* Thẻ hành động (bản chơi thử 2, mục 3.1): hàng 3–5 thẻ giữa dưới; công cụ thành cột nhỏ bên phải */
+.cards{display:flex;gap:calc(var(--p)*3)}
+.cd{position:relative;font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;width:calc(var(--p)*84);min-height:calc(var(--p)*46);padding:calc(var(--p)*4) calc(var(--p)*5);display:flex;flex-direction:column;gap:calc(var(--p)*2.5);background:var(--u-well);box-shadow:inset var(--p) var(--p) 0 #0b0d1c,inset calc(var(--p)*-1) calc(var(--p)*-1) 0 #262c50}
+.cd:hover{background:#1d2245}
+.cd:active{box-shadow:inset calc(var(--p)*-1) calc(var(--p)*-1) 0 #0b0d1c,inset var(--p) var(--p) 0 #262c50}
+.cd b{font-size:.9em;font-weight:800;line-height:1.15;padding:0 calc(var(--p)*8) 0 calc(var(--p)*7)}
+.cd .key{position:absolute;left:calc(var(--p)*3);top:calc(var(--p)*3.5);font-family:var(--f-num);font-size:1.05em;color:#6a70a0;line-height:1}
+.cd .pl{display:flex;align-items:center;gap:.3em;font-size:.68em;color:var(--muted);font-weight:700}
+.cd .pl .ic{width:1.2em;height:1.2em}
+.cd .efx{gap:calc(var(--p)*2)}
+.cd .efx span{font-size:.62em}
+.cd .efx span.money{background:#ff8a96}.cd .efx span.gain{background:var(--good)}
+.cd .why{font-size:.64em;font-weight:700;color:#ffb09a;line-height:1.25}
+.cd .wn{font-size:.64em;font-weight:800;color:#ff8a96;line-height:1.25}
+.cd .qx{position:absolute;right:calc(var(--p)*3);top:calc(var(--p)*3);width:calc(var(--p)*9);height:calc(var(--p)*9);display:grid;place-items:center;background:var(--lantern);color:var(--lantern-ink);font-weight:900;font-size:.8em;line-height:1}
+.cd.hl{background:rgba(255,201,77,.15);box-shadow:inset 0 0 0 var(--p) var(--lantern)}
+.cd.locked{cursor:default}.cd.locked b{color:var(--muted)}.cd.locked:hover{background:var(--u-well)}
+.cd.custom{width:calc(var(--p)*56);justify-content:center}
+.cd.custom b{padding-right:0}
+.hb.back{width:calc(var(--p)*50)}
+.toolbar{right:calc(var(--p)*6);top:calc(var(--p)*112);padding:calc(var(--p)*3);display:flex;flex-direction:column;gap:calc(var(--p)*3)}
+.toolbar .hb{width:calc(var(--p)*24);height:calc(var(--p)*24)}
+.toolbar .hb[data-tip]:hover::after{bottom:auto;top:50%;left:auto;right:calc(100% + var(--p)*6);transform:translateY(-50%)}
+/* hộp cảnh báo giữa màn hình (mục 4.2) */
+.pn.warnc{left:50%;top:50%;transform:translate(-50%,-50%);width:calc(var(--p)*260);padding:calc(var(--p)*10) calc(var(--p)*12);font-size:calc(var(--p)*7.5);line-height:1.4;display:flex;flex-direction:column;gap:calc(var(--p)*7);
+  --u-fill:#3a2a1c;--u-hi:#7a5a32;--u-in:#4e3822;--u-lo:#22180e}
+.warnc .wn-h{display:flex;align-items:center;gap:.5em}
+.warnc h2{margin:0;font-size:1.15em;font-weight:900;color:var(--lantern)}
+.warnc .wn-t{margin:0}
+.warnc .wn-b{display:flex;gap:calc(var(--p)*5);justify-content:flex-end;flex-wrap:wrap}
+.warnc .wn-b button{display:flex;flex-direction:column;align-items:flex-start;gap:.1em}
+.warnc .wn-b small{font-size:.72em;font-weight:600;opacity:.85}
+.warnc .wn-b button:disabled{opacity:.55;cursor:not-allowed}
+/* chế độ ăn trong khung lịch */
+.diet{display:flex;align-items:center;flex-wrap:wrap;gap:.4em .6em;padding-bottom:calc(var(--p)*5);margin-bottom:calc(var(--p)*2);border-bottom:var(--p) solid var(--u-in)}
+.diet label{font-weight:800}
+.diet select{font:inherit;font-weight:700;color:var(--fg);background:var(--u-fill);border:var(--p) solid var(--u-hi);padding:.2em .4em;cursor:pointer}
+.diet .est{font-size:.85em;color:var(--muted);font-weight:700}
+/* chọn độ khó ở màn tạo nhân vật */
+.cr-diff{border:0;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:.45em}
+.cr-diff legend{font-weight:700;font-size:.9em;padding:0;margin-bottom:.45em}
+.cr-dtx{margin:0;font-size:.8em;color:var(--muted);text-align:center}
+
 @media (pointer:coarse) and (orientation:landscape){
   .screen{padding:0;background:var(--bezel)}
   .stage{width:100vw;height:100dvh;aspect-ratio:auto;border-radius:0;box-shadow:none;
@@ -634,3 +677,38 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 @media (prefers-reduced-motion:reduce){.rotate i{animation:none;transform:rotate(-90deg)}}
 
 @media (prefers-reduced-motion:reduce){.pop{animation-duration:.01s}.st.low .sbar i{animation:none}#scene,.toast,.sbar i,.bar i{transition:none}}
+
+/* điện thoại nằm ngang: thẻ xếp dọc bên phải (mỗi thẻ cao ít nhất 52 điểm), cột công cụ bên trái,
+   nhiệm vụ dời sang cạnh ví để cột thẻ có đủ chiều cao */
+@media (pointer:coarse) and (orientation:landscape){
+  .quest{right:calc(var(--sr) + 172px);top:var(--st);width:186px}
+  .cards{right:var(--sr);bottom:var(--sb);flex-direction:column;gap:4px}
+  .cd{width:210px;min-height:52px;padding:5px 8px;gap:3px 6px;display:grid;grid-template-columns:auto 1fr;align-content:center}
+  .cd b,.cd .why,.cd .wn{grid-column:1/-1}
+  .cd .efx{flex-wrap:nowrap;overflow:hidden}
+  .cd .efx span:nth-child(n+3){display:none}
+  .cards{top:calc(var(--st) + 50px)}
+  .cd b{font-size:13px;padding:0 22px 0 0}
+  .cd .key{display:none}
+  .cd .pl,.cd .efx span,.cd .why,.cd .wn{font-size:10.5px}
+  .cd .qx{width:16px;height:16px;font-size:12px;top:5px;right:6px}
+  .cd.custom{width:210px;display:flex}
+  .cd.custom .pl{display:none}
+  .hb.back{width:64px}
+  .toolbar{left:var(--sl);right:auto;top:auto;bottom:var(--sb);padding:5px;gap:6px}
+  .toolbar .hb{width:44px;height:44px}
+  .note{left:calc(var(--sl) + 66px);right:calc(var(--sr) + 226px)}
+  .toast{left:calc(var(--sl) + 66px);right:calc(var(--sr) + 226px);max-width:none;top:auto;bottom:calc(var(--sb) + 56px)}
+  .amenu{right:calc(var(--sr) + 82px)}
+  .pn.warnc{width:min(460px,calc(100% - 40px));font-size:14px}
+  .warnc .wn-b button{min-height:44px}
+}
+/* điện thoại nằm ngang: màn tạo nhân vật có thêm chọn độ khó, xếp giới tính và độ khó cạnh nhau cho vừa chiều cao */
+@media (pointer:coarse) and (orientation:landscape){
+  .cr-card{padding:.8em 1.4em .8em;gap:.4em}
+  .cr-card .sub{display:none}
+  .cr-ava{width:5.5em}
+  .cr-form{display:grid;grid-template-columns:1fr 1fr;column-gap:1.2em}
+  .cr-form>*{grid-column:1/-1}
+  .cr-form>.cr-gender{grid-column:1}.cr-form>.cr-diff{grid-column:2}
+}
