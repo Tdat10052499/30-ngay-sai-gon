@@ -152,14 +152,14 @@ function loadSaved(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r
 
 /* ============ Locations & actions ============ */
 const LOCS={
-  home:{name:'Phòng trọ',short:'Phòng trọ',sub:'Hẻm 42 · ở ghép với Khoa',cost:0,mx:14,my:62,open:()=>null},
-  street:{name:'Quán ăn đầu hẻm',short:'Quán ăn',sub:'Bánh mì, cơm tấm, phở',cost:0,mx:30,my:42,open:()=>null},
-  market:{name:'Chợ phường',short:'Chợ',sub:'Nguyên liệu, mì gói, trái cây, thuốc',cost:0,mx:24,my:82,open:s=>s.slot<=2?null:'Chợ đã dọn hàng'},
-  park:{name:'Công viên bờ kênh',short:'Công viên',sub:'Chạy bộ, đi dạo, hóng gió',cost:0,mx:51,my:24,open:()=>null},
-  cafe:{name:'Cà phê Gác Nhỏ',short:'Cà phê',sub:'Cà phê, ngồi chill, gặp bạn bè',cost:5000,mx:47,my:58,open:()=>null},
-  school:{name:'Trường đại học',short:'Trường',sub:'Giảng đường, thư viện, căng tin',cost:6000,mx:78,my:36,open:s=>isWE(s.day)?'Cuối tuần trường nghỉ':s.slot===3?'Trường đóng cửa buổi tối':null},
-  store:{name:'Cửa hàng tiện lợi',short:'Cửa hàng',sub:'Nơi Minh làm thêm · mở 24 giờ',cost:0,mx:67,my:72,open:()=>null},
-  mall:{name:'Trung tâm thương mại',short:'TTTM',sub:'Buffet, rạp phim, cửa hàng quần áo',cost:12000,mx:87,my:74,open:s=>s.slot>=1?null:'TTTM mở cửa từ 10h'},
+  home:{name:'Phòng trọ',short:'Phòng trọ',sub:'Hẻm 42 · ở ghép với Khoa',cost:0,open:()=>null},
+  street:{name:'Quán ăn đầu hẻm',short:'Quán ăn',sub:'Bánh mì, cơm tấm, phở',cost:0,open:()=>null},
+  market:{name:'Chợ phường',short:'Chợ',sub:'Nguyên liệu, mì gói, trái cây, thuốc',cost:0,open:s=>s.slot<=2?null:'Chợ đã dọn hàng'},
+  park:{name:'Công viên bờ kênh',short:'Công viên',sub:'Chạy bộ, đi dạo, hóng gió',cost:0,open:()=>null},
+  cafe:{name:'Cà phê Gác Nhỏ',short:'Cà phê',sub:'Cà phê, ngồi chill, gặp bạn bè',cost:5000,open:()=>null},
+  school:{name:'Trường đại học',short:'Trường',sub:'Giảng đường, thư viện, căng tin',cost:6000,open:s=>isWE(s.day)?'Cuối tuần trường nghỉ':s.slot===3?'Trường đóng cửa buổi tối':null},
+  store:{name:'Cửa hàng tiện lợi',short:'Cửa hàng',sub:'Nơi Minh làm thêm · mở 24 giờ',cost:0,open:()=>null},
+  mall:{name:'Trung tâm thương mại',short:'TTTM',sub:'Buffet, rạp phim, cửa hàng quần áo',cost:12000,open:s=>s.slot>=1?null:'TTTM mở cửa từ 10h'},
 };
 const shiftPay=s=>{const base=s.slot===3?110000:90000;return s.nl<15?Math.round(base/2):s.tt<25?base-20000:base};
 const canShift=s=>(!isWE(s.day)&&s.slot===0)?'Buổi sáng ngày thường Minh đi học':s.slot===1?'Cửa hàng xếp ca sáng cuối tuần, ca chiều và ca tối':null;
@@ -615,9 +615,10 @@ const head=(icon,title,extra='',closable=true)=>`<header class="win-h">${icon?ic
 function openWin(name){
   win=name;bagSel=null;if(name==='cal')calSel=s.day;
   closeMenu();renderCmd();
-  $('layer').className='layer'+(name==='event'?' dialog':'');
+  $('layer').className='layer'+(name==='event'?(curEvent&&curEvent.kind==='chapter'?' dialog':' dlgl'):name==='map'?' full':TAB_WINS.includes(name)?' full dim':'');
+  if(name==='map')mapPick();
   $('layer').hidden=false;renderWin();
-  const f=$('win').querySelector('.choice:not(:disabled),.btn.primary:not(:disabled),.slot:not(.empty),[data-close]');if(f)f.focus({preventScroll:true});
+  const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.choice:not(:disabled),.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
 function closeWin(){hideWin();processQueue()}
@@ -628,42 +629,17 @@ function toggleWin(name){
   openWin(name);
 }
 function renderWin(){
-  const w=$('win');w.className='win w-'+(win==='event'&&curEvent&&curEvent.kind==='chapter'?'chapter':win);
+  const isDlg=win==='event'&&curEvent&&curEvent.kind!=='chapter';
+  const w=$('win');w.className=TAB_WINS.includes(win)?'pn tw':isDlg?'evhost':'win w-'+(win==='event'&&curEvent&&curEvent.kind==='chapter'?'chapter':win);
   const html=win==='bag'?bagHTML():win==='cal'?calHTML():win==='tasks'?tasksHTML():win==='map'?mapHTML()
-    :win==='log'?head('book','Nhật ký')+`<div class="win-b"><ol class="loglist">${s.log.map(l=>`<li><span class="st">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
+    :win==='log'?head('book','Nhật ký')+`<div class="win-b"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
     :win==='rules'?head('help','Luật chơi')+`<div class="win-b">${rulesHTML()}</div>`
     :win==='event'?(curEvent.kind==='chapter'?chapterHTML(curEvent):eventHTML())
     :win==='end'?endHTML():'';
   w.innerHTML=nm(html);
   if(win==='map')drawMap();
+  else if(isDlg)startType();
   else if(win==='end')requestAnimationFrame(drawChart);
-}
-
-/* Tasks window */
-function qcardHTML(q){
-  const st=s.q[q.id]||'locked',P=PEOPLE[q.who],p=questProg(q),pinned=trackedQuest()===q&&st==='active';
-  const stTag=st==='done'?'<span class="tag good">Hoàn thành</span>':st==='fail'?'<span class="tag bad">Thất bại</span>':`<span class="tag gold">${dueText(q)}</span>`;
-  return `<div class="qcard ${st}${pinned?' pinned':''}"><span class="pt" title="${P.n}">${ico(P.p)}</span>
-    <div class="qhead"><b>${q.t}</b>${stTag}</div>
-    <p>${q.d} <span class="muted">· ${P.n}</span></p>
-    ${st==='active'?`<p class="hint"><em>Gợi ý:</em> ${q.hint}</p><div class="qprog"><div class="bar"><i style="width:${p.pct}%;background:var(--lantern)"></i></div><span>${p.lbl}</span></div>`:''}
-    <div class="qfoot"><div class="chips">${chipsHTML({rw:q.rw,rwTxt:q.rwTxt||(q.bonus?'':'')})}</div>${st==='active'?`<button class="btn sm" type="button" data-pin="${q.id}" ${pinned?'disabled':''}>${pinned?'Đang theo dõi':'Theo dõi'}</button>`:''}</div></div>`;
-}
-function tasksHTML(){
-  const ch=chOf(s.day),C=CHAPTERS[ch],p=studyScore();
-  let h=head('scroll','Nhiệm vụ',`<span class="tag gold">Chương ${ch}</span>`)+`<div class="win-b">
-    <div class="tk-top"><div class="tk-story"><div class="chap-num">Chương ${ch} · ngày ${C.from}–${C.to}</div><b>${C.t}</b><p>${C.txt}</p></div>
-    <div class="tk-prob"><span class="lbl">Điểm học tập</span><span><span class="num">${p}</span><span class="muted"> /100</span></span>
-      <div class="bar"><i style="width:${p}%;background:${p>=75?'var(--good)':p>=55?'var(--warn)':'var(--bad)'}"></i><span class="mark" style="left:55%"></span><span class="mark" style="left:75%"></span></div>
-      <small>Từ 55: qua kiểm tra giữa kỳ · từ 75: loại giỏi. Tính từ số buổi lên lớp, buổi tự học ở thư viện, nhiệm vụ học tập và số buổi vắng. Đã làm ${s.shifts} ca part-time.</small></div></div>
-    <div class="tk-sec"><span>Việc hôm nay · ${DOW[dowOf(s.day)]}</span><span>Mỗi việc xong: Tinh thần +3</span></div>
-    <div class="dlist">${s.daily.map(dailyRow).join('')}</div>
-    <div class="tk-sec"><span>Nhiệm vụ chương ${ch}</span><span>${QUESTS.filter(q=>q.ch===ch&&s.q[q.id]==='done').length}/${QUESTS.filter(q=>q.ch===ch).length}</span></div>
-    <div class="qlist">${QUESTS.filter(q=>q.ch===ch).map(qcardHTML).join('')}</div>`;
-  for(let c=1;c<=4;c++){if(c===ch)continue;
-    if(c<ch)h+=`<div class="tk-sec"><span>Chương ${c} · ${CHAPTERS[c].t}</span></div><div class="qmini">${QUESTS.filter(q=>q.ch===c).map(q=>`<span><span class="ck${s.q[q.id]==='done'?' on':' fail'}"></span>${q.t}</span>`).join('')}</div>`;
-    else h+=`<div class="qlock">Chương ${c} · ${CHAPTERS[c].t} mở vào ngày ${CHAPTERS[c].from}.</div>`}
-  return h+'</div>';
 }
 
 /* Event, dialogue & chapter */
@@ -673,13 +649,49 @@ function chapterHTML(e){
     <h4>Nhiệm vụ mới</h4><ul class="chap-q">${QUESTS.filter(q=>q.ch===e.n).map(q=>`<li><span class="pt">${ico(PEOPLE[q.who].p)}</span><div><b>${q.t}</b><span>${q.d}</span></div></li>`).join('')}</ul>
     <button class="btn primary" type="button" data-ch="0">${e.n===1?'Bắt đầu tháng mới':'Vào chương '+e.n}</button></div>`;
 }
-function eventHTML(){
-  const e=curEvent,P=e.who?PEOPLE[e.who]:null;
-  return `<div class="ev">${P?`<div class="spk"><span class="pt">${ico(P.p)}</span><span><b>${P.n}</b><small>Ngày ${s.day} · ${SLOTS[s.slot]}</small></span></div>`:`<div class="ev-stamp">Ngày ${s.day} · ${SLOTS[s.slot]}</div>`}
-    <h2>${e.title}</h2><p class="${P?'say':''}">${e.text}</p><div class="choices">`+
-    e.choices.map((c,i)=>{const nr=c.need?c.need(s):null,no=(c.cost&&s.money<c.cost)?'Không đủ tiền':nr;
-      return `<button class="choice" type="button" data-ch="${i}" ${no?'disabled':''}><b>${c.l}</b>${(c.cost||c.gain||c.eff||c.x)?`<span class="chips">${chipsHTML(c)}</span>`:''}${no?`<span class="chip down">${no}</span>`:''}</button>`}).join('')+`</div></div>`;
+/* Biểu cảm và kiểu khung cho từng sự kiện (design/10). Mẹ ở xa nên nói qua điện thoại. */
+const EV_LOOK={'Tin nhắn của mẹ':{phone:'Tin nhắn'},'Mẹ gọi điện':{ex:'worry',phone:'Đang gọi',call:1},'Chào mừng tân sinh viên':{ex:'happy'},
+  'Khoa hỏi mượn tiền':{ex:'awkward'},'Khoa hẹn lần sau':{ex:'awkward'},'Đêm nhạc chào tân sinh viên':{ex:'excited'},'Chị Mai khen':{ex:'happy'},
+  'Khoa trả tiền':{ex:'grin'},'Lương part-time đầu tiên':{ex:'happy'},'Lớp rủ đi ăn lẩu':{ex:'grin'},'Sinh nhật bạn cùng lớp':{ex:'happy'}};
+function evLook(e){
+  const L={ex:'normal',...(EV_LOOK[e.title]||{})};
+  if(e.title==='Cô Tư thu tiền nhà'&&s.flags.rentShort)L.ex='stern';
+  if(e.title==='Kết quả kiểm tra giữa kỳ'){const p=s.flags.examScore;L.ex=p>=75?'happy':p>=55?'normal':'stern'}
+  return L;
 }
+function evChips(c){let h='';if(c.cost)h+=`<span class="money">−${fmt(c.cost)}</span>`;if(c.gain)h+=`<span class="gain">+${fmt(c.gain)}</span>`;
+  h+=effSpans(c.eff||{});if(c.x)h+=`<span class="x">${c.x}</span>`;return h}
+let evType=null;
+function eventHTML(){
+  const e=curEvent,one=e.choices.length===1,typing=!reduceMotion()&&typeof setInterval==='function';
+  let face='',tag='';
+  if(e.who){const L=evLook(e),C=Portraits.CH[e.who],P=PEOPLE[e.who],[pn,role]=P.n.split(' · ');
+    face=`<div class="e-face${L.phone?' phone':''}">${pxImg(Portraits.url(e.who,L.ex,{gender:s.gender}))}${L.phone?`<span class="e-badge${L.call?' call':''}">${L.phone}</span>`:''}</div>`;
+    tag=`<div class="e-tag"><b>${pn}</b><span>${role||C.role}</span></div>`}
+  const chs=e.choices.map((c,i)=>{const nr=c.need?c.need(s):null,no=(c.cost&&s.money<c.cost)?'Không đủ tiền':nr;
+    return `<button class="e-ch${typing?' wait':''}" type="button" data-ch="${i}" ${no?'disabled':''}>${one?'':`<span class="k">${i+1}</span>`}<b>${c.l}</b>${(c.cost||c.gain||c.eff||c.x||no)?`<span class="e-chips">${evChips(c)}${no?`<span class="no">${no}</span>`:''}</span>`:''}</button>`}).join('');
+  return `<div class="evw">${face}${tag}<div class="pn e-dlg${one?' one':''}${e.who?'':' noface'}" role="group" aria-labelledby="evT" aria-describedby="evSay">
+    <div class="e-txt"><div class="e-top"><h2 id="evT">${e.title}</h2><span class="stamp">Ngày ${s.day} · Buổi ${SLOTS[s.slot].toLowerCase()}</span></div>
+    <p class="e-say" id="evSay" aria-live="polite" data-typing="${typing?1:0}">${e.text}</p><div class="e-hint">${one?'Nhấn Enter để tiếp tục':`Chọn bằng chuột hoặc phím 1–${e.choices.length}`}</div></div>
+    <div class="e-chs">${chs}</div></div></div>`;
+}
+/* lời thoại hiện dần khoảng 40 chữ mỗi giây; bấm vào khung hoặc nhấn Space để hiện hết */
+function startType(){
+  const el=$('evSay');if(!el)return;clearInterval(evType&&evType.timer);
+  const full=el.textContent;evType={full,shown:0,done:false,timer:0};
+  if(el.dataset.typing!=='1'){finishType();return}
+  el.textContent='';
+  evType.timer=setInterval(()=>{if(!evType||!$('evSay')){clearInterval(evType&&evType.timer);return}
+    evType.shown+=2;if(evType.shown>=full.length){finishType();return}
+    $('evSay').textContent=full.slice(0,evType.shown);$('evSay').insertAdjacentHTML('beforeend','<span class="cur"></span>')},50);
+}
+function finishType(){
+  if(!evType)return;clearInterval(evType.timer);evType.done=true;const el=$('evSay');if(!el)return;
+  el.textContent=evType.full;if(curEvent&&curEvent.choices.length===1)el.insertAdjacentHTML('beforeend',' <span class="cur"></span>');
+  $('win').querySelectorAll('.e-ch').forEach(b=>b.classList.remove('wait'));
+  const f=$('win').querySelector('.e-ch:not(:disabled)');if(f)f.focus({preventScroll:true});
+}
+const typingNow=()=>win==='event'&&evType&&!evType.done;
 function processQueue(){
   if(!s.started||s.over||win||!queue.length)return;
   curEvent=queue.shift();openWin('event');
@@ -698,33 +710,34 @@ function pickChoice(i){
   afterChange();
 }
 
-/* Bag */
+/* Túi đồ, Lịch, Nhiệm vụ (design/11): một khung chung có tab, nội dung trái, chi tiết phải */
+const TAB_WINS=['bag','cal','tasks'];
+let questSel=null;
+const VERB={food:'Ăn',drink:'Uống',med:'Dùng'};
+function tabHead(extra=''){
+  const t=(id,ic,l,k)=>`<button class="t-wt" type="button" role="tab" data-tab="${id}" aria-selected="${win===id}">${icTag(ic)}${l}<kbd>${k}</kbd></button>`;
+  return `<div class="t-wh" role="tablist">${t('bag','bag','Túi đồ','B')}${t('cal','cal','Lịch','L')}${t('tasks','quest','Nhiệm vụ','J')}<span class="sp"></span>${extra}<button class="t-x" type="button" data-close>Esc ✕</button></div>`;
+}
 function bagHTML(){
   const st=bagStacks(),cells=[];
   for(let i=0;i<12;i++){const x=st[i];
-    if(!x){cells.push('<div class="slot empty" aria-hidden="true"></div>');continue}
+    if(!x){cells.push('<div class="t-slot empty" aria-hidden="true"></div>');continue}
     const soon=x.exp!==null&&x.exp<=s.day;
-    cells.push(`<button class="slot${bagSel===x.id?' sel':''}" type="button" data-slot="${x.id}" title="${ITEMS[x.id].n}" aria-label="${ITEMS[x.id].n}, ${x.q} cái">${ico(x.id)}<span class="q">${x.q}</span>${soon?'<span class="ex">Sắp hỏng</span>':''}</button>`)}
-  let h=head('bag','Túi đồ',`<span class="tag ${s.ateThisSlot?'':'good'}">${s.ateThisSlot?'Đã ăn buổi này':'Chưa ăn buổi này'}</span>`)+
-    `<div class="win-b"><div class="bag-grid">${cells.join('')}</div>${st.length?'':'<p class="note-line">Túi đang trống. Mua đồ mang về ở chợ, quán ăn hoặc quán cà phê.</p>'}
-    <div class="bag-legend"><span>${s.bag.length} món · ${st.length}/12 ô</span><span>Đồ ăn dùng chung lượt ăn của buổi. Đồ uống và thuốc dùng lúc nào cũng được.</span></div></div>`;
-  if(bagSel&&bagCount(bagSel)){
-    const id=bagSel,it=ITEMS[id],x=st.find(z=>z.id===id),r=itemReason(id);
-    h+=`<div class="detail"><div class="dcard" role="group" aria-label="${it.n}">
-      <div class="slot">${ico(id)}<span class="q">${x.q}</span></div>
-      <div><h3>${it.n}</h3><div style="margin-top:.25em"><span class="tag">${TYPE_LABEL[it.type]}</span></div></div>
-      <p class="ddesc">${it.d}</p>
-      <div class="chips">${chipsHTML(it,false)}</div>
-      <dl class="dinfo"><dt>Số lượng</dt><dd>${x.q}</dd><dt>Hạn dùng</dt><dd>${expText(x.exp)}</dd><dt>Dùng ở đâu</dt><dd>${it.where?it.where.map(w=>LOCS[w].short).join(', '):'Ở đâu cũng được'}</dd></dl>
-      ${r?`<p class="dwhy">${r}</p>`:''}
-      <div class="dact"><button class="btn" type="button" data-dclose>Đóng</button><button class="btn primary" type="button" data-use="${id}" ${r?'disabled':''}>${it.verb||'Dùng'}</button></div>
-    </div></div>`}
-  return h;
+    cells.push(`<button class="t-slot" type="button" data-slot="${x.id}" aria-pressed="${bagSel===x.id}" aria-label="${ITEMS[x.id].n}, ${x.q} cái">${icTag(x.id)}<span class="qty">${x.q}</span>${soon?'<span class="ex">Sắp hỏng</span>':''}</button>`)}
+  const head=tabHead(`<span class="t-tg ${s.ateThisSlot?'warn':'good'}">${s.ateThisSlot?'Đã ăn buổi này':'Chưa ăn buổi này'}</span>`);
+  const main=`<div class="t-main"><div class="t-grid well">${cells.join('')}</div><div class="t-leg"><span>${s.bag.length} món · ${st.length}/12 ô</span><span>Đồ ăn dùng chung lượt ăn của buổi. Đồ uống và thuốc dùng lúc nào cũng được.</span></div><div class="t-leg"><span></span><span>Đồ hết hạn bị bỏ vào cuối ngày. Mua thêm ở chợ, quán ăn, quán cà phê hoặc cửa hàng tiện lợi.</span></div></div>`;
+  if(!st.length)return head+`<div class="t-wb">${main}<div class="t-det well"><h3>Túi đang trống</h3><p>Mua đồ mang về ở chợ, quán ăn, quán cà phê hoặc cửa hàng tiện lợi.</p></div></div>`;
+  if(!bagSel||!bagCount(bagSel))bagSel=st[0].id;
+  const id=bagSel,it=ITEMS[id],x=st.find(z=>z.id===id),r=itemReason(id);
+  const extra=id==='mi'?'<span class="k">Gói thứ 2 trong ngày: Sức khỏe −8</span>':'';
+  return head+`<div class="t-wb">${main}<div class="t-det well" aria-live="polite">
+    <div class="t-dh"><div class="t-slot t-big">${icTag(id)}<span class="qty">${x.q}</span></div><div><h3>${it.n}</h3><span class="t-ty">${TYPE_LABEL[it.type]}</span></div></div>
+    <p>${it.d}</p><div class="efx">${effSpans(effOf(it))}${extra}</div>
+    <dl><dt>Số lượng</dt><dd>${x.q}</dd><dt>Hạn dùng</dt><dd class="${x.exp!==null&&x.exp<=s.day?'bad':''}">${expText(x.exp)}</dd><dt>Dùng ở</dt><dd>${it.where?it.where.map(w=>LOCS[w].name).join(', '):'Mọi nơi'}</dd><dt>Đang ở</dt><dd>${LOCS[s.loc].name}</dd></dl>
+    ${r?`<span class="t-why">${r}</span>`:''}<button class="t-act" type="button" data-use="${id}" ${r?'disabled':''}>${it.verb||VERB[it.type]}</button></div></div>`;
 }
-
-/* Calendar */
 function calNotes(d){const a=[];
-  if(BILLS[d])a.push({t:`${BILLS[d][0]} · ${fmt(BILLS[d][1])}`,sh:{5:'Tiền nhà',10:'Điện nước',20:'Giáo trình'}[d],c:'var(--cal-red)'});
+  if(BILLS[d])a.push({t:`${BILLS[d][0]} · ${fmt(BILLS[d][1])}`,sh:{5:'Tiền nhà',10:'Điện nước',20:'Giáo trình'}[d],c:'#c8403a'});
   if(d===13)a.push({t:'Đêm nhạc chào tân sinh viên, buổi tối',sh:'Đêm nhạc',c:'#7a56c2'});
   if(d===15)a.push({t:'Lương part-time kỳ 1',sh:'Lương',c:'#2f8a4a'});
   if(d===20||d===21)a.push({t:'Hẹn cà phê với Khoa, buổi chiều',sh:'Gặp Khoa',c:'#7a56c2'});
@@ -733,47 +746,80 @@ function calNotes(d){const a=[];
   if(d===30)a.push({t:'Sinh nhật mẹ · Tổng kết cuối tháng',sh:'Sinh nhật mẹ',c:'#b8892a'});
   return a}
 function calHTML(){
-  let g=DOWS.map((d,i)=>`<div class="dh${i>=5?' we':''}">${d}</div>`).join('');
-  for(let d=1;d<=30;d++){const n=calNotes(d),c=['pd'];if(isWE(d))c.push('we');if(d<s.day)c.push('past');if(d===s.day)c.push('today');if(d===calSel)c.push('sel');
-    g+=`<button type="button" class="${c.join(' ')}" data-day="${d}" aria-label="Ngày ${d}">${CHAPTERS[chOf(d)].from===d?`<span class="ch">C${chOf(d)}</span>`:''}<span class="n">${d}</span>${n[0]?`<span class="nt" style="--c:${n[0].c}">${n[0].sh}</span>`:''}</button>`}
-  const d=calSel,notes=calNotes(d),hh=s.hist.find(x=>x.d===d);
-  let det=`<h4>Ngày ${d} · ${DOW[dowOf(d)]}</h4>`;
+  let g=DOWS.map((d,i)=>`<div class="dw${i>=5?' we':''}">${d}</div>`).join('');
+  for(let d=1;d<=30;d++){const n=calNotes(d),c=['t-d'];if(isWE(d))c.push('we');if(d<s.day)c.push('past');if(d===s.day)c.push('today');
+    g+=`<button type="button" class="${c.join(' ')}" data-day="${d}" aria-pressed="${calSel===d}" aria-label="Ngày ${d}${n.length?': '+n.map(x=>x.t).join(', '):''}">${CHAPTERS[chOf(d)].from===d?`<span class="c">C${chOf(d)}</span>`:''}<span class="n">${d}</span>${n[0]?`<span class="nt" style="--c:${n[0].c}">${n[0].sh}</span>`:''}</button>`}
+  const d=calSel,notes=calNotes(d),hh=s.hist.find(x=>x.d===d),C=CHAPTERS[chOf(d)];
+  let det=`<h3>Ngày ${d}, ${DOW[dowOf(d)]}</h3><p>Chương ${chOf(d)}: ${C.t}</p>`;
   if(d===s.day)det+=`<p><b>Hôm nay</b>, đang là buổi ${SLOTS[s.slot].toLowerCase()}.</p>`;
   else if(d<s.day&&hh)det+=`<p>Cuối ngày: ví còn <b>${fmt(hh.money)}</b></p><p>No ${hh.no} · Năng lượng ${hh.nl} · Tinh thần ${hh.tt} · Sức khỏe ${hh.sk}</p>`;
-  else if(d>s.day)det+=`<p>Còn ${d-s.day} ngày nữa.</p>`;
-  if(CHAPTERS[chOf(d)].from===d)det+=`<p><span class="sw" style="--c:#2a2730"></span>Bắt đầu chương ${chOf(d)} · ${CHAPTERS[chOf(d)].t}</p>`;
-  QUESTS.filter(q=>q.due===d&&(s.q[q.id]==='active')).forEach(q=>{det+=`<p><span class="sw" style="--c:#d99a1e"></span>Hạn nhiệm vụ: ${q.t}</p>`});
-  det+=notes.length?notes.map(n=>`<p><span class="sw" style="--c:${n.c}"></span>${n.t}</p>`).join(''):(d>=s.day?'<p style="color:var(--ink-soft)">Chưa có lịch hẹn.</p>':'');
-  const up=[];for(let x=s.day;x<=30&&up.length<4;x++)calNotes(x).forEach(n=>up.length<4&&up.push({d:x,...n}));
-  return head('cal','Lịch tháng','<span class="tag">Bấm vào ngày để xem</span>')+
-   `<div class="win-b"><div class="paper"><div class="paper-h"><div class="rings"><i></i><i></i><i></i><i></i></div><b>Tháng đầu tiên</b><small>Ngày 1 là Thứ Hai · 30 ngày · 4 chương</small></div>
-    <div class="pgrid">${g}</div>
-    <div class="cal-foot"><div>${det}</div><div><h4>Sắp tới</h4><ul>${up.map(u=>`<li><span><span class="sw" style="--c:${u.c}"></span>${u.sh}</span><span class="num">${u.d===s.day?'hôm nay':'N'+u.d}</span></li>`).join('')||'<li>Hết lịch tháng này</li>'}</ul></div></div>
-   </div></div>`;
+  else if(d>s.day)det+=`<p>Còn <b>${d-s.day} ngày</b> nữa.</p>`;
+  const dueQ=QUESTS.filter(q=>q.due===d&&s.q[q.id]==='active');
+  dueQ.forEach(q=>{det+=`<p><span class="t-dot" style="--c:#d99a1e"></span><b>Hạn nhiệm vụ: ${q.t}</b></p>`});
+  det+=notes.length||dueQ.length?notes.map(n=>`<p><span class="t-dot" style="--c:${n.c}"></span><b>${n.t}</b></p>`).join(''):'<p>Không có việc gì đặc biệt.</p>';
+  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${det}</div></div>`;
+}
+function tasksHTML(){
+  const ch=chOf(s.day),active=QUESTS.filter(q=>s.q[q.id]==='active').sort((a,b)=>a.due-b.due);
+  if(!questSel||!s.q[questSel])questSel=(trackedQuest()||active[0]||QUESTS.filter(q=>s.q[q.id]).pop()||QUESTS[0]).id;
+  const sel=QBY[questSel];
+  let list='';
+  for(let c=4;c>=1;c--){
+    if(c>ch){list+=`<div class="t-qh">Chương ${c}: ${CHAPTERS[c].t}</div><div class="t-lock">Mở vào ngày ${CHAPTERS[c].from}</div>`;continue}
+    list+=`<div class="t-qh">Chương ${c}: ${CHAPTERS[c].t}${c===ch?' <span>· đang diễn ra</span>':''}</div>`;
+    QUESTS.filter(q=>q.ch===c).forEach(q=>{const k=s.q[q.id]||'active',left=q.due-s.day;
+      const due=k==='active'?(left<=0?'hết hạn hôm nay':left===1?'còn đến mai':`hạn ngày ${q.due}`):k==='done'?'Đã xong':'Thất bại';
+      list+=`<button class="t-q ${k==='done'?'done':k==='fail'?'fail':''}" type="button" data-q="${q.id}" aria-pressed="${q.id===questSel}"><span class="s s${k[0]}">${k==='active'?'!':k==='done'?'✓':'✕'}</span><b>${q.t}</b><span class="due${k==='active'&&left<=1?' hot':''}">${due}</span></button>`})}
+  const k=s.q[sel.id]||'active',P=PEOPLE[sel.who],p=questProg(sel),pinned=trackedQuest()===sel;
+  const rw=effSpans(sel.rw||{})+(sel.rwTxt?`<span class="k">${sel.rwTxt}</span>`:'');
+  const det=`<div class="t-giver">${pxImg(Portraits.url(sel.who==='self'?'self':sel.who,sel.who==='khoa'?'grin':'normal',{gender:s.gender}))}<div><h3>${sel.t}</h3><small>Giao bởi ${sel.who==='self'?'chính bạn':P.n} · chương ${sel.ch}</small></div></div>
+    <p>${sel.d}</p><div class="t-howto"><b>Cách làm:</b> ${sel.hint}</div>
+    <div><p><b>${k==='done'?'Đã hoàn thành':k==='fail'?'Đã thất bại':p.lbl}</b></p><div class="t-bar" style="--c:${k==='fail'?'var(--bad)':k==='done'?'var(--good)':'var(--lantern)'}"><i style="width:${k==='fail'?100:k==='done'?100:p.pct}%"></i></div></div>
+    <dl><dt>Hạn</dt><dd>${k==='active'?(sel.due-s.day<=0?'Hết hôm nay':`Ngày ${sel.due}, còn ${sel.due-s.day+1} ngày`):'Ngày '+sel.due}</dd></dl>
+    <p><b>Phần thưởng</b></p><div class="efx">${rw||'<span class="k">Không</span>'}</div>
+    ${k==='active'?`<button class="t-act" type="button" data-pin="${sel.id}" ${pinned?'disabled':''}>${pinned?'Đang theo dõi trên màn hình':'Ghim lên màn hình'}</button>`:''}`;
+  const sc=studyScore();
+  const dly=s.daily.map(d=>{const D=DAILY[d.id],[c,m]=D.prog(s),ok=d.st==='done';return `<div class="t-dl"><span class="t-box${ok?' on':d.st==='fail'?' fail':''}"></span><span>${D.t}<small>${ok?'Xong · tinh thần +3':D.label?D.label(s):`${c} / ${m}`}</small></span></div>`}).join('');
+  return tabHead(`<span class="t-tg good">${active.length} đang làm</span>`)+`<div class="t-wb"><div class="t-main"><div class="t-today well">${dly}<div class="t-study">Điểm học tập <b>${sc}</b><div class="t-bar"><i style="width:${sc}%"></i><u style="left:55%"></u><u style="left:75%;background:var(--good)"></u></div></div></div><div class="t-ql well">${list}</div></div><div class="t-det well" aria-live="polite">${det}</div></div>`;
 }
 
-/* Map */
+/* Map (design/09): bản đồ phủ kín màn hình, bấm vào địa điểm trên bản đồ hoặc trong danh sách để xem rồi đi */
+const MAP_HOURS={home:'Cả ngày',street:'Cả ngày (ốc chỉ buổi tối)',market:'Sáng đến chiều',park:'Cả ngày',cafe:'Cả ngày',school:'Thứ Hai đến thứ Sáu, sáng đến chiều',store:'24 giờ',mall:'Trưa đến tối'};
+let mapSel=null;
+const locActsAt=id=>A[id].filter(a=>!a.show||a.show(s));
+const mapQuests=()=>QUESTS.filter(q=>s.q[q.id]==='active'&&q.goal).reduce((m,q)=>(m[q.goal]=m[q.goal]||q,m),{});
+function mapPick(){const tq=trackedQuest();mapSel=tq&&tq.goal&&tq.goal!==s.loc?tq.goal:s.loc}
+function mapDo(id){return locActsAt(id).filter(a=>a.id!=='idle'&&!a.story).map(a=>a.n).slice(0,7).join(', ')+'.'}
 function mapHTML(){
-  const tq=trackedQuest(),goal=tq&&tq.goal;
-  const pins=Object.entries(LOCS).map(([id,L])=>{
-    const here=id===s.loc,cl=L.open(s),c=travelCost(id),poor=c>0&&s.money<c,isGoal=goal===id&&!here;
-    const ct=here?'Bạn ở đây':cl?'Đóng cửa':isGoal?'Nhiệm vụ':poor?'Đi bộ · mệt hơn':c?`${s.bikeBroken?'Xe ôm':'Xăng'} ${fk(c)}`:'Đi bộ';
-    return `<button class="pin${here?' here':''}${cl?' closed':''}${isGoal?' goal':''}" type="button" data-go="${id}" style="left:${L.mx}%;top:${L.my}%" ${here||cl?'disabled':''} title="${L.name}${cl?' · '+cl:''}${c&&!here?' · '+fk(c):''}"><span class="dot"></span><span class="lb">${L.short}</span><span class="ct">${ct}</span></button>`}).join('');
-  return head('pin','Bản đồ khu phố',`<span class="tag">${DOW[dowOf(s.day)]}, buổi ${SLOTS[s.slot].toLowerCase()}</span>`)+
-    `<div class="win-b"><div class="map-wrap"><canvas id="mapCv" width="160" height="100"></canvas>${pins}</div><p class="note-line">Di chuyển không tốn thời gian. Nơi xa tốn tiền xăng; hết tiền thì đi bộ và mệt hơn. Viền vàng là nơi cần tới cho nhiệm vụ đang theo dõi.</p></div>`;
+  if(!mapSel)mapPick();
+  const qs=mapQuests(),P=Scenes.map.PLACES;
+  const list=P.map(p=>{const shut=LOCS[p.id].open(s),c=travelCost(p.id);
+    return `<button class="m-pl" type="button" data-msel="${p.id}" aria-pressed="${p.id===mapSel}"><span class="n">${LOCS[p.id].name}${qs[p.id]?'<span class="q" aria-label="có nhiệm vụ">!</span>':''}${p.id===s.loc?'<span class="here">· đang ở</span>':''}</span><span class="m-st ${shut?'shut':'open'}">${shut?'Đóng':'Mở'}</span><span class="m-cost">${c/1000}K</span></button>`}).join('');
+  const id=mapSel,L=LOCS[id],shut=L.open(s),c=travelCost(id),q=qs[id];
+  const btn=id===s.loc?'<button class="m-go" type="button" disabled>Bạn đang ở đây</button>'
+    :shut?'<button class="m-go" type="button" disabled>Đang đóng cửa</button>'
+    :c&&s.money<c?`<button class="m-go walk" type="button" data-go="${id}">Đi bộ (năng lượng −8, tinh thần −2)</button>`
+    :`<button class="m-go" type="button" data-go="${id}">${c?`Đi đến (${fmt(c)})`:'Đi đến (miễn phí)'}</button>`;
+  return `<canvas id="mapCv" class="mapcv" width="320" height="180" role="img" aria-label="Bản đồ khu phố nhìn từ trên xuống: phòng trọ, quán ăn, chợ, công viên, cửa hàng tiện lợi ở gần; quán cà phê, trường đại học, trung tâm thương mại xa dần."></canvas>
+    <aside class="pn m-side" aria-label="Danh sách địa điểm">
+      <div class="m-hd"><b>Bản đồ</b><span>Ngày ${s.day}, ${DOW[dowOf(s.day)]}, buổi ${SLOTS[s.slot].toLowerCase()}</span><button class="xbtn" type="button" data-close aria-label="Đóng bản đồ">×</button></div>
+      <div class="m-list well">${list}</div>
+      <div class="m-det well" aria-live="polite"><h3>${L.name}</h3>
+        <p><b>Mở cửa:</b> ${MAP_HOURS[id]}${shut?` · <span class="why">${shut}</span>`:''}</p>
+        <p><b>Làm được:</b> ${mapDo(id)}</p>
+        <p><b>Đi lại:</b> ${c?fmt(c)+(s.bikeBroken?' (xe hỏng, gấp ba)':''):'Miễn phí, đi bộ được'}${c&&s.money<c?' · không đủ tiền':''}</p>
+        ${q?`<p class="qb">Nhiệm vụ: ${q.t}</p>`:''}${btn}</div>
+    </aside>
+    <div class="pn m-legend" aria-hidden="true"><span><i style="background:#ffc94d"></i>Có nhiệm vụ</span><span><i style="background:#e85a3a"></i>Tốn tiền đi lại</span><span><i style="background:repeating-linear-gradient(45deg,#4a4e66 0 2px,transparent 2px 5px)"></i>Đang đóng cửa</span></div>`;
 }
-function drawMap(){
-  const cv=$('mapCv');if(!cv)return;const m=cv.getContext('2d');m.imageSmoothingEnabled=false;
-  const P=(x,y,w,h,c)=>{m.fillStyle=c;m.fillRect(x,y,w,h)};
-  P(0,0,160,100,'#2b3150');
-  for(let bx=0;bx<160;bx+=10)for(let by=0;by<100;by+=10)if(((bx*7+by*3)/10)%3<2)P(bx+1,by+1,8,8,'#333a5d');
-  for(let x=0;x<160;x++){const y=Math.round(9+Math.sin(x/16)*3);P(x,y,1,6,'#2c6d9d');if(x%7===0)P(x,y+2,2,1,'#5aa0cf')}
-  P(66,16,30,20,'#3b7a4c');[[70,20],[78,24],[88,19],[84,30],[72,30]].forEach(([x,y])=>{P(x,y,4,4,'#2f6640');P(x+1,y-1,2,1,'#4f9a5f')});
-  const rd='#5e6696';P(0,48,160,3,rd);P(0,74,160,3,rd);P(56,0,3,100,rd);P(102,0,3,100,rd);P(128,40,3,60,rd);P(20,51,3,49,rd);
-  for(let x=0;x<160;x+=6){P(x,49,3,1,'#8d93bf');P(x,75,3,1,'#8d93bf')}
-  for(let y=0;y<100;y+=6){P(57,y,1,3,'#8d93bf');P(103,y,1,3,'#8d93bf')}
-  P(114,24,10,22,'#4b5a80');P(132,20,8,26,'#55628a');P(130,60,20,16,'#5a5f86');
+function drawMap(t=0){
+  const cv=$('mapCv');if(!cv)return;
+  Scenes.map.frame(cv.getContext('2d'),t,{animate:!reduceMotion(),slot:s.slot,at:s.loc,sel:mapSel,weekend:isWE(s.day),quests:Object.keys(mapQuests()),broken:s.bikeBroken>0,gender:s.gender});
 }
+$('layer').addEventListener('pointerdown',e=>{
+  if(e.target.id!=='mapCv')return;const r=e.target.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*320,y=(e.clientY-r.top)/r.height*180;
+  const hit=Scenes.map.PLACES.find(p=>{const [bx,by,bw,bh]=p.box;return x>=bx-3&&x<=bx+bw+3&&y>=by-12&&y<=by+bh+3});if(hit){mapSel=hit.id;renderWin()}
+});
 
 /* Rules */
 function rulesHTML(){return `<ul class="rules">
@@ -825,14 +871,15 @@ function drawChart(){
 /* Layer clicks */
 $('layer').addEventListener('click',e=>{
   const t=e.target;
+  if(typingNow()&&t.closest('.evw')){finishType();return}
   const ch=t.closest('[data-ch]');if(ch){if(!ch.disabled)pickChoice(+ch.dataset.ch);return}
+  const ms=t.closest('[data-msel]');if(ms){mapSel=ms.dataset.msel;renderWin();const f=$('win').querySelector(`[data-msel="${mapSel}"]`);if(f)f.focus({preventScroll:true});return}
   const go=t.closest('[data-go]');if(go){if(!go.disabled)travel(go.dataset.go);return}
   const use=t.closest('[data-use]');if(use){if(!use.disabled)useItem(use.dataset.use);return}
   const pin=t.closest('[data-pin]');if(pin){s.pin=pin.dataset.pin;refresh();return}
-  const sl=t.closest('[data-slot]');if(sl){bagSel=sl.dataset.slot;renderWin();const u=$('win').querySelector('[data-use]:not(:disabled),[data-dclose]');if(u)u.focus({preventScroll:true});return}
-  const dcBtn=t.closest('button[data-dclose]');
-  if(t.closest('.dcard')&&!dcBtn)return;
-  if(dcBtn||t.classList.contains('detail')){bagSel=null;renderWin();return}
+  const tb=t.closest('[data-tab]');if(tb){openWin(tb.dataset.tab);return}
+  const qq=t.closest('[data-q]');if(qq){questSel=qq.dataset.q;renderWin();const f=$('win').querySelector(`[data-q="${questSel}"]`);if(f)f.focus({preventScroll:true});return}
+  const sl=t.closest('[data-slot]');if(sl){bagSel=sl.dataset.slot;renderWin();const u=$('win').querySelector(`[data-slot="${bagSel}"]`);if(u)u.focus({preventScroll:true});return}
   const day=t.closest('[data-day]');if(day){calSel=+day.dataset.day;renderWin();return}
   const m=t.closest('[data-m]');if(m){cmd(m.dataset.m);return}
   if(t.closest('[data-close]')){closeWin();return}
@@ -911,10 +958,14 @@ $('titleBtns').addEventListener('click',e=>{const b=e.target.closest('[data-m]')
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   if(e.key==='Escape'&&mode==='create'&&!win){showTitle();return}
-  if(e.key==='Escape'){if(win==='bag'&&bagSel){bagSel=null;renderWin();return}if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd()}return}
+  if(e.key==='Escape'){if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd()}return}
   if(!s.started||$('ui').hidden)return;
+  if(win==='event'&&curEvent&&curEvent.kind!=='chapter'){
+    if(e.key===' '&&typingNow()){e.preventDefault();finishType();return}
+    const n=+e.key;if(!typingNow()&&n>=1&&n<=curEvent.choices.length){const b=$('win').querySelectorAll('.e-ch')[n-1];if(b&&!b.disabled){e.preventDefault();pickChoice(n-1)}}
+    return}
   const k={b:'bag',l:'cal',m:'map',n:'log',j:'tasks'}[e.key.toLowerCase()];
-  if(k){e.preventDefault();toggleWin(k);return}
+  if(k){e.preventDefault();if(TAB_WINS.includes(win)&&TAB_WINS.includes(k)&&win!==k)openWin(k);else toggleWin(k);return}
   const c=/^[1-9]$/.test(e.key)&&visCats()[+e.key-1];
   if(c&&!win){e.preventDefault();openCat(c.id)}
 });
@@ -986,7 +1037,7 @@ function drawHero(c,cx,feet,t){
   if(bub)c.drawImage(Chars.BUB[bub],x+16,y-18-(Math.floor(t/400)%2));
 }
 let lastDraw=0;
-function loop(t){if(t-lastDraw>66){lastDraw=t;try{drawScene(t)}catch(e){console.error(e)}}requestAnimationFrame(loop)}
+function loop(t){if(t-lastDraw>66){lastDraw=t;try{drawScene(t);if(win==='map')drawMap(t)}catch(e){console.error(e)}}requestAnimationFrame(loop)}
 
 /* ============ Boot ============ */
 function boot(data){

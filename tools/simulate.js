@@ -32,7 +32,7 @@ function fakeEl() {
       if (k === 'toDataURL') return () => 'data:,';
       if (k === 'querySelector') return () => null;
       if (k === 'querySelectorAll') return () => [];
-      if (['addEventListener', 'appendChild', 'replaceChildren', 'remove', 'focus'].includes(k)) return () => {};
+      if (['addEventListener', 'appendChild', 'replaceChildren', 'remove', 'focus', 'insertAdjacentHTML', 'setAttribute'].includes(k)) return () => {};
       if (k === 'clientWidth' || k === 'clientHeight') return 300;
       return undefined;
     },
@@ -46,6 +46,8 @@ global.localStorage = { getItem: () => null, setItem() {} };
 global.requestAnimationFrame = () => {};
 global.setTimeout = () => 0;
 global.clearTimeout = () => {};
+global.setInterval = () => 0;
+global.clearInterval = () => {};
 
 const root = path.join(__dirname, '..');
 const scripts = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
