@@ -50,7 +50,7 @@ global.setInterval = () => 0;
 global.clearInterval = () => {};
 
 const root = path.join(__dirname, '..');
-const scripts = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+const scripts = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]).filter(src => src !== 'src/audio.js'); // âm thanh không chạy trong mô phỏng
 const game = scripts.map(src => fs.readFileSync(path.join(root, src), 'utf8')).join('\n;\n');
 
 /* ---------- Bot (chạy chung phạm vi với game qua eval) ---------- */

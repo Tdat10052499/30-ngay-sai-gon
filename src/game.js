@@ -150,6 +150,43 @@ function addLog(text,tone=''){text=nm(text);s.log.unshift({d:s.day,sl:s.slot,tex
 function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 function loadSaved(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
 
+/* ============ Âm thanh (src/audio.js, DESIGN_SPEC mục 6) ============
+ * Mọi lệnh gọi đi qua au(): chưa có GameAudio (trình mô phỏng chạy trong Node) hoặc chưa init thì không làm gì.
+ * init() chỉ gọi ở lần bấm "Bắt đầu câu chuyện" hoặc "Chơi tiếp" đầu tiên. Cài đặt âm lượng lưu riêng, không nằm trong bản lưu game. */
+const AUDIO_KEY='ba-muoi-ngay-sg-audio';
+const GA=()=>typeof window!=='undefined'&&window.GameAudio&&window.GameAudio.ctx?window.GameAudio:null;
+function au(m,...a){const A=GA();if(A&&typeof A[m]==='function')try{A[m](...a)}catch(e){}}
+const sfx=n=>au('sfx',n);
+let audioPref={music:.6,sfx:.8,muted:false};
+try{const r=localStorage.getItem(AUDIO_KEY);if(r)audioPref={...audioPref,...JSON.parse(r)}}catch(e){}
+function audioSave(){try{localStorage.setItem(AUDIO_KEY,JSON.stringify(audioPref))}catch(e){}}
+function audioStart(){
+  const A=typeof window!=='undefined'?window.GameAudio:null;if(!A||A.ctx)return;
+  try{A.init();A.setVolume('music',audioPref.music);A.setVolume('sfx',audioPref.sfx);A.setMuted(audioPref.muted)}catch(e){}
+}
+const LOC_MUSIC={home:'home',school:'school',store:'store',street:'street',market:'street',cafe:'cafe',park:'park',mall:'mall'};
+/* nhạc theo màn hình và địa điểm; mở cửa sổ không đổi bài */
+function syncMusic(){
+  if(mode==='title'||mode==='create')au('play','title');
+  else if(mode==='game'&&s){au('play',s.over?'summary':LOC_MUSIC[s.loc]);au('setNight',!s.over&&s.slot===3)}
+}
+/* một tiếng cho mỗi hành động theo tổng hiệu ứng chỉ số */
+const statSfx=out=>{const t=Object.values(out).reduce((a,b)=>a+b,0);if(t>0)sfx('statUp');else if(t<0)sfx('statDown')};
+/* cảnh báo chỉ kêu khi mới xuất hiện, không lặp lại khi vẽ lại giao diện */
+let prevWarn=new Set();
+function warnSfx(){
+  const w=new Set();if(noteAct==='school'||noteAct==='clean')w.add(noteAct);STATS.forEach(S=>{if(s[S.k]<25)w.add(S.k)});
+  if([...w].some(k=>!prevWarn.has(k)))sfx('warn');prevWarn=w;
+}
+document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('button'))sfx('click')},true);
+function audioPanelHTML(){
+  const pct=v=>Math.round(v*100)+'%';
+  return `<div class="aud well">
+    <label for="volM">Nhạc nền</label><input type="range" id="volM" min="0" max="1" step="0.05" value="${audioPref.music}"><span class="num" id="volMv">${pct(audioPref.music)}</span>
+    <label for="volS">Hiệu ứng</label><input type="range" id="volS" min="0" max="1" step="0.05" value="${audioPref.sfx}"><span class="num" id="volSv">${pct(audioPref.sfx)}</span>
+    <button class="btns" type="button" id="audMute" aria-pressed="${audioPref.muted}">Tắt tiếng</button></div>`;
+}
+
 /* ============ Locations & actions ============ */
 const LOCS={
   home:{name:'Phòng trọ',short:'Phòng trọ',sub:'Hẻm 42 · ở ghép với Khoa',cost:0,open:()=>null},
@@ -283,6 +320,7 @@ function doAction(a){
   if(RELAX.includes(a.id))s.relaxToday=1;
   popFx(out,s.money-m0);
   addLog(a.n+(a.cost?` (−${fk(a.cost)})`:'')+(a.gain?` (+${fk(a.gain)})`:''));
+  statSfx(out);if(a.k==='meal'||a.k==='drink')sfx('eat');if(a.id==='nap'||a.id==='sleep')sfx('sleep');if(a.id==='shift')sfx('register');
   if(a.k==='meal'){s.ateThisSlot=true;s.mealsToday++;if(s.loc==='home')addMess(6)}
   if(a.k==='act'){closeMenu();endSlot(a)}
   else if(a.k==='meal'||a.k==='drink')closeMenu();
@@ -293,6 +331,7 @@ function useItem(id){
   const it=ITEMS[id];
   const out=applyEff(effOf(it));
   bagTake(id);if(it.after)it.after(s);
+  statSfx(out);if(it.type!=='med')sfx('eat');
   if(it.type==='food'){s.ateThisSlot=true;s.mealsToday++;if(s.loc==='home')addMess(id==='nguyenlieu'?10:6)}
   popFx(out,0);
   addLog(it.verb?`${it.verb} ăn`:`Dùng ${it.n.toLowerCase()}`);
@@ -357,6 +396,7 @@ function travel(id){
   addLog(walk?`Hết tiền xăng, đi bộ tới ${LOCS[id].name}`:`Đi tới ${LOCS[id].name}`+(c?` (−${fk(c)} ${s.bikeBroken?'xe ôm':'xăng'})`:''),walk?'bad':'');
   const st=$('stage');st.classList.add('fade');setTimeout(()=>st.classList.remove('fade'),230);
   if(c)popFx({},-c);
+  if(id==='home'||id==='store')sfx('door');
   if(id==='school'&&!s.flags.metHai){s.flags.metHai=1;queue.push(ev('Chào mừng tân sinh viên','“Chào em Minh! Lớp mình học buổi sáng từ thứ Hai đến thứ Sáu. Thầy chấm điểm học tập dựa trên chuyên cần, giờ tự học ở thư viện và bài kiểm tra giữa kỳ sáng ngày 29. Có gì khó cứ tìm thầy.”',[{l:'Dạ, em cảm ơn thầy'}],'hai'))}
   afterChange();
 }
@@ -374,9 +414,9 @@ function completeQuest(q){
   if(q.bonus)s.accrued+=q.bonus;
   if(q.item)bagAdd(q.item[0],q.item[1]);
   popFx(out,0);
-  addLog(`Hoàn thành nhiệm vụ: ${q.t}`,'quest');showToast(`Hoàn thành nhiệm vụ · ${q.t}`,'quest');
+  addLog(`Hoàn thành nhiệm vụ: ${q.t}`,'quest');sfx('questDone');showToast(`Hoàn thành nhiệm vụ · ${q.t}`,'quest');
 }
-function failQuest(q){s.q[q.id]='fail';addLog(`Nhiệm vụ thất bại: ${q.t}`,'bad')}
+function failQuest(q){s.q[q.id]='fail';sfx('questFail');addLog(`Nhiệm vụ thất bại: ${q.t}`,'bad')}
 function checkQuests(){
   if(s.day>=8&&s.day<=14&&s.tt<30)s.flags.mood2Fail=1;
   QUESTS.forEach(q=>{if(s.q[q.id]!=='active')return;
@@ -494,14 +534,14 @@ function endingLines(){
   L.push(['tu',s.flags.rentShort?'Tháng này thiếu tiền nhà. Cô Tư nhắc khéo: tháng sau nhớ để dành đủ trước mùng 5.':'Cô Tư khen Minh là sinh viên ngoan nhất xóm trọ.']);
   return L;
 }
-function finish(){s.over=true;queue=[];closeMenu();save();render();openWin('end')}
+function finish(){s.over=true;queue=[];closeMenu();save();render();openWin('end');if($('win').querySelector('.ach.on'))sfx('questDone')}
 
 /* ============ HUD rendering ============ */
 /* HUD theo design/04: biểu tượng dùng nền CSS (--i) để co giãn theo lưới --p */
 const icURL=k=>{const n=ICO_NEW[k]||k;return Icons.has(n)?Icons.url(n):'data:image/svg+xml,'+encodeURIComponent(ico(k).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))};
 const icTag=k=>`<i class="ic" style="--i:url(${icURL(k)})"></i>`;
 const SLOT_IC=['dawn','noon','dusk','night'];
-function render(){renderTop();renderTracker();renderCmd();if(win&&win!=='event'&&win!=='end')renderWin()}
+function render(){syncMusic();renderTop();renderTracker();renderCmd();if(win&&win!=='event'&&win!=='end')renderWin()}
 function renderTop(){
   $('dayNum').textContent=s.day;
   $('dow').textContent=DOW[dowOf(s.day)];
@@ -544,6 +584,7 @@ function renderCmd(){
   if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;btn='Bản đồ';noteAct='map';cls='bad'}
   else if(!isWE(s.day)&&s.slot===0&&s.loc!=='school'){const c=travelCost('school');t='Đang giờ học. Không lên lớp sẽ bị tính vắng học.';btn=`Đến trường${c?` (${fk(c)})`:''}`;noteAct='school'}
   else if(s.loc==='home'&&messLv()===2){t='Phòng bừa bộn quá. Ở phòng mỗi buổi tinh thần −2, ngủ hồi ít năng lượng hơn.';btn='Dọn phòng';noteAct='clean'}
+  warnSfx();
   const note=$('cmdNote');note.hidden=!t||!!menuCat;note.className='pn note '+cls;$('noteT').textContent=nm(t);$('noteBtn').textContent=btn;
   renderMenu();
 }
@@ -555,11 +596,12 @@ function menuRow(x){
   const extra=(note?`<span class="k">${note}</span>`:'')+(x.k==='act'&&x.id!=='clean'&&s.loc==='home'&&ml?`<span class="neg" style="--c:var(--c-tt)">Phòng bừa: Tinh thần −${ml}</span>`:'')+(x.k==='quick'||x.k==='buy'?'<span class="k">Không tốn thời gian</span>':'');
   return `<button class="row well" type="button" data-pa="${x.id}" ${r?'disabled':''}><b>${x.n}${x.story?'<span class="qt">Nhiệm vụ</span>':''}</b>${pr}<span class="d">${x.d}</span><span class="efx">${effSpans(e)}${extra}</span>${r?`<span class="why">${r}</span>`:''}</button>`;
 }
-const SYS_ROWS=[['log','Nhật ký','Những việc đã làm và đã xảy ra (phím N).'],['rules','Luật chơi','Cách chơi, công thức điểm, phím tắt.'],['home','Màn hình chính','Tiến trình đã tự lưu, chơi tiếp lúc nào cũng được.']];
+const SYS_ROWS=[['log','Nhật ký','Những việc đã làm và đã xảy ra (phím N).'],['rules','Luật chơi','Cách chơi, công thức điểm, phím tắt.'],['audio','Âm thanh','Âm lượng nhạc nền, hiệu ứng, tắt tiếng.'],['home','Màn hình chính','Tiến trình đã tự lưu, chơi tiếp lúc nào cũng được.']];
 function renderMenu(){
   const pm=$('popMenu');
   if(!menuCat){pm.hidden=true;pm.innerHTML='';return}
   const close='<span class="x">Esc để đóng</span><button class="xbtn" type="button" data-pmclose aria-label="Đóng">×</button>';
+  if(menuCat==='audio'){pm.innerHTML=`<h3 id="popT">${icTag('menu')}Âm thanh${close}</h3>${audioPanelHTML()}`;pm.hidden=false;return}
   if(menuCat==='sys'){
     pm.innerHTML=`<h3 id="popT">${icTag('menu')}Menu${close}</h3><div class="rows">${SYS_ROWS.map(([id,n,d])=>`<button class="row well" type="button" data-sys="${id}"><b>${n}</b><span></span><span class="d">${d}</span></button>`).join('')}</div>`;
     pm.hidden=false;return}
@@ -585,10 +627,14 @@ $('cmdbar').addEventListener('click',e=>{
 });
 $('popMenu').addEventListener('click',e=>{
   if(e.target.closest('[data-pmclose]')){closeMenu();renderCmd();return}
-  const sy=e.target.closest('[data-sys]');if(sy){closeMenu();renderCmd();if(sy.dataset.sys==='home')cmd('home');else toggleWin(sy.dataset.sys);return}
+  if(e.target.closest('#audMute')){audioPref.muted=!audioPref.muted;au('setMuted',audioPref.muted);audioSave();renderMenu();$('audMute').focus();return}
+  const sy=e.target.closest('[data-sys]');if(sy&&sy.dataset.sys==='audio'){menuCat='audio';renderCmd();const f=$('volM');if(f)f.focus({preventScroll:true});return}
+  if(sy){closeMenu();renderCmd();if(sy.dataset.sys==='home')cmd('home');else toggleWin(sy.dataset.sys);return}
   const row=e.target.closest('[data-pa]');if(!row||row.disabled)return;
   const a=locActs().find(x=>x.id===row.dataset.pa);if(a)doAction(a);
 });
+$('popMenu').addEventListener('input',e=>{const id=e.target.id;if(id!=='volM'&&id!=='volS')return;const k=id==='volM'?'music':'sfx',v=+e.target.value;
+  audioPref[k]=v;au('setVolume',k,v);audioSave();$(id+'v').textContent=Math.round(v*100)+'%'});
 $('noteBtn').addEventListener('click',()=>{if(noteAct==='map')toggleWin('map');else if(noteAct==='school')travel('school');else if(noteAct==='clean')openCat('act','clean')});
 $('tracker').addEventListener('click',()=>toggleWin('tasks'));
 $('stage').addEventListener('pointerdown',e=>{if(menuCat&&!e.target.closest('#popMenu')&&!e.target.closest('#cmdbar')&&!e.target.closest('#layer')){closeMenu();renderCmd()}});
@@ -617,10 +663,11 @@ function openWin(name){
   $('layer').className='layer'+(kind==='dlg'?' dlgl':kind==='day'?' full':kind==='chapter'||name==='end'||name==='phone'||name==='log'||name==='rules'||TAB_WINS.includes(name)?' full dim':name==='map'?' full':'');
   if(name==='map')mapPick();
   $('layer').hidden=false;renderWin();
+  if(kind==='day')sfx('dayStart');else if(kind==='dlg'){if(curEvent.who==='me')sfx('message')}else sfx('open');
   const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
-function closeWin(){hideWin();processQueue()}
+function closeWin(){hideWin();sfx('close');processQueue()}
 function toggleWin(name){
   if(!s.started||win==='event'||win==='end')return;
   if(win===name){closeWin();return}
@@ -677,7 +724,7 @@ function startType(){
   if(el.dataset.typing!=='1'){finishType();return}
   el.textContent='';
   evType.timer=setInterval(()=>{if(!evType||!$('evSay')){clearInterval(evType&&evType.timer);return}
-    evType.shown+=2;if(evType.shown>=full.length){finishType();return}
+    evType.shown+=2;if(evType.shown%4===0)sfx('text');if(evType.shown>=full.length){finishType();return}
     $('evSay').textContent=full.slice(0,evType.shown);$('evSay').insertAdjacentHTML('beforeend','<span class="cur"></span>')},50);
 }
 function finishType(){
@@ -700,6 +747,7 @@ function pickChoice(i){
   if(c.gain){s.money+=c.gain;txAdd(e.title,c.gain)}
   const out=applyEff(c.eff||{});
   if(c.run)c.run(s);
+  statSfx(out);
   popFx(out,s.money-m0);
   if(e.choices.length>1)addLog(`${e.title}: ${c.l}`);
   afterChange();
@@ -899,7 +947,7 @@ function drawChart(){
 /* Điện thoại trong game (design/12 thẻ 5): mở từ nút Tiền bạc ở phòng trọ. Không có ứng dụng vay. */
 let phoneApp='home';
 const PH_TIME=['07:30','12:00','16:00','20:30'];
-function txAdd(n,v){if(!v)return;(s.tx=s.tx||[]).unshift({d:s.day,n,v});if(s.tx.length>40)s.tx.length=40}
+function txAdd(n,v){if(!v)return;sfx(v>0?'coinIn':'coinOut');(s.tx=s.tx||[]).unshift({d:s.day,n,v});if(s.tx.length>40)s.tx.length=40}
 function phoneHTML(){
   const sb=`<div class="sb"><span>${PH_TIME[s.slot]}</span><span>▮▮▮ 64%</span></div>`,hdr=t=>`<div class="ah"><button type="button" data-ph="home" aria-label="Về màn hình chính">‹</button>${t}</div>`;
   const ask=A.home.find(x=>x.id==='askparents'),ship=A.home.find(x=>x.id==='ship');
@@ -949,7 +997,7 @@ $('layer').addEventListener('click',e=>{
   const sl=t.closest('[data-slot]');if(sl){bagSel=sl.dataset.slot;renderWin();const u=$('win').querySelector(`[data-slot="${bagSel}"]`);if(u)u.focus({preventScroll:true});return}
   const day=t.closest('[data-day]');if(day){calSel=+day.dataset.day;renderWin();return}
   const cs=t.closest('[data-chart]');if(cs){endChart=cs.dataset.chart;renderWin();return}
-  const ph=t.closest('[data-ph]');if(ph){phoneApp=ph.dataset.ph;renderWin();const f=$('win').querySelector('.ah button,.app,.quick button');if(f)f.focus({preventScroll:true});return}
+  const ph=t.closest('[data-ph]');if(ph){phoneApp=ph.dataset.ph;if(phoneApp==='chat')sfx('message');renderWin();const f=$('win').querySelector('.ah button,.app,.quick button');if(f)f.focus({preventScroll:true});return}
   const pd=t.closest('[data-phdo]');if(pd){if(!pd.disabled)phoneDo(pd.dataset.phdo);return}
   const m=t.closest('[data-m]');if(m){cmd(m.dataset.m);return}
   if(t.closest('[data-close]')){closeWin();return}
@@ -965,7 +1013,7 @@ function renderTitle(){
 }
 /* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
 let mode='title';
-function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game'}
+function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game';syncMusic()}
 function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
 /* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
@@ -1005,6 +1053,7 @@ const IN_MORNING=(()=>{for(let ts=IN_T.p0;ts<IN_T.p1;ts+=.02)if(inPAt(ts)>=.7)re
 let introStart=0;
 $('inMonth').innerHTML='<i></i>'.repeat(30);
 function startIntro(){
+  au('stop');au('sting','dawn');
   showScreen('intro');$('inName').textContent=pendingChar.name;$('inDay').classList.remove('show','ready');$('inGo').disabled=true;$('inSkip').hidden=false;
   introStart=performance.now()-(reduceMotion()?IN_T.ready*1000:0);
 }
@@ -1018,8 +1067,8 @@ $('inSkip').addEventListener('click',()=>{introStart=performance.now()-IN_T.read
 $('inGo').addEventListener('click',()=>{if(pendingChar)newGame(pendingChar)});
 
 function cmd(k){
-  if(k==='new')openCreate();
-  else if(k==='cont'){const st=loadSaved();if(!st)return;s=st;startGame();processQueue()}
+  if(k==='new'){audioStart();openCreate()}
+  else if(k==='cont'){audioStart();const st=loadSaved();if(!st)return;s=st;startGame();processQueue()}
   else if(k==='rules'){win=null;openWin('rules')}
   else if(k==='home'){save();showTitle()}
 }
