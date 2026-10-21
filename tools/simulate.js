@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /*
  * Mô phỏng cân bằng game 30 Ngày Sài Gòn.
- * Chạy logic thật trong src/game.js với một DOM giả, cho hai "bot" chơi trọn 30 ngày:
+ * Chạy logic thật trong src/game.js với một DOM giả, cho ba "bot" chơi trọn 30 ngày:
  *   - random  : chọn bừa mọi thứ
- *   - prudent : đi làm đủ ca, nấu ăn ở nhà, từ chối chi tiêu bốc đồng
+ *   - prudent : đi làm đủ ca, nấu ăn ở nhà, dọn phòng khi bừa, từ chối chi tiêu bốc đồng
+ *   - empty   : như prudent nhưng chiều tối ngày 4 dồn hết tiền vào thuốc, mì, cà phê lon để ví trống khi trừ tiền nhà (kiểm tra lỗ hổng bỏ nợ)
  * Dùng:  node tools/simulate.js [--runs 150]
  * Thoát với mã 1 nếu có ván bị kẹt hoặc lỗi runtime (dùng trong CI).
  */
@@ -50,7 +51,8 @@ const bots = `
   pickChoice(i<0?curEvent.choices.length-1:i)}
   if(win&&win!=='end')hideWin()}
 let PRUDENT=false;
-function act(id){const a=locActs().find(x=>x.id===id);if(a&&!reason(a)){doAction(a);resolveEvents(PRUDENT);return true}return false}
+let CLEANS=0;
+function act(id){const a=locActs().find(x=>x.id===id);if(a&&!reason(a)){if(id==='clean')CLEANS++;doAction(a);resolveEvents(PRUDENT);return true}return false}
 function go(id){if(s.loc!==id&&!LOCS[id].open(s)){travel(id);resolveEvents(PRUDENT)}}
 function use(id){if(!itemReason(id))useItem(id)}
 function prudentSlot(){
@@ -69,32 +71,40 @@ function prudentSlot(){
     go('store');if(act('interview'))return;
     if(s.nl>30&&act('shift'))return;go('park');act('walk')||act('idle');return}
   go('home');use('nguyenlieu');if(!s.ateThisSlot){go('store');act('boxmeal');go('home')}
+  if(s.mess>=60&&act('clean'))return;
   if(isWE(s.day)&&s.nl>45){go('store');if(act('shift'))return;go('home')}
   act('sleep')||act('net');
+}
+function emptySlot(){
+  if(s.day===4&&s.slot===2){go('market');for(let i=0;i<8&&s.money>=45000;i++)act('buy_thuoc')}
+  if(s.day===4&&s.slot===3){go('store');while(s.money>=60000&&act('buy_mi'));while(s.money>=18000&&act('buy_caphe'));go('home')}
+  prudentSlot();
 }
 function randomSlot(){
   for(const x of bagStacks()){if(!itemReason(x.id)&&Math.random()<0.5)useItem(x.id)}
   if(Math.random()<0.4){const ids=Object.keys(LOCS).filter(id=>id!==s.loc&&!LOCS[id].open(s));if(ids.length)go(ids[Math.floor(Math.random()*ids.length)])}
-  const non=locActs().filter(a=>!reason(a)&&a.k!=='act'&&a.id!=='loan'&&a.id!=='askparents');
+  const non=locActs().filter(a=>!reason(a)&&a.k!=='act'&&a.id!=='askparents');
   if(non.length&&Math.random()<0.5){doAction(non[Math.floor(Math.random()*non.length)]);resolveEvents(false)}
   const acts=locActs().filter(a=>a.k==='act'&&!reason(a));doAction(acts[Math.floor(Math.random()*acts.length)]);resolveEvents(false);
 }
 const med=a=>{const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)]};
 let failures=0;
 const summary=[];
-for(const [name,fn,prudent] of [['Thận trọng',prudentSlot,true],['Ngẫu nhiên',randomSlot,false]]){
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+for(const [name,fn,prudent] of [['Thận trọng',prudentSlot,true],['Ví trống ngày 5',emptySlot,true],['Ngẫu nhiên',randomSlot,false]]){
   PRUDENT=prudent;
-  const sc=[],qd=[],pr=[],sh=[],as=[],rate={};let stuck=0;
+  const sc=[],qd=[],pr=[],sh=[],as=[],mo=[],cl=[],tb=[],rate={},gr={S:0,A:0,B:0,C:0,D:0};let stuck=0,short=0;
   for(let r=0;r<${RUNS};r++){
-    cmd('new');resolveEvents(prudent);let g=0;
+    cmd('new');resolveEvents(prudent);let g=0;CLEANS=0;
     while(!s.over&&g++<3000){const d=s.day,sl=s.slot;fn();resolveEvents(prudent);if(!s.over&&s.day===d&&s.slot===sl){act('idle')||act('sleep');resolveEvents(prudent)}}
     if(!s.over){stuck++;continue}
-    sc.push(computeScore().score);pr.push(studyScore());sh.push(s.shifts);as.push(computeScore().asset);
+    const R=computeScore();sc.push(R.score);gr[grade(R.score)]++;pr.push(studyScore());sh.push(s.shifts);as.push(R.asset);mo.push(s.money);cl.push(CLEANS);tb.push(s.sumTt/Math.max(1,s.samples));if(s.flags.rentShort)short++;
     const done=QUESTS.filter(q=>s.q[q.id]==='done');qd.push(done.length);done.forEach(q=>rate[q.id]=(rate[q.id]||0)+1);
     endHTML();tasksHTML();calHTML();bagHTML();mapHTML();renderTracker();
   }
   failures+=stuck;
-  summary.push({'Kiểu chơi':name,'Số ván':${RUNS},'Bị kẹt':stuck,'Điểm (trung vị)':med(sc),'Nhiệm vụ (trung vị)':med(qd)+'/'+QUESTS.length,'Điểm học tập (trung vị)':med(pr),'Ca part-time':med(sh),'Tài sản cuối tháng':med(as)});
+  const pct=n=>Math.round(n/Math.max(1,sc.length)*100)+'%';
+  summary.push({'Kiểu chơi':name,'Số ván':${RUNS},'Bị kẹt':stuck,'Điểm (trung vị)':med(sc),'Hạng S/A/B/C/D':['S','A','B','C','D'].map(k=>pct(gr[k])).join(' '),'Nhiệm vụ (TB)':avg(qd).toFixed(1)+'/'+QUESTS.length,'Điểm học tập (trung vị)':med(pr),'Ca part-time':med(sh),'Tiền mặt cuối':med(mo),'Tài sản cuối tháng':med(as),'Tinh thần TB':Math.round(avg(tb)),'Lần dọn phòng':med(cl),'Thiếu tiền nhà':pct(short)});
   console.log('\\nTỉ lệ hoàn thành từng nhiệm vụ · '+name);
   console.table(Object.fromEntries(QUESTS.map(q=>[q.id+' · '+q.t,Math.round((rate[q.id]||0)/${RUNS}*100)+'%'])));
 }
