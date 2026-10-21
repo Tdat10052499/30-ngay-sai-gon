@@ -68,5 +68,7 @@ function sign(cx,y,str,bg,fg,pad=3){const w=textW(str)+pad*2,x=Math.round(cx-w/2
 function grade(src,slot,table){const c=mk(src.width,src.height),x=c.getContext('2d');x.drawImage(src,0,0);if(slot===1)return c;const im=x.getImageData(0,0,c.width,c.height),d=im.data,[mr,mg,mb]=table[slot];
   for(let k=0;k<d.length;k+=4){d[k]=Math.min(255,d[k]*mr);d[k+1]=Math.min(255,d[k+1]*mg);d[k+2]=Math.min(255,d[k+2]*mb)}x.putImageData(im,0,0);return c}
 
-return {W,H,BAYER,rng,mk,R,P,shade,dith,outlined,canopy,LEAF,GL,chars,textW,text,sign,grade,use:ctx=>{g=ctx}};
+return {W,H,BAYER,rng,mk,R,P,shade,dith,outlined,canopy,LEAF,GL,chars,textW,text,sign,grade,use:ctx=>{g=ctx},ctx:()=>g};
 })();
+/* Mỗi file trong src/gfx/scenes/ đăng ký hàm vẽ cảnh vào đây */
+const Scenes={};

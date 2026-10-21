@@ -183,5 +183,13 @@ const CACHE={};
 function sprite(gender,outfit,mood,opt={}){const k=[gender,outfit,mood,opt.pants?1:0,opt.b||0].join('-');return CACHE[k]||(CACHE[k]=hero(gender,outfit,mood,opt))}
 const BUB={};['hungry','tired','sad','sick'].forEach(k=>BUB[k]=bubble(k));
 
-return {K,person,LOOK,spr,drawPerson,backBust,student,sitter,SIT,SITF,WALKERS,walker,OUT,SKIN,hero,sprite,BUB};
+/* Cảnh có thể bổ sung chi tiết cho hàm vẽ người (bảng tên, nón lá, tạp dề...): decorate(fn(base,o,blink,b) → canvas).
+ * Phải đăng ký trước lần vẽ đầu tiên vì spr() lưu đệm. */
+const DECOR=[],basePerson=person;
+person=function(o,blink,b){let im=basePerson(o,blink,b);for(const d of DECOR)im=d(im,o,blink,b);return im};
+function decorate(fn){DECOR.push(fn)}
+/* Nhân vật chính trong cảnh: game truyền o.hero(ctx,cx,feet,t) để vẽ theo trang phục và biểu cảm hiện tại */
+function heroAt(ctx,o,cx,feet,t,anim,flip){if(o.hero)o.hero(ctx,cx,feet,t);else drawPerson(ctx,o.gender==='nu'?'nu':'nam',cx,feet,t,anim,flip)}
+
+return {decorate,heroAt,K,person,LOOK,spr,drawPerson,backBust,student,sitter,SIT,SITF,WALKERS,walker,OUT,SKIN,hero,sprite,BUB};
 })();

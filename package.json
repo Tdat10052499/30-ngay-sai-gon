@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "engines": { "node": ">=18" },
   "scripts": {
-    "check": "node --check src/gfx/core.js && node --check src/gfx/characters.js && node --check src/gfx/portraits.js && node --check src/gfx/icons.js && node --check src/game.js && node --check tools/simulate.js",
+    "check": "node --check src/gfx/core.js && node --check src/gfx/characters.js && node --check src/gfx/portraits.js && node --check src/gfx/icons.js && node --check src/gfx/scenes/room.js && node --check src/gfx/scenes/school.js && node --check src/gfx/scenes/store.js && node --check src/gfx/scenes/food.js && node --check src/gfx/scenes/rest.js && node --check src/game.js && node --check tools/simulate.js",
     "sim": "node tools/simulate.js --runs 150",
     "test": "npm run check && node tools/simulate.js --runs 40",
     "serve": "python3 -m http.server 8080"
