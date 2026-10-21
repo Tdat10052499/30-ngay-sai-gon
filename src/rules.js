@@ -4,15 +4,15 @@
 const DIFFS={
   thuong:{
     n:'Thường',
-    decay:{no:11,tt:3,nl:5},            // hao hụt cuối mỗi buổi
-    chap:[1,1,1.1,1.2,1.2],             // hệ số hao hụt theo chương (chỉ số 1–4)
-    hungry:{tt:-6,sk:-3},               // no dưới 25
+    decay:{no:10,tt:2,nl:5},            // hao hụt cuối mỗi buổi (mô phỏng: tinh thần −3 làm Thận trọng chỉ còn 500 điểm)
+    chap:[1,1,1,1.05,1.1],             // hệ số hao hụt theo chương (chỉ số 1–4)
+    hungry:{tt:-5,sk:-2},               // no dưới 25
     starve:{sk:-8,nl:-5},               // no về 0
     exhaust:{tt:-4,sk:-3},              // năng lượng dưới 15 (lương ca còn một nửa)
     lowMoodPay:30000,                   // tinh thần dưới 25: lương ca bị trừ
     sleep:50,bedHungry:{nl:30,tt:-8,sk:-4},  // đi ngủ đói (no dưới 30 lúc chọn hành động cuối ngày)
     absence:4,truantWarn:3,truantTt:-5, // vắng học: trừ điểm học tập mỗi buổi; vắng 3 buổi trong một tuần thì thầy Hải nhắc
-    sickCurve:true,                     // xác suất ốm mỗi sáng theo sức khỏe
+    sickCurve:{min:.02,max:.30},        // xác suất ốm mỗi sáng: min khi sức khỏe 100, tăng dần tới max khi 40; dưới 40 là 45%
     ignoreSick:{sk:-10,tt:-8,nl:-15},ignoreSickRelapse:.5,
     rain:{sk:-12,tt:-6,nl:-6},rainSick:.25,
     billScale:true,                     // thiếu tiền hóa đơn: thêm −1 tinh thần mỗi 50.000đ thiếu, tối đa −30
@@ -43,7 +43,7 @@ function slotDecay(s,ch){const R=rulesOf(s),m=R.chap[ch]||1;return {no:Math.roun
 /* xác suất bị ốm buổi sáng: Thường tăng dần theo sức khỏe (2% khi 100, 45% khi dưới 40); Dễ như v0.2.0 */
 function sickChance(s){
   const R=rulesOf(s);let p;
-  if(R.sickCurve)p=s.sk<40?0.45:0.02+0.43*(100-s.sk)/60;
+  if(R.sickCurve)p=s.sk<40?0.45:R.sickCurve.min+(R.sickCurve.max-R.sickCurve.min)*(100-s.sk)/60;
   else p=s.sk<40?0.45:0;
   if(s.flags&&s.flags.rainSickDay===s.day-1)p+=R.rainSick;
   if(s.flags&&s.flags.relapseDay===s.day)p=Math.max(p,R.ignoreSickRelapse);

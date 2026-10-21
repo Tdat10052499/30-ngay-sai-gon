@@ -139,7 +139,7 @@ function expText(exp){if(exp===null)return 'Không có hạn';const n=exp-s.day;
 
 /* ============ State ============ */
 function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',money:START_MONEY,no:70,nl:80,tt:65,sk:80,
-  name:'Minh',gender:'nam',diff:'thuong',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
+  name:'Minh',gender:'nam',diff:'thuong',diet:'binhdan',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
   classToday:0,shiftToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,
   classCh:{1:0,2:0,3:0,4:0},shiftCh:{1:0,2:0,3:0,4:0},studyCh:{1:0,2:0,3:0,4:0},
   ateThisSlot:false,bikeBroken:0,lent:0,flags:{},log:[],hist:[],sumNo:0,sumTt:0,samples:0,
@@ -338,6 +338,14 @@ function doAction(a){
   if(a.k==='act'){closeMenu();endSlot(a)}
   else if(a.k==='meal'||a.k==='drink')closeMenu();
   afterChange();return true;
+}
+/* ăn theo chế độ ăn (src/cards.js); trả bữa đã ăn hoặc null */
+function autoEat(){
+  const p=autoMeal(s);if(!p)return null;
+  const find=id=>{const a=locActs().find(x=>x.id===id);return a&&!reason(a)?a:null};
+  if(p.act){const a=find(p.act);if(!a)return null;doAction(a);return p}
+  if(p.buy){const b=find(p.buy);if(!b)return null;doAction(b)}
+  if(itemReason(p.item))return null;useItem(p.item);return p;
 }
 function useItem(id){
   const r=itemReason(id);if(r||s.over)return;

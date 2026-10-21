@@ -108,7 +108,7 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 - [x] **2.12 Sinh nhật mẹ ở TTTM (luật)** (`src/game.js`)
   - Ngày 30 mẹ lên Sài Gòn. Thêm lựa chọn đưa mẹ đi ăn mừng ở TTTM, 300.000đ ngoài tiền quà. Lời thoại và cảnh làm ở giai đoạn 4.
   - Câu hỏi thêm: ăn mừng có phải là điều kiện để hoàn thành nhiệm vụ "Quà sinh nhật mẹ" không? Đề xuất: nhiệm vụ vẫn chỉ cần mua quà; ăn mừng là lựa chọn thêm, cho tinh thần và lời kết riêng.
-- [ ] **2.13 Mô phỏng** (`tools/simulate.js`, `tools/test.js`)
+- [x] **2.13 Mô phỏng** (`tools/simulate.js`, `tools/test.js`)
   - Bot dùng hàm chọn thẻ và chế độ ăn như người chơi (hàm thuần làm ở giai đoạn 3 được viết trước ở đây, chưa có giao diện).
   - 4 bot:
     - Thận trọng: ăn Bình dân, đi học đủ, làm ca vừa phải, dọn phòng khi bừa bộn từ 60.
@@ -117,7 +117,7 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
     - Ví trống trước ngày 5.
   - Thêm cột: điểm phân vị 90, tỉ lệ ván bị ốm ít nhất một lần.
   - Minigame dùng kết quả trung bình.
-- [ ] **2.14 Chỉnh số cho đạt mục tiêu (300 ván mỗi bot, độ khó Thường)**
+- [x] **2.14 Chỉnh số cho đạt mục tiêu (300 ván mỗi bot, độ khó Thường)**
   - Thận trọng: điểm trung vị 700–780, 10–11/14 nhiệm vụ, 10% ván tốt nhất đạt S, ít nhất 15% ván bị ốm ít nhất một lần.
   - Ngẫu nhiên: điểm trung vị dưới 250.
   - Chỉ lo làm ca: không quá hạng B.

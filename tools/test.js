@@ -110,9 +110,9 @@ function idleAt(day,diff,setup){fresh(diff);s.day=day;s.slot=1;s.loc='park';s.no
   const b={no:s.no,nl:s.nl,tt:s.tt,sk:s.sk},n0=s.log.length;withRandom(0.99,()=>doAction(locActs().find(x=>x.id==='idle')));
   return {d:{no:s.no-b.no,nl:s.nl-b.nl,tt:s.tt-b.tt,sk:s.sk-b.sk},log:s.log.slice(0,s.log.length-n0).map(l=>l.text).join(' | ')}}
 // ngồi nghỉ: năng lượng +3, tinh thần −1, rồi hao hụt cuối buổi
-for(const [day,no] of [[1,-11],[8,-12],[15,-13],[22,-13]]){const r=idleAt(day,'thuong');check(\`T hao hụt cuối buổi ngày \${day} (Thường, hệ số chương): no \${no}\`,r.d.no===no,JSON.stringify(r.d))}
+for(const [day,no] of [[1,-10],[8,-10],[15,-11],[22,-11]]){const r=idleAt(day,'thuong');check(\`T hao hụt cuối buổi ngày \${day} (Thường, hệ số chương): no \${no}\`,r.d.no===no,JSON.stringify(r.d))}
 let r2=idleAt(22,'de');check('T hao hụt ở Dễ không tăng theo chương: no −9, tinh thần −3, năng lượng −1',r2.d.no===-9&&r2.d.tt===-3&&r2.d.nl===-1,JSON.stringify(r2.d));
-r2=idleAt(1,'thuong',()=>{s.no=30});check('T đói (no dưới 25): ghi "Đói: tinh thần −6, sức khỏe −3"',r2.log.includes('Đói: tinh thần −6, sức khỏe −3')&&r2.d.sk===-3,r2.log);
+r2=idleAt(1,'thuong',()=>{s.no=30});check('T đói (no dưới 25): ghi "Đói: tinh thần −5, sức khỏe −2"',r2.log.includes('Đói: tinh thần −5, sức khỏe −2')&&r2.d.sk===-2,r2.log);
 r2=idleAt(1,'de',()=>{s.no=30});check('T đói ở Dễ: tinh thần −4, sức khỏe −2',r2.log.includes('Đói: tinh thần −4, sức khỏe −2'),r2.log);
 r2=idleAt(1,'thuong',()=>{s.no=5});check('T đói lả (no về 0): ghi "Đói lả: sức khỏe −8, năng lượng −5"',r2.log.includes('Đói lả: năng lượng −5, sức khỏe −8'),r2.log);
 r2=idleAt(1,'thuong',()=>{s.nl=8});check('T kiệt sức: ghi "Kiệt sức: tinh thần −4, sức khỏe −3"',r2.log.includes('Kiệt sức: tinh thần −4, sức khỏe −3'),r2.log);
@@ -123,8 +123,8 @@ check('T đi ngủ đói (Thường): năng lượng chỉ hồi 30, tinh thần
 // ốm theo sức khỏe
 const sc=(diff,sk,f)=>{fresh(diff);s.day=5;s.sk=sk;Object.assign(s.flags,f||{});return +sickChance(s).toFixed(3)};
 check('T xác suất ốm (Thường): 2% khi sức khỏe 100',sc('thuong',100)===0.02,sc('thuong',100));
-check('T xác suất ốm (Thường): 23,5% khi 70',sc('thuong',70)===0.235,sc('thuong',70));
-check('T xác suất ốm (Thường): 45% khi 40 và khi 20',sc('thuong',40)===0.45&&sc('thuong',20)===0.45);
+check('T xác suất ốm (Thường): 16% khi 70',Math.abs(sc('thuong',70)-0.16)<1e-9,sc('thuong',70));
+check('T xác suất ốm (Thường): 30% khi 40, 45% khi dưới 40',Math.abs(sc('thuong',40)-0.3)<1e-9&&sc('thuong',20)===0.45);
 check('T đội mưa hôm trước: thêm 25%',sc('thuong',100,{rainSickDay:4})===0.27,sc('thuong',100,{rainSickDay:4}));
 check('T "Kệ, ráng chịu" hôm trước: ít nhất 50%',sc('thuong',100,{relapseDay:5})===0.5);
 check('T xác suất ốm (Dễ): 0 khi sức khỏe 70, 45% khi dưới 40',sc('de',70)===0&&sc('de',30)===0.45);
@@ -156,6 +156,21 @@ fresh('thuong');s.classes=10;const R1=computeScore(),F=R1.F;
 check('T công thức điểm có học tập: 1000 × T^0,30 × N^0,15 × M^0,20 × S^0,15 × H^0,20',R1.score===Math.round(1000*F.tien**0.3*F.no**0.15*F.tt**0.2*F.sk**0.15*F.hoc**0.2)&&F.hoc===Math.max(0.05,studyScore()/100),JSON.stringify(F));
 s.classes=0;s.absences=30;check('T học tập tối thiểu 0,05',computeScore().F.hoc===0.05);
 
+/* ---------- chế độ ăn tự động (src/cards.js) ---------- */
+const meal=(diet,loc,slot,bag,no=40)=>{fresh('thuong');s.diet=diet;s.loc=loc;s.slot=slot;s.no=no;s.bag=bag.map(id=>({id,exp:ITEMS[id].shelf?s.day+ITEMS[id].shelf-1:null}));return JSON.stringify(autoMeal(s))};
+check('Ăn: Bình dân ở phòng trọ, túi trống: đặt đồ ăn',meal('binhdan','home',3,[])==='{"act":"ship"}');
+check('Ăn: Bình dân ở phòng trọ, chỉ có mì: ăn mì',meal('binhdan','home',3,['mi'])==='{"item":"mi"}');
+check('Ăn: Bình dân ở phòng trọ: ưu tiên đồ khác mì',meal('binhdan','home',3,['mi','banhmi'])==='{"item":"banhmi"}');
+check('Ăn: Tự nấu ở phòng trọ có nguyên liệu: nấu',meal('tunau','home',3,['banhmi','nguyenlieu'])==='{"item":"nguyenlieu"}');
+check('Ăn: Bình dân ở trường buổi trưa: cơm căng tin',meal('binhdan','school',1,['banhmi'])==='{"act":"canteen"}');
+check('Ăn: Bình dân ở cửa hàng, chỉ có mì: cơm hộp',meal('binhdan','store',2,['mi'])==='{"act":"boxmeal"}');
+check('Ăn: Bình dân ở chợ, túi trống: mua trái cây',meal('binhdan','market',0,[])==='{"buy":"buy_traicay","item":"traicay"}');
+check('Ăn: Bình dân ở TTTM, túi trống: không tự ăn',meal('binhdan','mall',1,[])==='null');
+check('Ăn: Thoải mái ở quán ăn: bún bò',meal('thoaimai','street',1,['banhmi'])==='{"act":"bunbo"}');
+check('Ăn: Thoải mái ở TTTM: buffet',meal('thoaimai','mall',1,[])==='{"act":"buffet"}');
+check('Ăn: no từ 45 thì không tự ăn',meal('binhdan','street',1,[],45)==='null');
+check('Ăn: Tự chọn bữa thì không tự ăn',meal('tuchon','street',1,[])==='null');
+meal('binhdan','street',1,[]);s.money=100000;autoEat();check('Ăn: autoEat gọi cơm tấm, trừ 40.000đ',s.money===60000&&s.ateThisSlot);
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');
