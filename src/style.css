@@ -179,9 +179,9 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .banner span{font-weight:700;font-size:.85em}
 @keyframes bnr{0%{opacity:0;transform:translate(-50%,-.4em)}12%{opacity:1;transform:translate(-50%,0)}75%{opacity:1}100%{opacity:0}}
 
-/* ---------- Title ---------- */
-.title-screen{position:absolute;inset:0;z-index:15;font-size:clamp(11px,1.3cqw,17px);display:flex;align-items:center;padding:0 6cqw;
-  background:linear-gradient(90deg,rgba(10,12,26,.95) 0%,rgba(10,12,26,.8) 40%,rgba(10,12,26,.1) 72%)}
+/* ---------- Title (design/01): chữ bên trái, cảnh cổng trường lúc hoàng hôn phía sau ---------- */
+.title-screen{position:absolute;inset:0;z-index:15;font-size:clamp(7px,1.3cqw,17px);display:flex;align-items:center;padding:0 6cqw;
+  background:linear-gradient(90deg,rgba(10,12,26,.92) 0%,rgba(10,12,26,.74) 34%,rgba(10,12,26,.28) 54%,rgba(10,12,26,0) 68%)}
 .title-box{max-width:42cqw;display:flex;flex-direction:column;gap:.7em}
 .eyebrow{margin:0;font-size:.74em;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lantern)}
 .title-box h1{margin:0;font-weight:900;font-size:4.2em;line-height:.95;letter-spacing:-.015em;text-shadow:.06em .06em 0 var(--coral),.12em .12em 0 rgba(0,0,0,.45)}
@@ -195,6 +195,64 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .btn.lg{font-size:1.1em;padding:.7em 1.4em}
 .btn.sm{font-size:.8em;padding:.35em .8em}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary:disabled{opacity:1;background:#4a4e6a;color:#9ca0bc;box-shadow:0 .22em 0 #2c2f46}
+
+/* ---------- Tạo nhân vật (design/02) ---------- */
+.create-screen{position:absolute;inset:0;z-index:16;display:grid;place-items:center;font-size:clamp(8px,1.25cqw,16px);
+  background:radial-gradient(60% 80% at 50% 50%,rgba(10,12,26,.55),rgba(10,12,26,.88))}
+.cr-card{width:min(30em,92cqw);background:rgba(17,19,35,.86);border:1px solid var(--glass-line);border-radius:.9em;padding:1.4em 1.8em 1.2em;
+  display:flex;flex-direction:column;align-items:center;gap:.8em;box-shadow:0 1.2em 3em -1em rgba(0,0,0,.6)}
+.cr-card h2{margin:0;font-size:1.45em;font-weight:900;letter-spacing:-.01em;text-align:center}
+.cr-card .sub{margin:-.4em 0 0;color:var(--muted);text-align:center;font-size:.92em;max-width:26em}
+.cr-ava{position:relative;width:8.5em;aspect-ratio:1;padding:.35em;background:var(--wood);border:.25em solid var(--wood-dark);border-radius:.25em;
+  box-shadow:inset 0 0 0 .14em #8a5a3a,inset 0 0 0 .3em var(--wood),0 .45em 0 rgba(0,0,0,.35)}
+.cr-ava canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.cr-plate{margin-top:-.2em;min-width:8em;max-width:100%;padding:.25em .9em .3em;background:var(--lantern);color:var(--lantern-ink);border-radius:.35em;
+  box-shadow:0 .2em 0 #a87a1c;font-weight:800;text-align:center;font-size:1.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-plate.empty{background:var(--panel2);color:var(--muted);box-shadow:0 .2em 0 #14172a;font-weight:600}
+.cr-form{width:100%;display:flex;flex-direction:column;gap:.45em;margin:.2em 0 0}
+.cr-gender{border:0;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:.45em}
+.cr-gender legend{font-weight:700;font-size:.9em;padding:0;margin-bottom:.45em}
+.cr-seg{display:grid;grid-template-columns:1fr 1fr;gap:.5em}
+.cr-seg input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.cr-seg label{display:flex;align-items:center;justify-content:center;gap:.5em;padding:.55em .8em;border-radius:.55em;border:2px solid var(--frame);background:#0f1122;color:var(--muted);font-weight:800;cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.cr-seg label i{width:1.5em;height:1.5em;border-radius:.3em;flex:none;background-size:cover;image-rendering:pixelated}
+.cr-seg input:checked+label{border-color:var(--lantern);background:rgba(255,201,77,.12);color:var(--fg)}
+.cr-seg input:focus-visible+label{outline:2px solid var(--c-nl);outline-offset:2px}
+.cr-form>label{font-weight:700;font-size:.9em}
+.cr-field{display:flex;align-items:center;gap:.6em;background:#0f1122;border:2px solid var(--frame);border-radius:.55em;padding:0 .8em;transition:border-color .15s}
+.cr-field:focus-within{border-color:var(--lantern)}
+.cr-field.err{border-color:#ff8a96}
+.cr-field input{flex:1;min-width:0;font:inherit;font-size:1.15em;font-weight:700;color:var(--fg);background:transparent;border:0;outline:0;padding:.55em 0;caret-color:var(--lantern)}
+.cr-field input::placeholder{color:#5d6390;font-weight:500}
+.cr-count{font-family:var(--f-num);font-size:1.35em;color:var(--muted);line-height:1}
+.cr-count.full{color:var(--lantern)}
+.cr-help{margin:0;font-size:.82em;color:var(--muted);min-height:1.4em}
+.cr-help.err{color:#ff8a96}
+.cr-form .btn.primary{justify-content:center;font-size:1.1em;margin-top:.3em}
+.cr-back{font:inherit;font-size:.85em;color:var(--muted);background:none;border:0;padding:.2em;cursor:pointer;text-decoration:underline;text-underline-offset:.2em}
+
+/* ---------- Chuyển cảnh ngày 1 (design/03) ---------- */
+.intro{position:absolute;inset:0;z-index:16;font-size:clamp(8px,1.25cqw,16px)}
+.in-fade{position:absolute;inset:0;background:#000;pointer-events:none}
+.in-skip{position:absolute;right:2.2cqw;bottom:2.2cqw;font:inherit;font-size:.9em;font-weight:700;color:var(--fg);background:rgba(17,19,35,.7);border:1px solid var(--glass-line);border-radius:999px;padding:.45em 1em;cursor:pointer}
+.in-day{position:absolute;left:50%;top:2.2cqh;transform:translate(-50%,.8em);opacity:0;visibility:hidden;width:min(23em,80cqw);
+  background:rgba(17,19,35,.86);border:1px solid var(--glass-line);border-radius:.9em;padding:.8em 1.4em .9em;text-align:center;
+  box-shadow:0 1.2em 3em -1em rgba(0,0,0,.55);transition:opacity .6s ease,transform .6s ease,visibility 0s .6s}
+.in-day.show{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .6s ease,transform .6s ease,visibility 0s}
+.in-dow{margin:0;font-weight:800;color:var(--lantern);font-size:.95em}
+.in-day h2{margin:0;font-weight:900;font-size:2.8em;line-height:1;letter-spacing:-.01em;text-shadow:.06em .06em 0 var(--coral),.12em .12em 0 rgba(0,0,0,.45)}
+.in-day h2 .num{font-size:1.3em;color:var(--lantern);text-shadow:.05em .05em 0 #8a5a12;margin-left:.12em;display:inline-block}
+.in-month{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;margin:.45em auto .5em;max-width:17em}
+.in-month i{display:block;aspect-ratio:1/1.6;background:#2b3050;border-radius:1px}
+.in-month i:first-child{background:var(--lantern);box-shadow:0 0 .4em rgba(255,201,77,.7)}
+.in-month i:nth-child(7n){background:#3a3460}
+.in-chap{margin:0;font-weight:800;font-size:1.05em}
+.in-lead{margin:.15em auto 0;color:var(--muted);max-width:22em;font-size:.9em;line-height:1.45}
+.in-lead b{color:var(--fg)}
+.in-day .btn.primary{margin-top:.6em;font-size:.95em;opacity:0;transition:opacity .4s}
+.in-day.ready .btn.primary{opacity:1}
+@media (prefers-reduced-motion:reduce){.in-day,.in-day.show,.in-day .btn.primary,.cr-field,.cr-seg label{transition:none}}
 
 /* ---------- Windows ---------- */
 .layer{position:absolute;inset:0;z-index:20;font-size:clamp(11px,1.3cqw,17px);display:grid;place-items:center;padding:3cqh 3cqw;background:rgba(6,7,16,.6)}

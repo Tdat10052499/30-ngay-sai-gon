@@ -45,6 +45,45 @@
       </div>
     </div>
 
+    <div class="create-screen" id="createScreen" hidden>
+      <div class="cr-card" role="dialog" aria-modal="true" aria-labelledby="crTitle">
+        <h2 id="crTitle">Đặt tên cho nhân vật</h2>
+        <p class="sub">Tên và giới tính sẽ theo nhân vật suốt 30 ngày, trong mọi cuộc trò chuyện.</p>
+        <div class="cr-ava"><canvas id="crAva" width="48" height="48" role="img" aria-label="Chân dung nhân vật nam: tóc ngắn nâu đen, mắt to, má hồng, áo xanh, đeo ba lô vàng"></canvas></div>
+        <div class="cr-plate empty" id="crPlate" aria-live="polite">Chưa có tên</div>
+        <form class="cr-form" id="crForm" novalidate>
+          <fieldset class="cr-gender">
+            <legend>Giới tính</legend>
+            <div class="cr-seg">
+              <input type="radio" name="gender" id="gNam" value="nam" checked><label for="gNam"><i id="icNam"></i>Nam</label>
+              <input type="radio" name="gender" id="gNu" value="nu"><label for="gNu"><i id="icNu"></i>Nữ</label>
+            </div>
+          </fieldset>
+          <label for="crName">Tên nhân vật</label>
+          <div class="cr-field" id="crField">
+            <input id="crName" name="name" type="text" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Ví dụ: Minh" aria-describedby="crHelp">
+            <span class="cr-count" id="crCount" aria-hidden="true">0/12</span>
+          </div>
+          <p class="cr-help" id="crHelp">Từ 1 đến 12 ký tự, chỉ gồm chữ cái và khoảng trắng.</p>
+          <button class="btn primary" id="crCreate" type="submit" disabled>Tạo nhân vật</button>
+        </form>
+        <button class="cr-back" id="crBack" type="button">Quay lại trang bìa</button>
+      </div>
+    </div>
+
+    <div class="intro" id="intro" hidden>
+      <div class="in-day" id="inDay" role="status" aria-live="polite">
+        <p class="in-dow">Thứ Hai</p>
+        <h2>Ngày<span class="num">1</span></h2>
+        <div class="in-month" id="inMonth" aria-label="Ngày 1 trên 30 ngày"></div>
+        <p class="in-chap">Chương 1: Tân sinh viên</p>
+        <p class="in-lead">Ngày đầu tiên của <b id="inName">Minh</b> ở Sài Gòn. Sáng nay có buổi học đầu tiên.</p>
+        <button class="btn primary" id="inGo" type="button" disabled>Bắt đầu ngày 1</button>
+      </div>
+      <button class="in-skip" id="inSkip" type="button">Bỏ qua</button>
+      <div class="in-fade" id="inFade"></div>
+    </div>
+
     <div class="layer" id="layer" hidden><div class="win" id="win" role="dialog" aria-modal="true"></div></div>
   </div>
 </div>
@@ -53,6 +92,7 @@
 <script src="src/gfx/characters.js"></script>
 <script src="src/gfx/portraits.js"></script>
 <script src="src/gfx/icons.js"></script>
+<script src="src/gfx/scenes/cover.js"></script>
 <script src="src/gfx/scenes/room.js"></script>
 <script src="src/gfx/scenes/school.js"></script>
 <script src="src/gfx/scenes/store.js"></script>

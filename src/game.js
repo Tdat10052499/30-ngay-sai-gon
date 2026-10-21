@@ -846,14 +846,62 @@ function renderTitle(){
     (cont?`<button class="btn" type="button" data-m="cont">Chơi tiếp · ngày ${st.day}, chương ${chOf(st.day)}</button>`:'')+
     `<button class="btn" type="button" data-m="rules">Luật chơi</button>`;
 }
-function showTitle(){hideWin();closeMenu();$('ui').hidden=true;$('titleScreen').hidden=false;renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
-function startGame(){hideWin();closeMenu();queue=[];$('titleScreen').hidden=true;$('ui').hidden=false;render();save()}
+/* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
+let mode='title';
+function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game'}
+function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
+function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
+/* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
+function newGame(ch){s=newState();s.name=ch.name;s.gender=ch.gender;s.started=true;startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
+  activateChapter(1);
+  queue.push(ev('Tin nhắn của mẹ','“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”',[{l:'Dạ, con biết rồi mẹ'}],'me'));
+  queue.push(ev('Phòng ghép với Khoa','“Chìa khóa nè. Con ở chung với thằng Khoa, tiền nhà phần con 1 triệu 2, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
+  genDaily();afterChange()}
+
+/* Tạo nhân vật (design/02): 1–12 ký tự, chỉ chữ cái và khoảng trắng */
+const CR_HELP='Từ 1 đến 12 ký tự, chỉ gồm chữ cái và khoảng trắng.';
+const CR_LABEL={nam:'Chân dung nhân vật nam: tóc ngắn nâu đen, mắt to, má hồng, áo xanh, đeo ba lô vàng',nu:'Chân dung nhân vật nữ: tóc dài nâu đen, mái lệch, kẹp tóc vàng, mắt to, má hồng, áo xanh, đeo ba lô vàng'};
+let crGender='nam',pendingChar=null;
+const cleanName=v=>v.normalize('NFC').replace(/\s+/g,' ').trim();
+function crCheck(){
+  const raw=$('crName').value.normalize('NFC'),name=cleanName(raw),n=[...raw].length;
+  $('crCount').textContent=n+'/12';$('crCount').classList.toggle('full',n>=12);
+  const err=/[^\p{L}\p{M}\s]/u.test(raw)?'Tên chỉ dùng chữ cái và khoảng trắng. Hãy xóa số hoặc ký hiệu.':'';
+  $('crField').classList.toggle('err',!!err);$('crName').setAttribute('aria-invalid',String(!!err));
+  $('crHelp').textContent=err||CR_HELP;$('crHelp').classList.toggle('err',!!err);
+  $('crCreate').disabled=!!err||!name;
+  $('crPlate').textContent=name||'Chưa có tên';$('crPlate').classList.toggle('empty',!name);
+  return err?null:name||null;
+}
+function openCreate(){hideWin();showScreen('create');crCheck();$('crName').focus({preventScroll:true})}
+['nam','nu'].forEach(gd=>{const c=document.createElement('canvas');c.width=c.height=48;Scenes.cover.bust(c.getContext('2d'),0,false,gd);
+  $(gd==='nam'?'icNam':'icNu').style.backgroundImage='url('+c.toDataURL()+')'});
+$('crName').addEventListener('input',crCheck);
+document.querySelectorAll('input[name="gender"]').forEach(r=>r.addEventListener('change',()=>{crGender=r.value;$('crAva').setAttribute('aria-label',CR_LABEL[crGender])}));
+$('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;pendingChar={name,gender:crGender};startIntro()});
+$('crBack').addEventListener('click',showTitle);
+
+/* Chuyển cảnh ngày 1 (design/03): đêm → bình minh → mặt trời mọc → thẻ Ngày 1 */
+const IN_T={fade:1.2,p0:1.0,p1:7.5,card:7.8,ready:8.5};
+const inPAt=ts=>{const u=Math.max(0,Math.min(1,(ts-IN_T.p0)/(IN_T.p1-IN_T.p0)));return u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2};
+const IN_MORNING=(()=>{for(let ts=IN_T.p0;ts<IN_T.p1;ts+=.02)if(inPAt(ts)>=.7)return ts;return IN_T.p1})();
+let introStart=0;
+$('inMonth').innerHTML='<i></i>'.repeat(30);
+function startIntro(){
+  showScreen('intro');$('inName').textContent=pendingChar.name;$('inDay').classList.remove('show','ready');$('inGo').disabled=true;$('inSkip').hidden=false;
+  introStart=performance.now()-(reduceMotion()?IN_T.ready*1000:0);
+}
+function introUI(ts){
+  $('inFade').style.opacity=String(1-Math.max(0,Math.min(1,ts/IN_T.fade)));
+  const show=ts>=IN_T.card,ready=ts>=IN_T.ready,d=$('inDay');
+  d.classList.toggle('show',show);$('inSkip').hidden=show;
+  if(ready&&!d.classList.contains('ready')){d.classList.add('ready');$('inGo').disabled=false;$('inGo').focus({preventScroll:true})}
+}
+$('inSkip').addEventListener('click',()=>{introStart=performance.now()-IN_T.ready*1000});
+$('inGo').addEventListener('click',()=>{if(pendingChar)newGame(pendingChar)});
+
 function cmd(k){
-  if(k==='new'){s=newState();s.started=true;startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
-    activateChapter(1);
-    queue.push(ev('Tin nhắn của mẹ','“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”',[{l:'Dạ, con biết rồi mẹ'}],'me'));
-    queue.push(ev('Phòng ghép với Khoa','“Chìa khóa nè. Con ở chung với thằng Khoa, tiền nhà phần con 1 triệu 2, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
-    genDaily();showBanner();afterChange()}
+  if(k==='new')openCreate();
   else if(k==='cont'){const st=loadSaved();if(!st)return;s=st;startGame();processQueue()}
   else if(k==='rules'){win=null;openWin('rules')}
   else if(k==='home'){save();showTitle()}
@@ -862,6 +910,7 @@ $('titleBtns').addEventListener('click',e=>{const b=e.target.closest('[data-m]')
 
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==='Escape'&&mode==='create'&&!win){showTitle();return}
   if(e.key==='Escape'){if(win==='bag'&&bagSel){bagSel=null;renderWin();return}if(win&&win!=='event'&&win!=='end'){closeWin();return}if(menuCat){closeMenu();renderCmd()}return}
   if(!s.started||$('ui').hidden)return;
   const k={b:'bag',l:'cal',m:'map',n:'log',j:'tasks'}[e.key.toLowerCase()];
@@ -909,7 +958,14 @@ function locScene(){
     case 'mall':return [Scenes.rest,'mall',{slot:sl,state:sale?2:s.q.q4_gift==='active'?1:0}];
   }
 }
+const coverT=t=>reduceMotion()?0:t+2500;
 function drawScene(t){
+  const anim=!reduceMotion();
+  if(mode==='title'){Scenes.cover.frame(sctx,coverT(t),anim);return}
+  if(mode==='create'){Scenes.cover.frame(sctx,coverT(t),anim,{minh:false});Scenes.cover.bust($('crAva').getContext('2d'),t,anim,crGender);return}
+  if(mode==='intro'){const ts=(performance.now()-introStart)/1000;
+    if(anim)Scenes.cover.day1Frame(sctx,ts*1000,inPAt(ts),{morning:ts-IN_MORNING});else Scenes.cover.day1Frame(sctx,0,1,{static:true});
+    introUI(anim?ts:IN_T.ready);return}
   if(actScene&&performance.now()>actScene.until)actScene=null;
   const [fn,name,o]=actScene?[actScene.fn,actScene.name,actScene.o]:locScene();
   const opt={...o,gender:s.gender,animate:!reduceMotion(),hero:drawHero};
@@ -930,7 +986,7 @@ function drawHero(c,cx,feet,t){
   if(bub)c.drawImage(Chars.BUB[bub],x+16,y-18-(Math.floor(t/400)%2));
 }
 let lastDraw=0;
-function loop(t){if(t-lastDraw>110){lastDraw=t;try{drawScene(t)}catch(e){console.error(e)}}requestAnimationFrame(loop)}
+function loop(t){if(t-lastDraw>66){lastDraw=t;try{drawScene(t)}catch(e){console.error(e)}}requestAnimationFrame(loop)}
 
 /* ============ Boot ============ */
 function boot(data){

@@ -105,7 +105,7 @@ for(const [name,fn,prudent] of [['Thận trọng',prudentSlot,true],['Ví trốn
   PRUDENT=prudent;
   const sc=[],qd=[],pr=[],sh=[],as=[],mo=[],cl=[],tb=[],rate={},gr={S:0,A:0,B:0,C:0,D:0};let stuck=0,short=0;
   for(let r=0;r<${RUNS};r++){
-    cmd('new');resolveEvents(prudent);let g=0;CLEANS=0;
+    newGame({name:'Minh',gender:'nam'});resolveEvents(prudent);let g=0;CLEANS=0;
     while(!s.over&&g++<3000){const d=s.day,sl=s.slot;fn();resolveEvents(prudent);if(!s.over&&s.day===d&&s.slot===sl){act('idle')||act('sleep');resolveEvents(prudent)}}
     if(!s.over){stuck++;continue}
     const R=computeScore();sc.push(R.score);gr[grade(R.score)]++;pr.push(studyScore());sh.push(s.shifts);as.push(R.asset);mo.push(s.money);cl.push(CLEANS);tb.push(s.sumTt/Math.max(1,s.samples));if(s.flags.rentShort)short++;
