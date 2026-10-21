@@ -149,6 +149,13 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .row:disabled{cursor:not-allowed;opacity:.55}
 .row .why{grid-column:1/-1;font-size:.72em;font-weight:700;color:#ffb09a}
 
+/* Âm thanh trong Menu: 2 thanh âm lượng và nút tắt tiếng */
+.aud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:calc(var(--p)*5) calc(var(--p)*8);align-items:center;padding:calc(var(--p)*8) calc(var(--p)*9);font-size:.9em;font-weight:700}
+.aud input[type=range]{width:100%;accent-color:var(--lantern);min-height:24px}
+.aud .num{font-size:1.3em;color:var(--muted);min-width:2.5em;text-align:right}
+.aud .btns{grid-column:1/-1;justify-self:start}
+.aud .btns[aria-pressed="true"]{color:var(--lantern);box-shadow:inset 0 0 0 var(--p) var(--lantern)}
+
 /* Thanh tiến độ, việc hằng ngày, chip hiệu ứng (dùng trong các cửa sổ) */
 .bar{position:relative;height:.45em;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
 .bar i{position:absolute;inset:0 auto 0 0;border-radius:2px;transition:width .35s}

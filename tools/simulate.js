@@ -8,50 +8,13 @@
  * Dùng:  node tools/simulate.js [--runs 150]
  * Thoát với mã 1 nếu có ván bị kẹt hoặc lỗi runtime (dùng trong CI).
  */
-const fs = require('fs');
-const path = require('path');
 
 const argRuns = process.argv.indexOf('--runs');
 const RUNS = argRuns > -1 ? Number(process.argv[argRuns + 1]) || 150 : 150;
 
-/* ---------- DOM giả: mọi phần tử nhận thuộc tính bất kỳ, mọi hàm là no-op ---------- */
-/* Ngữ cảnh canvas giả: mọi lệnh vẽ là no-op, getImageData trả mảng điểm ảnh trống để mã viền (outlined) chạy được */
-function fakeCtx() {
-  return new Proxy({}, {
-    get: (a, b) => (b === 'globalAlpha' ? 1 : b === 'getImageData' ? (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }) : () => {}),
-    set: () => true,
-  });
-}
-function fakeEl() {
-  const store = { hidden: false, innerHTML: '', textContent: '', className: '', dataset: {}, style: {} };
-  return new Proxy(store, {
-    get(t, k) {
-      if (k in t) return t[k];
-      if (k === 'classList') return { add() {}, remove() {}, contains() { return false; } };
-      if (k === 'getContext') return () => fakeCtx();
-      if (k === 'toDataURL') return () => 'data:,';
-      if (k === 'querySelector') return () => null;
-      if (k === 'querySelectorAll') return () => [];
-      if (['addEventListener', 'appendChild', 'replaceChildren', 'remove', 'focus', 'insertAdjacentHTML', 'setAttribute'].includes(k)) return () => {};
-      if (k === 'clientWidth' || k === 'clientHeight') return 300;
-      return undefined;
-    },
-    set(t, k, v) { t[k] = v; return true; },
-  });
-}
-const els = {};
-global.document = { getElementById: id => els[id] || (els[id] = fakeEl()), querySelector: () => fakeEl(), querySelectorAll: () => [], createElement: () => fakeEl(), addEventListener() {} };
-global.window = { devicePixelRatio: 1 };
-global.localStorage = { getItem: () => null, setItem() {} };
-global.requestAnimationFrame = () => {};
-global.setTimeout = () => 0;
-global.clearTimeout = () => {};
-global.setInterval = () => 0;
-global.clearInterval = () => {};
-
-const root = path.join(__dirname, '..');
-const scripts = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
-const game = scripts.map(src => fs.readFileSync(path.join(root, src), 'utf8')).join('\n;\n');
+const { setupFakeDom, gameSource } = require('./harness');
+setupFakeDom();
+const game = gameSource();
 
 /* ---------- Bot (chạy chung phạm vi với game qua eval) ---------- */
 const bots = `
@@ -126,7 +89,7 @@ globalThis.__failures=failures;
 `;
 
 try {
-  eval(game.replace(/\nboot\(\{\}\);\s*$/, '\n') + bots);
+  eval(game + bots);
 } catch (e) {
   console.error('Lỗi khi chạy mô phỏng:\n', e.stack);
   process.exit(1);

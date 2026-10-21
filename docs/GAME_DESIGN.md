@@ -73,14 +73,14 @@ Minh (hoặc tên người chơi đặt), 18 tuổi, rời Tuy Hòa vào Sài G�
 | Chiều | Ca part-time, thư viện, CLB | Ca part-time hoặc tự do |
 | Tối | Ca part-time (lương cao hơn) hoặc nghỉ | Ca part-time hoặc tự do |
 
-Qua đêm: độ no giảm, năng lượng hồi, đồ hết hạn bị bỏ, phòng bừa thêm. Sáng hôm sau hóa đơn đến hạn tự trừ và có 2 việc hằng ngày mới.
+Qua đêm: năng lượng hồi, độ no giảm 10, đồ hết hạn bị bỏ, phòng bừa thêm. **Bụng đói khi đi ngủ** xét theo độ no lúc người chơi chọn hành động cuối ngày (đi ngủ sớm hoặc bất kỳ hành động buổi tối), trước mọi lần trừ: dưới 30 thì ngủ không ngon (năng lượng hồi 35 thay vì 50, tinh thần −6, sức khỏe −2). Sáng hôm sau hóa đơn đến hạn tự trừ và có 2 việc hằng ngày mới.
 
 ## 4. Hệ thống chỉ số
 
 | Chỉ số | Khởi đầu | Vai trò | Tự thay đổi |
 | --- | --- | --- | --- |
 | Độ no `no` | 70 | Ràng buộc sinh tồn | −9 mỗi buổi, −10 qua đêm |
-| Năng lượng `nl` | 80 | Sức học và làm | −4 mỗi buổi; ngủ +50 (+35 nếu đói) |
+| Năng lượng `nl` | 80 | Sức học và làm | −4 mỗi buổi; ngủ +50 (+35 nếu độ no lúc đi ngủ dưới 30) |
 | Tinh thần `tt` | 65 | Lương ca và điểm cuối tháng | −2 mỗi buổi |
 | Sức khỏe `sk` | 80 | Hậu quả dài hạn | +2 mỗi đêm ngủ no |
 
@@ -178,7 +178,13 @@ Nhiệm vụ học tập: `q1_class`, `q2_class`, `q3_study`. Bài kiểm tra gi
 
 **Theo điều kiện:** ốm (sk < 40, sáng; khám 200k có giấy nghỉ học) · đau bụng (≥ 2 gói mì/ngày) · ngất (sk = 0) · giày sale (đi dạo TTTM) · chị Mai khen +100k (≥ 8 ca, đang ở cửa hàng).
 
-**Ngẫu nhiên** (22% mỗi buổi): lớp rủ đi lẩu 150k · xe hỏng 250k hoặc xe ôm 4 ngày · mưa to · Khoa mượn 300k · rơi điện thoại 400k · sinh nhật bạn cùng lớp 150k · nhặt được 50k.
+**Ngẫu nhiên** (22% mỗi buổi, xét lúc bắt đầu buổi theo nơi đang đứng): lớp rủ đi lẩu 150k · xe hỏng 250k hoặc xe ôm 4 ngày · Khoa mượn 300k · rơi điện thoại 400k · sinh nhật bạn cùng lớp 150k · nhặt được 50k.
+
+| Sự kiện | Khi nào |
+| --- | --- |
+| Mưa to bất chợt | Vừa đi tới nơi khác bằng bản đồ, buổi trưa hoặc chiều, xác suất 15%; hoặc đang ở công viên buổi trưa hoặc chiều. Tối đa 1 lần mỗi ngày |
+| Quán hết chỗ | Đang ở quán cà phê, buổi trưa đến tối; 1 lần trong tháng. Ngồi chung với một anh năm ba ngành Thiết kế (tinh thần +6) hoặc mua mang về (tinh thần −1) |
+| Mời làm thẻ thành viên | Đang ở TTTM, buổi trưa đến tối; 1 lần trong tháng. Đăng ký thẻ 99k (tinh thần +2, điểm tích lũy chưa dùng được trong tháng) hoặc để sau (tinh thần +1) |
 
 ## 9. Kinh tế và cân bằng
 
@@ -214,13 +220,13 @@ Ngân sách nửa đầu tháng: (3,0tr − 1,2tr − 0,2tr) / 14 ngày ≈ **11
 
 | Bot | Điểm trung vị | Hạng S / A / B / C / D | Nhiệm vụ TB | Điểm học tập | Ca part-time | Tài sản cuối | Tinh thần TB | Dọn phòng |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Thận trọng | 817 | 79% / 20% / 0% / 1% / 1% | 12,1/14 | 100 | 36 | ~1,77tr | 83 | 11 lần |
-| Ví trống ngày 5 | 445 | 0% / 0% / 1% / 42% / 57% | 9,0/14 | 100 | 33 | ~1,41tr | 35 | 9 lần |
-| Ngẫu nhiên | 168 | 100% hạng D | 3,2/14 | 0 | 3 | ~0,1tr | 32 | 0 |
+| Thận trọng | 822 | 81% / 17% / 1% / 0% / 0% | 12,1/14 | 100 | 36 | ~1,82tr | 83 | 11 lần |
+| Ví trống ngày 5 | 434 | 0% / 0% / 3% / 41% / 55% | 9,1/14 | 100 | 33 | ~1,43tr | 35 | 9 lần |
+| Ngẫu nhiên | 170 | 100% hạng D | 3,4/14 | 0 | 2 | ~0,09tr | 33 | 0 |
 
 So với v0.2.0 (Thận trọng 824 điểm, 12/14 nhiệm vụ, ~1,97tr), bot thận trọng giữ nguyên độ khó; tài sản giảm nhẹ vì phải dành buổi tối dọn phòng (khoảng 3 ngày một lần). Bot ngẫu nhiên không còn tài sản âm vì đã bỏ nợ.
 
-**Bỏ nợ có tạo lỗ hổng không?** Bot "Ví trống ngày 5" chơi như bot thận trọng nhưng chiều tối ngày 4 dồn hết tiền vào thuốc, mì, cà phê lon để ví trống khi trừ tiền nhà. Bot né được 1,2tr tiền nhà nhưng đói tới ngày lương, tinh thần trung bình chỉ 35 và điểm trung vị 445 so với 817. Vì vậy giữ mức phạt −12 tinh thần, không cần phạt tăng theo số tiền thiếu.
+**Bỏ nợ có tạo lỗ hổng không?** Bot "Ví trống ngày 5" chơi như bot thận trọng nhưng chiều tối ngày 4 dồn hết tiền vào thuốc, mì, cà phê lon để ví trống khi trừ tiền nhà. Bot né được 1,2tr tiền nhà nhưng đói tới ngày lương, tinh thần trung bình chỉ 35 và điểm trung vị 434 so với 822. Vì vậy giữ mức phạt −12 tinh thần, không cần phạt tăng theo số tiền thiếu.
 
 Bot thận trọng thường không đủ tiền dự đêm nhạc ngày 13 và mua quà mẹ (bot chỉ chi khi ví còn dư nhiều), cho thấy áp lực tiền bạc trước ngày lương vẫn còn.
 
@@ -266,5 +272,7 @@ Thiết kế chi tiết từng màn hình nằm trong `design/`, đặc tả tro
 **Điện thoại nằm ngang** (`pointer: coarse`, `orientation: landscape`): cảnh phủ kín màn hình, giao diện chừa vùng an toàn, 3 nút hành động 64×56 ở góc phải dưới, công cụ 48×48 ở góc trái dưới, menu mở thành ngăn bên phải. Điện thoại dọc hiện lời nhắc xoay ngang.
 
 **Trợ năng:** phím tắt B, L, J, M, N, 1–4, Space, Esc; vùng có `aria-label`, cửa sổ có tiêu điểm bàn phím; tắt hoạt ảnh khi bật `prefers-reduced-motion`.
+
+**Âm thanh:** nhạc nền theo màn hình và địa điểm, dịu lại buổi tối; hiệu ứng cho thao tác và kết quả. Chỉ bật sau lần bấm "Bắt đầu câu chuyện" hoặc "Chơi tiếp" đầu tiên. Menu → Âm thanh chỉnh Nhạc nền, Hiệu ứng, Tắt tiếng (lưu ở khóa `ba-muoi-ngay-sg-audio`). Chi tiết: DESIGN_SPEC mục 6.
 
 Tiến trình tự lưu vào `localStorage` (khóa `ba-muoi-ngay-sg-v5`) sau mỗi hành động. Bản lưu của v0.2.0 (khóa `v4`) không dùng được.
