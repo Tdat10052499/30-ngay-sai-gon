@@ -397,6 +397,7 @@ function travel(id){
   const st=$('stage');st.classList.add('fade');setTimeout(()=>st.classList.remove('fade'),230);
   if(c)popFx({},-c);
   if(id==='home'||id==='store')sfx('door');
+  if((s.slot===1||s.slot===2)&&!s.flags['rain'+s.day]&&Math.random()<0.15)queue.push(rainEv(s));
   if(id==='school'&&!s.flags.metHai){s.flags.metHai=1;queue.push(ev('Chào mừng tân sinh viên','“Chào em Minh! Lớp mình học buổi sáng từ thứ Hai đến thứ Sáu. Thầy chấm điểm học tập dựa trên chuyên cần, giờ tự học ở thư viện và bài kiểm tra giữa kỳ sáng ngày 29. Có gì khó cứ tìm thầy.”',[{l:'Dạ, em cảm ơn thầy'}],'hai'))}
   afterChange();
 }
@@ -447,6 +448,8 @@ const dueText=q=>q.due===s.day?'hạn hết hôm nay':`hạn ngày ${q.due} · c
 const ev=(title,text,choices,who)=>({title,text,choices,who});
 const evImpulse=()=>ev('Giày đang sale 40%','Đôi giày bạn để ý từ lâu đang giảm giá, chỉ còn 420.000đ.',[
   {l:'Mua luôn',cost:420000,eff:{tt:14}},{l:'Thôi, không cần',eff:{tt:-3}}]);
+function rainEv(s){s.flags['rain'+s.day]=1;return ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
+  {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{sk:-6,tt:-4}}])}
 const EVENTS=[
   {id:'lau',w:3,when:s=>s.slot===3&&!isWE(s.day),mk:()=>ev('Lớp rủ đi ăn lẩu','“Tối nay cả lớp đi lẩu nướng, mày đi không?” Khoa hỏi.',[
     {l:'Đi luôn',cost:150000,eff:{tt:14,no:20,nl:-8}},{l:'Ở nhà',eff:{tt:-4}}],'khoa')},
@@ -456,8 +459,13 @@ const EVENTS=[
     {l:'Bỏ túi',gain:50000,eff:{tt:3}},{l:'Gửi bảo vệ gần đó',eff:{tt:8}}])},
   {id:'praise',w:5,once:1,when:s=>s.loc==='store'&&s.shifts>=8&&s.slot>=2,mk:()=>ev('Chị Mai khen','“Mấy ca của Minh quầy lúc nào cũng gọn gàng. Chị thưởng nóng nè.”',[
     {l:'Em cảm ơn chị',gain:100000,eff:{tt:10}}],'mai')},
-  {id:'rain',w:2,when:s=>s.slot===2,mk:()=>ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
-    {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{sk:-6,tt:-4}}])},
+  /* mưa: ở công viên buổi trưa hoặc chiều (khi đi lại thì xét trong travel), tối đa 1 lần mỗi ngày */
+  {id:'rain',w:2,when:s=>s.loc==='park'&&(s.slot===1||s.slot===2)&&!s.flags['rain'+s.day],mk:s=>rainEv(s)},
+  /* hai nơi trong nhà thay cho mưa; mỗi sự kiện chỉ một lần trong tháng */
+  {id:'cafeFull',w:2,once:1,when:s=>s.loc==='cafe'&&s.slot>=1,mk:()=>ev('Quán hết chỗ','“Quán kín bàn rồi, em ngồi chung với bạn này được không?” Người ngồi cùng là một anh năm ba cùng ngành Thiết kế.',[
+    {l:'Ngồi chung, bắt chuyện',eff:{tt:6},x:'Có thêm một người quen'},{l:'Mua mang về',eff:{tt:-1}}])},
+  {id:'mallCard',w:2,once:1,when:s=>s.loc==='mall'&&s.slot>=1,mk:()=>ev('Mời làm thẻ thành viên','Nhân viên mời đăng ký thẻ thành viên 99.000đ, hứa tích điểm đổi quà.',[
+    {l:'Đăng ký thẻ 99k',cost:99000,eff:{tt:2},x:'Điểm tích lũy chưa dùng được trong tháng này'},{l:'Cảm ơn, để sau',eff:{tt:1}}])},
   {id:'lend',w:1.5,once:1,when:s=>s.day>=6&&s.day<=19,mk:()=>ev('Khoa hỏi mượn tiền','“Cho tao mượn 300k, cuối tháng trả nha. Tháng này nhà tao gửi tiền trễ.”',[
     {l:'Cho mượn',cost:300000,eff:{tt:3},x:'Hẹn trả ngày 28',run:s=>{s.lent=300000}},{l:'Từ chối',eff:{tt:-6}}],'khoa')},
   {id:'phone',w:1,once:1,when:()=>true,mk:()=>ev('Rơi điện thoại','Điện thoại tuột tay, màn hình nứt một đường dài.',[
