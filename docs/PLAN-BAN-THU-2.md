@@ -46,7 +46,7 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ## Giai đoạn 2: luật chơi và cân bằng (mục 4, 4.5, dữ liệu và luật mục 5, mô phỏng mục 7). Chưa đụng giao diện.
 
-- [ ] **2.1 Bảng độ khó và hệ số chương** (`src/rules.js`, `src/game.js`)
+- [x] **2.1 Bảng độ khó và hệ số chương** (`src/rules.js`, `src/game.js`)
   - `s.diff` = `'thuong'` hoặc `'de'`, mặc định `'thuong'`, lưu trong bản lưu.
   - Hao hụt cuối buổi theo bảng dưới, nhân hệ số chương ×1,0 (chương 1), ×1,1 (chương 2), ×1,2 (chương 3–4) ở độ khó Thường.
 
@@ -69,25 +69,25 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
   - Ghi chú: "Dễ" dùng số v0.2.0 nhưng vẫn giữ các sửa lỗi v0.3 (đi ngủ đói xét lúc chọn hành động, ngưỡng 30).
   - Kiểm tra: test cho từng dòng của bảng ở cả hai độ khó; test hệ số chương ngày 1, 8, 15, 22.
   - Đạt: mọi test đạt; độ khó Dễ cho ra đúng số của v0.2.0.
-- [ ] **2.2 Công bằng: nhật ký ghi rõ nguyên nhân phạt** (`src/game.js`)
+- [x] **2.2 Công bằng: nhật ký ghi rõ nguyên nhân phạt** (`src/game.js`)
   - Mỗi lần bị phạt, nhật ký ghi một dòng, ví dụ “Đói: tinh thần −6, sức khỏe −3”, “Kiệt sức: tinh thần −4, sức khỏe −3”.
   - Kiểm tra: test đọc nhật ký sau một buổi đói và một buổi kiệt sức.
   - Đạt: mỗi mức phạt có đúng một dòng nhật ký nêu nguyên nhân và con số.
-- [ ] **2.3 Ốm theo sức khỏe** (`src/rules.js`)
+- [x] **2.3 Ốm theo sức khỏe** (`src/rules.js`)
   - Xác suất mỗi sáng: `p = 0,02 + 0,43 × (100 − sk) / 60` khi sức khỏe từ 40 đến 100; 0,45 khi dưới 40. Cộng 0,25 sau khi đội mưa hôm trước; 0,5 nếu hôm trước chọn "Kệ, ráng chịu".
   - Kiểm tra: test hàm thuần `sickChance(s)` ở sức khỏe 100, 70, 40, 20 và sau mưa.
   - Đạt: 0,02 / 0,235 / 0,45 / 0,45, cộng thêm đúng.
-- [ ] **2.4 Thiếu tiền hóa đơn tăng theo số tiền thiếu, nhiệm vụ thất bại thêm −5, ngất xỉu nghỉ sáng hôm sau** (`src/game.js`)
+- [x] **2.4 Thiếu tiền hóa đơn tăng theo số tiền thiếu, nhiệm vụ thất bại thêm −5, ngất xỉu nghỉ sáng hôm sau** (`src/game.js`)
   - Kiểm tra: test thiếu 49.000đ (−12), thiếu 220.000đ (−16), thiếu 1.200.000đ (−30); test nhiệm vụ thất bại; test ngất xỉu rồi sáng hôm sau không bị tính vắng.
   - Đạt: đúng số, `absences` không tăng sau ngất xỉu.
-- [ ] **2.5 Vắng 3 buổi trong một tuần thì thầy Hải nhắc nhở** (`src/game.js`)
+- [x] **2.5 Vắng 3 buổi trong một tuần thì thầy Hải nhắc nhở** (`src/game.js`)
   - Dùng `s.absentDays` (chỉ tính vắng không phép).
   - Văn bản đề xuất (chờ duyệt): tiêu đề “Thầy Hải nhắc nhở”, lời thoại “Tuần này em vắng ba buổi rồi. Học năm nhất mà hổng kịp là khó theo lắm, em cố lên lớp đều nha.”, lựa chọn “Dạ, em sẽ cố”, tinh thần −5.
   - Kiểm tra: test vắng 3 sáng trong ngày 8–12 thì có sự kiện đúng một lần.
-- [ ] **2.6 Ca part-time buổi trưa** (`src/game.js`)
+- [x] **2.6 Ca part-time buổi trưa** (`src/game.js`)
   - `canShift` mở ca trưa mọi ngày; lương 90.000đ; năng lượng −30, tinh thần và độ no như ca thường. Cập nhật luật chơi trong game và cảnh làm ca (dùng cửa sổ buổi trưa).
   - Kiểm tra: test làm ca trưa ngày thường và cuối tuần, lương và hao tổn đúng.
-- [ ] **2.7 Điểm học tập vào công thức điểm** (`src/game.js`)
+- [x] **2.7 Điểm học tập vào công thức điểm** (`src/game.js`)
   - Điểm = 1000 × Tài sản^0,30 × No^0,15 × Tinh thần^0,20 × Sức khỏe^0,15 × Học tập^0,20; Học tập = điểm học tập / 100, tối thiểu 0,05.
   - Kiểm tra: test `computeScore` với số liệu mẫu tính tay.
   - Màn tổng kết (thanh thứ 5) để giai đoạn 3 vì là giao diện.

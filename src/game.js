@@ -137,7 +137,7 @@ function expText(exp){if(exp===null)return 'Không có hạn';const n=exp-s.day;
 
 /* ============ State ============ */
 function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',money:START_MONEY,no:70,nl:80,tt:65,sk:80,
-  name:'Minh',gender:'nam',mess:0,askCount:0,absentDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
+  name:'Minh',gender:'nam',diff:'thuong',mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
   classToday:0,shiftToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,
   classCh:{1:0,2:0,3:0,4:0},shiftCh:{1:0,2:0,3:0,4:0},studyCh:{1:0,2:0,3:0,4:0},
   ateThisSlot:false,bikeBroken:0,lent:0,flags:{},log:[],hist:[],sumNo:0,sumTt:0,samples:0,
@@ -206,8 +206,10 @@ const LOCS={
   store:{name:'Cửa hàng tiện lợi',short:'Cửa hàng',sub:'Nơi Minh làm thêm · mở 24 giờ',cost:0,open:()=>null},
   mall:{name:'Trung tâm thương mại',short:'TTTM',sub:'Buffet, rạp phim, cửa hàng quần áo',cost:12000,open:s=>s.slot>=1?null:'TTTM mở cửa từ 10h'},
 };
-const shiftPay=s=>{const base=s.slot===3?110000:90000;return s.nl<15?Math.round(base/2):s.tt<25?base-20000:base};
-const canShift=s=>(!isWE(s.day)&&s.slot===0)?'Buổi sáng ngày thường Minh đi học':s.slot===1?'Cửa hàng xếp ca sáng cuối tuần, ca chiều và ca tối':null;
+const shiftPay=s=>{const base=s.slot===3?110000:90000;return s.nl<15?Math.round(base/2):s.tt<25?base-rulesOf(s).lowMoodPay:base};
+const canShift=s=>(!isWE(s.day)&&s.slot===0)?'Buổi sáng ngày thường Minh đi học':null;
+/* ca trưa tốn năng lượng gấp 1,5 lần ca thường */
+const shiftEff=s=>s.slot===3?{nl:-28,tt:-4,sk:-2,no:-4}:s.slot===1?{nl:-30,tt:-3,no:-4}:{nl:-20,tt:-3,no:-4};
 const IDLE={id:'idle',k:'act',n:'Ngồi nghỉ một lúc',d:'Không làm gì, để thời gian trôi sang buổi sau.',eff:{nl:3,tt:-1},free:true};
 const buy=(item,cost,qty,n)=>({id:'buy_'+item,k:'buy',n,d:ITEMS[item].d,cost,qty,eff:{},note:()=>`+${qty} vào túi`,run:s=>bagAdd(item,qty)});
 const A={
@@ -267,7 +269,7 @@ const A={
     buy('sua',12000,1,'Hộp sữa tươi'),
     {id:'interview',k:'act',n:'Phỏng vấn xin việc',d:'Gặp chị Mai, quản lý cửa hàng, để xin làm part-time.',eff:{nl:-4,tt:3},story:1,show:s=>!s.flags.hired,when:s=>(!isWE(s.day)&&s.slot===0)?'Buổi sáng ngày thường Minh đi học':null,
       run:s=>{s.flags.hired=1;queue.push(ev('Nhận việc part-time','“Em làm được ca chiều và ca tối các ngày, cuối tuần thêm ca sáng. Mỗi ca 4 tiếng, 90 nghìn, ca tối 110 nghìn. Lương trả ngày 15 và cuối tháng. Mai em bắt đầu được rồi.”',[{l:'Dạ, em cảm ơn chị'}],'mai'))}},
-    {id:'shift',k:'act',n:'Làm ca part-time',d:'Đứng quầy thu ngân, xếp hàng lên kệ. Ca 4 tiếng; ca tối được trả cao hơn nhưng mệt hơn.',eff:s=>s.slot===3?{nl:-28,tt:-4,sk:-2,no:-4}:{nl:-20,tt:-3,no:-4},show:s=>!!s.flags.hired,when:canShift,note:s=>`+${fk(shiftPay(s))} lương`,
+    {id:'shift',k:'act',n:'Làm ca part-time',d:'Đứng quầy thu ngân, xếp hàng lên kệ. Ca 4 tiếng; ca tối được trả cao hơn nhưng mệt hơn.',eff:shiftEff,show:s=>!!s.flags.hired,when:canShift,note:s=>`+${fk(shiftPay(s))} lương`,
       pre:s=>{s.accrued+=shiftPay(s);s.shifts++;s.shiftToday++;s.shiftCh[chOf(s.day)]++}},
     {id:'advance',k:'quick',n:'Xin ứng lương',d:'Ứng trước 300.000đ từ lương đang chờ. Không mất lãi, mỗi kỳ lương ứng được 1 lần.',eff:{},show:s=>!!s.flags.hired,when:s=>s.accrued<300000?'Cần có đủ 300k lương đang chờ':s.flags['adv'+(s.paid1?2:1)]?'Kỳ lương này đã ứng rồi':null,note:()=>'+300k · trừ vào lương chờ',run:s=>{s.money+=300000;s.accrued-=300000;s.flags['adv'+(s.paid1?2:1)]=1}},
   ],
@@ -349,16 +351,24 @@ function useItem(id){
 }
 function endSlot(a){
   if(!isWE(s.day)&&s.slot===0&&a.id!=='class'&&a.id!=='exam')(s.absentDays=s.absentDays||[]).push(s.day);
+  const R=rulesOf(s);
   if(!isWE(s.day)&&s.slot===0&&a.id!=='class'&&a.id!=='exam'&&!a.excused){
-    s.absences++;addLog(s.absences===1?'Vắng buổi học sáng. Điểm học tập bị trừ.':'Lại vắng một buổi học.','bad');
+    s.absences++;(s.truantDays=s.truantDays||[]).push(s.day);
+    addLog(`${s.absences===1?'Vắng buổi học sáng':'Lại vắng một buổi học'}: điểm học tập −${R.absence}.`,'bad');
+    truantCheck();
   }
   if(s.slot===3&&s.noBed==null)s.noBed=s.no;
-  s.no-=9;s.tt-=2;
-  if(s.loc==='home'){s.tt-=[0,1,2][messLv()];addMess(2)}
-  if(!['nap','bench','campusnap'].includes(a.id))s.nl-=4;
-  if(s.no<25){s.tt-=4;s.sk-=2}
-  if(s.no<=0)s.sk-=4;
-  if(s.nl<15){s.tt-=3;s.sk-=2}
+  const dc=slotDecay(s,chOf(s.day));
+  s.no-=dc.no;s.tt-=dc.tt;
+  if(!['nap','bench','campusnap'].includes(a.id))s.nl-=dc.nl;
+  /* mỗi lần bị phạt ghi rõ nguyên nhân và con số (gộp một dòng mỗi buổi) */
+  const pen=[];
+  const hit=(why,e)=>{const p=[];for(const S of STATS){const v=e[S.k];if(v){s[S.k]+=v;p.push(`${S.n.toLowerCase()} −${Math.abs(v)}`)}}if(p.length)pen.push(`${why}: ${p.join(', ')}`)};
+  if(s.loc==='home'){const m=[0,1,2][messLv()];if(m)hit('Phòng bừa',{tt:-m});addMess(2)}
+  if(s.no<25)hit('Đói',R.hungry);
+  if(s.no<=0)hit('Đói lả',R.starve);
+  if(s.nl<15)hit('Kiệt sức',R.exhaust);
+  if(pen.length)addLog(pen.join(' · '),'bad');
   for(const {k} of STATS)s[k]=clamp(Math.round(s[k]));
   s.samples++;s.sumNo+=s.no;s.sumTt+=s.tt;
   s.ateThisSlot=false;
@@ -369,8 +379,9 @@ function endDay(early){
   /* bụng đói khi đi ngủ: xét độ no lúc chọn hành động cuối ngày (dưới 30), rồi mới trừ độ no qua đêm */
   const noBed=s.noBed!=null?s.noBed:s.no;s.noBed=null;
   const ml=messLv(),messy=ml===2?10:0;
-  if(noBed>=HUNGRY_BED){s.nl+=50-messy;s.sk+=2}
-  else{s.nl+=35-messy;s.tt-=6;s.sk-=2;addLog('Đi ngủ với cái bụng đói, ngủ không ngon.','bad')}
+  const R=rulesOf(s),B=R.bedHungry;
+  if(noBed>=HUNGRY_BED){s.nl+=R.sleep-messy;s.sk+=2}
+  else{s.nl+=B.nl-messy;s.tt+=B.tt;s.sk+=B.sk;addLog(`Đi ngủ với cái bụng đói, ngủ không ngon. Năng lượng chỉ hồi ${B.nl}, tinh thần −${-B.tt}, sức khỏe −${-B.sk}.`,'bad')}
   if(early){s.nl+=15;s.tt+=2}
   if(ml===0)s.tt+=2;
   s.no-=10;
@@ -395,8 +406,8 @@ function endDay(early){
 function skipSlot(label){addLog(label);endSlot({id:'skip',excused:true})}
 function payBill(amt,name){
   if(s.money>=amt){s.money-=amt;txAdd(name[0].toUpperCase()+name.slice(1),-amt);return true}
-  const short=amt-s.money;txAdd(name[0].toUpperCase()+name.slice(1),-s.money);s.money=0;s.tt=clamp(s.tt-12);
-  addLog(`Thiếu ${fk(short)} cho ${name}. Đã trừ hết tiền trong ví.`,'bad');return false;
+  const short=amt-s.money,pt=billPenalty(s,short);txAdd(name[0].toUpperCase()+name.slice(1),-s.money);s.money=0;s.tt=clamp(s.tt-pt);
+  addLog(`Thiếu ${fk(short)} cho ${name}. Đã trừ hết tiền trong ví, tinh thần −${pt}.`,'bad');return false;
 }
 function travelCost(id){const c=LOCS[id].cost;return c&&s.bikeBroken>0?c*3:c}
 function travel(id){
@@ -430,7 +441,8 @@ function completeQuest(q){
   popFx(out,0);
   addLog(`Hoàn thành nhiệm vụ: ${q.t}`,'quest');sfx('questDone');showToast(`Hoàn thành nhiệm vụ · ${q.t}`,'quest');
 }
-function failQuest(q){s.q[q.id]='fail';sfx('questFail');addLog(`Nhiệm vụ thất bại: ${q.t}`+(q.failNote?q.failNote(s):''),'bad')}
+function failQuest(q){s.q[q.id]='fail';sfx('questFail');addLog(`Nhiệm vụ thất bại: ${q.t}`+(q.failNote?q.failNote(s):''),'bad');
+  const p=rulesOf(s).questFailTt;if(p){s.tt=clamp(s.tt+p);addLog(`Buồn vì nhiệm vụ thất bại: tinh thần −${-p}`,'bad')}}
 function checkQuests(){
   if(s.day>=8&&s.day<=14&&s.tt<30)s.flags.mood2Fail=1;
   QUESTS.forEach(q=>{if(s.q[q.id]!=='active')return;
@@ -453,7 +465,7 @@ function trackedQuest(){
 }
 function studyScore(){
   const q=QUESTS.filter(x=>x.study&&s.q[x.id]==='done').length;
-  return clamp(Math.round(s.classes/CLASS_DAYS*61)+Math.min(s.study,8)*3+q*5-s.absences*2);
+  return clamp(Math.round(s.classes/CLASS_DAYS*61)+Math.min(s.study,8)*3+q*5+(s.studyBonus||0)-s.absences*rulesOf(s).absence);
 }
 const dueText=q=>q.due===s.day?'hạn hết hôm nay':`hạn ngày ${q.due} · còn ${q.due-s.day+1} ngày`;
 
@@ -462,7 +474,7 @@ const ev=(title,text,choices,who)=>({title,text,choices,who});
 const evImpulse=()=>ev('Giày đang sale 40%','Đôi giày bạn để ý từ lâu đang giảm giá, chỉ còn 420.000đ.',[
   {l:'Mua luôn',cost:420000,eff:{tt:14}},{l:'Thôi, không cần',eff:{tt:-3}}]);
 function rainEv(s){s.flags['rain'+s.day]=1;return ev('Mưa to bất chợt','Trời đổ mưa như trút, đường bắt đầu ngập.',[
-  {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{sk:-6,tt:-4}}])}
+  {l:'Trú mưa, gọi ly trà',cost:20000,eff:{tt:2}},{l:'Đội mưa đi tiếp',eff:{...rulesOf(s).rain},run:s=>{s.flags.rainSickDay=s.day}}])}
 const EVENTS=[
   {id:'lau',w:3,when:s=>s.slot===3&&!isWE(s.day),mk:()=>ev('Lớp rủ đi ăn lẩu','“Tối nay cả lớp đi lẩu nướng, mày đi không?” Khoa hỏi.',[
     {l:'Đi luôn',cost:150000,eff:{tt:14,no:20,nl:-8}},{l:'Ở nhà',eff:{tt:-4}}],'khoa')},
@@ -489,7 +501,7 @@ const EVENTS=[
 function slotEvents(){
   if(s.over)return;
   if(s.sk<=0){queue.push(ev('Ngất xỉu','Cơ thể kiệt quệ, Minh được đưa vào viện. Viện phí 1.200.000đ, nghỉ hết hôm nay.',[
-    {l:'Chấp nhận',run:s=>{payBill(1200000,'viện phí');s.sk=45;s.nl=60;s.no=Math.max(s.no,50);s.tt=clamp(s.tt-15);if(!isWE(s.day)&&s.slot===0){s.absences++;(s.absentDays=s.absentDays||[]).push(s.day)}s.slot=3;endDay(false)}}]));return}
+    {l:'Chấp nhận',run:s=>{payBill(1200000,'viện phí');s.sk=45;s.nl=60;s.no=Math.max(s.no,50);s.tt=clamp(s.tt-15);if(!isWE(s.day)&&s.slot===0){s.absences++;(s.absentDays=s.absentDays||[]).push(s.day)}if(rulesOf(s).faintRest)s.flags.restDay=s.day+1;s.slot=3;endDay(false)}}]));return}
   if(s.day===13&&s.slot===3&&!s.flags.club){s.flags.club=1;queue.push(ev('Đêm nhạc chào tân sinh viên','“Tối nay CLB mình diễn ở sân trường, em tới chơi nha! Vé ủng hộ 100 nghìn.”',[
     {l:'Đi xem, mua vé 100k',cost:100000,eff:{tt:16,nl:-10},x:'Hết buổi tối',run:s=>{s.flags.clubGo=1;skipSlot('Đi đêm nhạc chào tân sinh viên')}},
     {l:'Ở nhà nghỉ ngơi',eff:{tt:-8}}],'linh'));return}
@@ -497,10 +509,10 @@ function slotEvents(){
     {l:'Chốt đơn',cost:450000,eff:{tt:15}},{l:'Đóng app',eff:{tt:-3}}]));return}
   if(s.day===18&&s.slot===3&&!s.flags.momCall){s.flags.momCall=1;queue.push(ev('Mẹ gọi điện','“Con ăn uống có đủ không? Tiền còn đủ xài không con?”',[
     {l:'Con đủ mà, mẹ đừng lo',eff:{tt:5}},{l:'Con xin thêm 500k',gain:500000,eff:{tt:-4},x:'Ảnh hưởng nhiệm vụ Tự lập',run:s=>{s.askCount++}}],'me'));return}
-  if(s.slot===0&&s.sk<40&&Math.random()<0.45){queue.push(ev('Bị ốm','Sáng dậy đầu nặng, người nóng hầm hập. Sức khỏe đang yếu.',[
+  if(s.slot===0&&Math.random()<sickChance(s)){queue.push(ev('Bị ốm','Sáng dậy đầu nặng, người nóng hầm hập. Sức khỏe đang yếu.',[
     {l:'Uống thuốc cảm trong túi',need:s=>bagCount('thuoc')?null:'Túi không có thuốc',eff:{sk:12,tt:-1},run:s=>bagTake('thuoc')},
     {l:'Đi khám phòng khám',cost:200000,eff:{sk:25,nl:5},x:'Hết buổi sáng · có giấy xin nghỉ học',run:()=>skipSlot('Nghỉ học có phép vì ốm')},
-    {l:'Kệ, ráng chịu',eff:{sk:-5,tt:-6,nl:-10}}]));return}
+    {l:'Kệ, ráng chịu',eff:{...rulesOf(s).ignoreSick},run:s=>{if(rulesOf(s).ignoreSickRelapse&&Math.random()<rulesOf(s).ignoreSickRelapse)s.flags.relapseDay=s.day+1}}]));s.flags.sickN=(s.flags.sickN||0)+1;return}
   if(s.noodleToday>=2&&!s.flags['st'+s.day]&&Math.random()<0.55){s.flags['st'+s.day]=1;queue.push(ev('Đau bụng','Ăn mì gói liên tục, bụng bắt đầu biểu tình.',[
     {l:'Mua men tiêu hóa',cost:30000,eff:{sk:-3}},{l:'Ráng chịu',eff:{sk:-8,tt:-5,nl:-8}}]));return}
   if(Math.random()>0.22)return;
@@ -516,7 +528,7 @@ function dayEvents(){
   if(CHAPTERS[chOf(s.day)].from===s.day)activateChapter(chOf(s.day));
   const b=BILLS[s.day];
   if(b){const m0=s.money,ok=payBill(b[1],b[0]);if(!ok)s.flags['bill'+s.day]=b[1]-m0;
-    if(s.day===5){if(ok)s.flags.rentPaid=1;else s.flags.rentShort=1}
+    if(s.day===5){if(ok)s.flags.rentPaid=1;else{s.flags.rentShort=1;if(s.q.q1_rent==='active')failQuest(QBY.q1_rent)}}
     addLog(`${b[0]}: −${fk(b[1])}`,ok?'':'bad');
     queue.push(s.day===5?ev('Cô Tư thu tiền nhà',ok?'“Đủ rồi nghen con. Học hành cho giỏi, có gì cứ kêu cô.” Cô Tư đếm tiền, cười hiền.':'“Thiếu vậy con? Thôi tháng này cô cho qua, tháng sau nhớ để dành đủ trước mùng 5 nghen.”',[{l:ok?'Dạ, con cảm ơn cô':'Dạ, con xin lỗi cô'}],'tu')
       :ev(`${b[0]} đến hạn`,ok?`Đã tự động trừ ${fmt(b[1])} từ ví.`:`Ví không đủ ${fmt(b[1])}. Đã trừ hết tiền trong ví.`,[{l:'Đã hiểu'}]))}
@@ -527,15 +539,23 @@ function dayEvents(){
     if(back){s.money+=amt;txAdd('Khoa trả tiền',amt);s.tt=clamp(s.tt+5);addLog(`Khoa trả lại ${fk(amt)}.`,'good');queue.push(ev('Khoa trả tiền','“Trả mày nè, cảm ơn nha. Có gì tao bao trà sữa.”',[{l:'Tốt quá'}],'khoa'))}
     else{s.tt=clamp(s.tt-6);addLog('Khoa hẹn trả sau. Mất 300k.','bad');queue.push(ev('Khoa hẹn lần sau','“Tháng này tao kẹt thiệt, cho tao khất thêm nha.” Khoản 300.000đ coi như chưa về.',[{l:'Đành vậy'}],'khoa'))}}
   genDaily();
+  if(s.flags.restDay===s.day){queue.push(ev('Nghỉ dưỡng sau khi nằm viện','Bác sĩ dặn nghỉ thêm buổi sáng nay. Có giấy xin nghỉ nên không tính vắng học.',[{l:'Nghỉ ngơi',eff:{nl:10},run:()=>skipSlot('Nghỉ buổi sáng sau khi nằm viện (có giấy xin nghỉ)')}]));return}
   slotEvents();
+}
+/* vắng 3 buổi không phép trong một tuần (chương) thì thầy Hải nhắc nhở, mỗi tuần một lần */
+function truantCheck(){
+  const R=rulesOf(s),ch=chOf(s.day);if(!R.truantWarn||s.flags['truant'+ch])return;
+  const n=(s.truantDays||[]).filter(d=>chOf(d)===ch).length;
+  if(n>=R.truantWarn){s.flags['truant'+ch]=1;queue.push(ev('Thầy Hải nhắc nhở','“Tuần này em vắng ba buổi rồi. Học năm nhất mà hổng kịp là khó theo lắm, em cố lên lớp đều nha.”',[{l:'Dạ, em sẽ cố',eff:{tt:R.truantTt}}],'hai'))}
 }
 
 /* ============ Score & ending ============ */
 const storeBonus=()=>s.shifts>=18?200000:0;
 function computeScore(){
   const bonus=storeBonus(),asset=s.money+s.accrued+bonus,n=Math.max(1,s.samples);
-  const F={tien:clamp(asset/2500000,0.05,1.25),no:Math.max(0.05,s.sumNo/n/100),tt:Math.max(0.05,s.sumTt/n/100),sk:Math.max(0.05,s.sk/100)};
-  return {asset,bonus,F,score:Math.round(1000*F.tien**0.35*F.no**0.2*F.tt**0.25*F.sk**0.2)};
+  const F={tien:clamp(asset/2500000,0.05,1.25),no:Math.max(0.05,s.sumNo/n/100),tt:Math.max(0.05,s.sumTt/n/100),sk:Math.max(0.05,s.sk/100),hoc:Math.max(0.05,studyScore()/100)};
+  const W=SCORE_W;
+  return {asset,bonus,F,score:Math.round(1000*F.tien**W.tien*F.no**W.no*F.tt**W.tt*F.sk**W.sk*F.hoc**W.hoc)};
 }
 function archetype({F}){
   if(F.sk<0.4&&s.shifts>=24)return ['Cỗ máy làm thêm','Lương part-time về đều, nhưng sức khỏe và việc học đã trả giá.'];
