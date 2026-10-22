@@ -2,6 +2,13 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), đánh số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [Chưa phát hành]
+
+### Thay đổi
+
+- **Bỏ chế độ tự động ăn, thay bằng thẻ ăn.** Bỏ ô chọn chế độ ăn trong Lịch, ước tính tiền ăn mỗi ngày, việc tự ăn đầu buổi và thông báo, nhật ký "tự ăn". Thẻ ăn đứng đầu hàng thẻ khi buổi này chưa ăn: 2–3 món (đồ trong túi sắp hỏng, món rẻ nhất, món no hơn hoặc tốt cho sức khỏe hơn) ghi giá và hiệu ứng, bấm là ăn (phím Q, W, E), "Món khác…" (phím R) mở menu Ăn uống. Ăn không hết buổi; thẻ tô nổi khi độ no dưới 45, có nhãn "Đang đói" khi dưới 25. Bản lưu cũ còn trường chế độ ăn thì bỏ qua, không đổi khóa lưu.
+- Bot mô phỏng ăn qua thẻ ăn; bảng mô phỏng có thêm cột "Độ no TB".
+
 ## [0.4.0] - 2026-10-22
 
 Bản chơi thử thứ 2 theo góp ý vòng 2: ít thao tác hơn, khó hơn và có chiều sâu hơn. Kế hoạch và từng giai đoạn: `docs/PLAN-BAN-THU-2.md`.

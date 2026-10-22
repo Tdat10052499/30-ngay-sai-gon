@@ -157,21 +157,25 @@ fresh('thuong');s.classes=10;const R1=computeScore(),F=R1.F;
 check('T công thức điểm có học tập: 1000 × T^0,30 × N^0,15 × M^0,20 × S^0,15 × H^0,20',R1.score===Math.round(1000*F.tien**0.3*F.no**0.15*F.tt**0.2*F.sk**0.15*F.hoc**0.2)&&F.hoc===Math.max(0.05,studyScore()/100),JSON.stringify(F));
 s.classes=0;s.absences=30;check('T học tập tối thiểu 0,05',computeScore().F.hoc===0.05);
 
-/* ---------- chế độ ăn tự động (src/cards.js) ---------- */
-const meal=(diet,loc,slot,bag,no=40)=>{fresh('thuong');s.diet=diet;s.loc=loc;s.slot=slot;s.no=no;s.bag=bag.map(id=>({id,exp:ITEMS[id].shelf?s.day+ITEMS[id].shelf-1:null}));return JSON.stringify(autoMeal(s))};
-check('Ăn: Bình dân ở phòng trọ, túi trống: đặt đồ ăn',meal('binhdan','home',3,[])==='{"act":"ship"}');
-check('Ăn: Bình dân ở phòng trọ, chỉ có mì: ăn mì',meal('binhdan','home',3,['mi'])==='{"item":"mi"}');
-check('Ăn: Bình dân ở phòng trọ: ưu tiên đồ khác mì',meal('binhdan','home',3,['mi','banhmi'])==='{"item":"banhmi"}');
-check('Ăn: Tự nấu ở phòng trọ có nguyên liệu: nấu',meal('tunau','home',3,['banhmi','nguyenlieu'])==='{"item":"nguyenlieu"}');
-check('Ăn: Bình dân ở trường buổi trưa: cơm căng tin',meal('binhdan','school',1,['banhmi'])==='{"act":"canteen"}');
-check('Ăn: Bình dân ở cửa hàng, chỉ có mì: cơm hộp',meal('binhdan','store',2,['mi'])==='{"act":"boxmeal"}');
-check('Ăn: Bình dân ở chợ, túi trống: mua trái cây',meal('binhdan','market',0,[])==='{"buy":"buy_traicay","item":"traicay"}');
-check('Ăn: Bình dân ở TTTM, túi trống: không tự ăn',meal('binhdan','mall',1,[])==='null');
-check('Ăn: Thoải mái ở quán ăn: bún bò',meal('thoaimai','street',1,['banhmi'])==='{"act":"bunbo"}');
-check('Ăn: Thoải mái ở TTTM: buffet',meal('thoaimai','mall',1,[])==='{"act":"buffet"}');
-check('Ăn: no từ 45 thì không tự ăn',meal('binhdan','street',1,[],45)==='null');
-check('Ăn: Tự chọn bữa thì không tự ăn',meal('tuchon','street',1,[])==='null');
-meal('binhdan','street',1,[]);s.money=100000;autoEat();check('Ăn: autoEat gọi cơm tấm, trừ 40.000đ',s.money===60000&&s.ateThisSlot);
+/* ---------- thẻ ăn (src/cards.js) ---------- */
+const meals0=(loc,slot,bag,set)=>{fresh('thuong');s.loc=loc;s.slot=slot;s.no=40;s.money=500000;s.bag=bag.map(([id,exp])=>({id,exp:exp===undefined?(ITEMS[id].shelf?s.day+ITEMS[id].shelf-1:null):exp}));if(set)set();return pickMeals(s)};
+let M=meals0('street',1,[]);
+check('Thẻ ăn: quán ăn có 2–3 món, món rẻ nhất (bánh mì 20.000đ) đứng đầu',M.length>=2&&M.length<=3&&M[0].id==='banhmi'&&M[0].cost===20000,M.map(m=>m.id).join(','));
+check('Thẻ ăn: có một món no hơn hoặc tốt cho sức khỏe hơn',M.some(m=>m.id==='bunbo'||m.id==='pho'),M.map(m=>m.id).join(','));
+M=meals0('street',1,[['banhmi',1],['xoi',3]]);check('Thẻ ăn: đồ trong túi sắp hỏng đứng đầu',M[0].id==='banhmi'&&M[0].bag,M.map(m=>m.id).join(','));
+M=meals0('home',3,[['mi'],['nguyenlieu',5]]);check('Thẻ ăn: phòng trọ có nguyên liệu thì có món Nấu cơm',M.some(m=>m.id==='nguyenlieu'&&m.n==='Nấu cơm'),M.map(m=>m.id).join(','));
+M=meals0('market',1,[]);check('Thẻ ăn: chợ mua trái cây rồi ăn ngay',M.some(m=>m.kind==='buy'&&m.id==='traicay'&&m.cost===25000),M.map(m=>m.id).join(','));
+M=meals0('school',0,[]);check('Thẻ ăn: trường buổi sáng, túi trống: không có thẻ ăn',M.length===0);
+M=meals0('street',1,[],()=>{s.ateThisSlot=true});check('Thẻ ăn: đã ăn trong buổi thì không có thẻ ăn',M.length===0);
+M=meals0('mall',1,[],()=>{s.money=100000});check('Thẻ ăn: không đủ tiền thì không gợi ý món đó',!M.some(m=>m.id==='buffet'));
+meals0('street',1,[]);s.slot=1;queue=[];hideWin();const c0=pickCards(s).filter(c=>!c.custom).length,m0=s.money;
+eatMeal(pickMeals(s).find(m=>m.id==='bunbo')||pickMeals(s)[1]);check('Thẻ ăn: ăn bún bò −75.000đ, không hết buổi',s.money===m0-75000&&s.slot===1&&s.ateThisSlot);
+check('Thẻ ăn: ăn xong thì thẻ ăn biến mất, thẻ hành động vẫn còn',pickMeals(s).length===0&&pickCards(s).filter(c=>!c.custom).length>=c0);
+fresh('thuong');s.loc='street';s.slot=1;s.no=40;render();check('Thẻ ăn: độ no dưới 45 thì tô nổi',/cd meal hl/.test(mealCardHTML()));
+s.no=20;check('Thẻ ăn: độ no dưới 25 có nhãn Đang đói',mealCardHTML().includes('Đang đói'));
+s.no=60;check('Thẻ ăn: độ no từ 45 không tô nổi',!/cd meal hl/.test(mealCardHTML())&&mealCardHTML().includes('Món khác'));
+check('Thẻ ăn: có thẻ ăn thì chỉ 3 thẻ việc',pickCards(s).filter(c=>!c.custom).length<=3);
+check('Không còn chế độ tự động ăn',typeof autoMeal==='undefined'&&typeof DIETS==='undefined'&&!('diet' in newState()));
 /* ---------- thẻ hành động (src/cards.js) ---------- */
 const pc=(set)=>{fresh('thuong');s.flags.hired=1;s.q.q1_job='done';set();return pickCards(s)};
 let C=pc(()=>{s.day=3;s.slot=0;s.loc='home'});
@@ -204,9 +208,9 @@ fresh('thuong');s.day=14;s.slot=0;s.q.q2_shift='active';queue=[];withRandom(0.99
 fresh('thuong');s.day=29;s.slot=0;s.loc='home';s.money=500000;s.q.q4_exam='active';queue=[];hideWin();withRandom(0.99,()=>{slotEvents();processQueue()});
 check('Cảnh báo: hộp cảnh báo mở giữa màn hình',win==='event'&&curEvent.kind==='warn');
 withRandom(0.99,()=>pickChoice(0));clearEvents();check('Cảnh báo: Đi thi ngay thì tới trường và làm bài',s.flags.examTaken===1&&s.loc==='school');
-/* ---------- tự ăn đầu buổi, độ khó ---------- */
-fresh('thuong');s.day=3;s.slot=1;s.loc='school';s.no=30;s.money=100000;s.mealChk=0;queue=[];hideWin();processQueue();
-check('Tự ăn đầu buổi: cơm căng tin, ghi nhật ký',s.money===75000&&s.ateThisSlot&&s.log[0].text.includes('Ăn cơm căng tin: −25.000đ, no +33'),s.log[0].text);
+/* ---------- không tự ăn, độ khó ---------- */
+fresh('thuong');s.day=3;s.slot=1;s.loc='school';s.no=30;s.money=100000;queue=[];hideWin();processQueue();
+check('Không tự ăn đầu buổi',s.money===100000&&!s.ateThisSlot);
 newGame({name:'Lan',gender:'nu',diff:'de'});check('Độ khó: chọn Dễ khi tạo nhân vật',s.diff==='de');clearEvents();
 newGame({name:'Lan',gender:'nu'});check('Độ khó: mặc định Thường',s.diff==='thuong');clearEvents();
 /* ---------- đếm số lần bấm một ngày thường (đi học, ăn trưa, ca chiều, ca tối) ---------- */

@@ -18,7 +18,7 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 - `src/game.js` giữ luật cốt lõi, HUD, cửa sổ.
 - Mã mới tách thành script thường, nạp theo thứ tự trong `index.html` trước `game.js`, chỉ khai báo dữ liệu và hàm thuần:
   - `src/rules.js`: bảng độ khó (Thường, Dễ), hệ số chương, mức phạt, công thức điểm, xác suất ốm.
-  - `src/cards.js`: hàm thuần `pickCards(s)` chọn thẻ hành động, bảng chế độ ăn, hàm `autoMeal(s)`.
+  - `src/cards.js`: hàm thuần `pickCards(s)` chọn thẻ hành động, `pickMeals(s)` chọn món cho thẻ ăn.
   - `src/events.js`: bộ bài sự kiện (tags, loai, max, cooldown) và hàm rút sự kiện.
   - `src/minigames.js`: khung minigame, Thối tiền, Canh lửa.
   - `src/gfx/money.js`: tờ tiền pixel 12×24. Chân dung Ngân thêm vào `src/gfx/portraits.js`.
@@ -109,7 +109,7 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
   - Ngày 30 mẹ lên Sài Gòn. Thêm lựa chọn đưa mẹ đi ăn mừng ở TTTM, 300.000đ ngoài tiền quà. Lời thoại và cảnh làm ở giai đoạn 4.
   - Câu hỏi thêm: ăn mừng có phải là điều kiện để hoàn thành nhiệm vụ "Quà sinh nhật mẹ" không? Đề xuất: nhiệm vụ vẫn chỉ cần mua quà; ăn mừng là lựa chọn thêm, cho tinh thần và lời kết riêng.
 - [x] **2.13 Mô phỏng** (`tools/simulate.js`, `tools/test.js`)
-  - Bot dùng hàm chọn thẻ và chế độ ăn như người chơi (hàm thuần làm ở giai đoạn 3 được viết trước ở đây, chưa có giao diện).
+  - Bot dùng hàm chọn thẻ và thẻ ăn như người chơi (hàm thuần làm ở giai đoạn 3 được viết trước ở đây, chưa có giao diện).
   - 4 bot:
     - Thận trọng: ăn Bình dân, đi học đủ, làm ca vừa phải, dọn phòng khi bừa bộn từ 60.
     - Ngẫu nhiên: giữ như cũ.
@@ -127,7 +127,7 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ---
 
-## Giai đoạn 3: thẻ hành động, chế độ ăn, cảnh báo bật lên, chọn độ khó (mục 3, 4.2)
+## Giai đoạn 3: thẻ hành động, thẻ ăn, cảnh báo bật lên, chọn độ khó (mục 3, 4.2)
 
 - [x] **3.1 Hàm thuần `pickCards(s)`** (`src/cards.js`)
   - Trả 3 đến 5 thẻ cho buổi hiện tại; thẻ cuối luôn là "Tự chọn".
@@ -141,25 +141,13 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
   - "Tự chọn" mở menu đầy đủ hiện có (bản đồ, các nhóm hành động).
   - Túi đồ, Lịch, Nhiệm vụ, Bản đồ, Menu dời lên một cột biểu tượng nhỏ ở góc phải.
   - Kiểm tra: Playwright bấm thẻ "Đi học" từ phòng trọ, kiểm tra đã ở trường, `classToday`=1, sang buổi trưa, trừ 6.000đ.
-- [x] **3.3 Chế độ ăn** (`src/cards.js`, `src/game.js`, `src/style.css`)
-  - Trong khung lịch có ô chọn Chế độ ăn: Tự nấu, Bình dân (mặc định), Thoải mái, Tự chọn bữa; cạnh đó là ước tính tiền ăn mỗi ngày.
-  - Đầu mỗi buổi, nếu độ no dưới 45 và buổi đó chưa ăn thì tự ăn theo bảng dưới, hiện thông báo ngắn (ví dụ “Ăn cơm căng tin: −25.000đ, no +33”) và ghi nhật ký.
-  - **Bảng chế độ ăn × địa điểm (chờ duyệt):** "đồ trong túi" là đồ ăn trong túi dùng được ở nơi đó, ưu tiên món sắp hỏng nhất.
-
-  | Nơi | Tự nấu | Bình dân | Thoải mái |
-  | --- | --- | --- | --- |
-  | Phòng trọ | Nấu nguyên liệu trong túi: no +36, sức khỏe +3, tinh thần +3, năng lượng −3. Không có nguyên liệu thì như Bình dân | Đồ trong túi (trừ mì gói); nếu không có thì mì gói trong túi (no +24, tinh thần −2, sức khỏe −4); nếu không có gì thì đặt đồ ăn 68.000đ (no +40, tinh thần +5) | Đặt đồ ăn 68.000đ |
-  | Quán ăn | Như Bình dân | Đồ trong túi; nếu không có thì cơm tấm 40.000đ (no +35, tinh thần +4) | Bún bò 75.000đ (no +45, tinh thần +9) |
-  | Chợ | Như Bình dân | Đồ trong túi; nếu không có thì mua trái cây 25.000đ và ăn (no +12, sức khỏe +5, tinh thần +2) | Như Bình dân |
-  | Công viên | Như Bình dân | Đồ trong túi; nếu không có thì bắp xào 15.000đ (no +12, tinh thần +2) | Như Bình dân |
-  | Quán cà phê | Như Bình dân | Đồ trong túi; nếu không có thì mua bánh ngọt 30.000đ và ăn (no +15, tinh thần +6) | Như Bình dân |
-  | Trường (buổi trưa) | Như Bình dân | Cơm căng tin 25.000đ (no +33, tinh thần +1); buổi khác thì đồ trong túi | Như Bình dân |
-  | Cửa hàng tiện lợi | Như Bình dân | Đồ trong túi (trừ mì gói); nếu không có thì cơm hộp 30.000đ (no +30, tinh thần +1) | Cơm hộp 30.000đ |
-  | TTTM | Như Bình dân | Đồ trong túi; nếu không có thì không tự ăn (chỉ có buffet 199.000đ) | Buffet lẩu 199.000đ (no +50, tinh thần +15, sức khỏe −1) |
-
-  - Câu hỏi: Bình dân có nên tránh mì gói (rẻ nhất nhưng hại sức khỏe) như bảng trên không?
-  - Ước tính tiền ăn mỗi ngày hiện cạnh ô chọn (3 bữa): Tự nấu khoảng 32.000đ, Bình dân khoảng 95.000đ, Thoải mái khoảng 190.000đ. Số này tính lại theo mô phỏng.
-  - Kiểm tra: test `autoMeal(s)` cho từng ô của bảng; test không tự ăn khi độ no từ 45 hoặc đã ăn; test chế độ Tự chọn bữa.
+- [x] **3.3 Thẻ ăn** (`src/cards.js`, `src/game.js`, `src/style.css`). Ban đầu làm chế độ ăn tự động (Tự nấu, Bình dân, Thoải mái, Tự chọn bữa); sau v0.4.0 bỏ, thay bằng thẻ ăn:
+  - **Thẻ ăn** đứng đầu hàng thẻ hành động, chỉ hiện khi buổi hiện tại chưa ăn và có món ăn được ở nơi đang đứng (kể cả đồ trong túi).
+  - Trên thẻ có thẳng 2 đến 3 món: đồ trong túi sắp hỏng (nếu có), món rẻ nhất, một món no hơn hoặc tốt cho sức khỏe hơn. Mỗi món ghi giá và nhãn hiệu ứng; bấm món nào thì ăn món đó (phím Q, W, E). Có thêm "Món khác…" (phím R) mở menu Ăn uống đầy đủ.
+  - Ăn không làm hết buổi (vẫn một bữa mỗi buổi). Ăn xong thẻ ăn biến mất, các thẻ hành động còn nguyên. Khi có thẻ ăn chỉ hiện 3 thẻ việc để tổng vẫn tối đa 5 thẻ.
+  - Thẻ ăn được tô nổi khi độ no dưới 45; dưới 25 có nhãn đỏ "Đang đói".
+  - Phát `GameAudio.sfx('eat')` khi ăn, `'coinOut'` khi mất tiền.
+  - Kiểm tra: test `pickMeals(s)` (quán ăn, đồ sắp hỏng, nấu cơm, chợ, không đủ tiền, đã ăn) và thẻ ăn (tô nổi, "Đang đói", ăn không hết buổi); Playwright một ngày đi học, ăn trưa, ca chiều, ăn tối, ca tối không quá 8 lần bấm.
 - [x] **3.4 Đếm số lần bấm** (`tools/test.js` hoặc Playwright)
   - Kịch bản một ngày thường (đi học, ăn trưa, làm ca chiều, làm ca tối), đếm mọi lần bấm, kể cả bấm đóng thông báo.
   - Đạt: không quá 6 lần bấm. Báo số lần bấm trung bình mỗi ngày trước khi sửa (bản v0.3.0) và sau khi sửa.
@@ -222,14 +210,14 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 - [x] **7.1** Cập nhật `docs/GAME_DESIGN.md`, `docs/DESIGN_SPEC.md`, README, CHANGELOG mục `[0.4.0]`; `package.json` lên 0.4.0.
 - [x] **7.2** Tăng khóa lưu lên `ba-muoi-ngay-sg-v6`; bản lưu cũ bắt đầu ván mới, có thông báo. Văn bản đề xuất: “Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”
-- [ ] **7.3** Hỏi rồi mở pull request `v0.3` → `main`.
+- [x] **7.3** Hỏi rồi mở pull request `v0.3` → `main`.
 - [ ] **7.4** Sau khi merge: kiểm tra trang Pages (có âm thanh, không lỗi console) và báo link để gửi anh Đạt. Hỏi trước khi tạo tag và release v0.4.0.
 
 ---
 
 ## Cần duyệt trước khi làm
 
-1. Bảng chế độ ăn × địa điểm ở 3.3, gồm việc Bình dân tránh mì gói.
+1. Bảng chế độ ăn × địa điểm ở 3.3, gồm việc Bình dân tránh mì gói (đã bỏ, thay bằng thẻ ăn).
 2. Nhiệm vụ "Quà sinh nhật mẹ" có cần ăn mừng ở TTTM mới hoàn thành không (2.12).
 3. Câu cảnh báo tối ngày 28 dùng "Sáng mai" thay "Sáng nay" (3.5).
 4. Các văn bản đề xuất có ghi "chờ duyệt" ở trên. Văn bản của các sự kiện mới và sinh nhật mẹ sẽ gửi kèm báo cáo từng giai đoạn.

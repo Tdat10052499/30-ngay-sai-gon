@@ -143,7 +143,7 @@ function expText(exp){if(exp===null)return 'Không có hạn';const n=exp-s.day;
 
 /* ============ State ============ */
 function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',money:START_MONEY,no:70,nl:80,tt:65,sk:80,
-  name:'Minh',gender:'nam',diff:'thuong',diet:'binhdan',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
+  name:'Minh',gender:'nam',diff:'thuong',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
   classToday:0,shiftToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,
   classCh:{1:0,2:0,3:0,4:0},shiftCh:{1:0,2:0,3:0,4:0},studyCh:{1:0,2:0,3:0,4:0},
   ateThisSlot:false,bikeBroken:0,lent:0,flags:{},log:[],hist:[],sumNo:0,sumTt:0,samples:0,
@@ -344,18 +344,6 @@ function doAction(a){
   else if(a.k==='meal'||a.k==='drink')closeMenu();
   afterChange();return true;
 }
-/* đầu mỗi buổi (sau khi các sự kiện đã xong): tự ăn theo chế độ ăn, mỗi buổi xét một lần */
-function slotStart(){if(s.mealChk===s.day*10+s.slot)return;s.mealChk=s.day*10+s.slot;tryAutoEat()}
-const MEAL_LBL={ship:'Đặt đồ ăn qua app',nguyenlieu:'Nấu cơm',mi:'Ăn mì gói'};
-function tryAutoEat(){
-  const m0=s.money,n0=s.no,top=s.log[0],p=autoEat();if(!p)return null;
-  if(win==='event'&&curEvent&&curEvent.kind==='mg')return p;
-  const id=p.act||p.item,lb=MEAL_LBL[id]||('Ăn '+(p.act?A[s.loc].find(a=>a.id===id).n:ITEMS[id].n).toLowerCase());
-  /* bỏ dòng nhật ký riêng của món ăn (và của lần mua), thay bằng một dòng tự ăn */
-  for(let i=0;i<s.log.length&&s.log[i]!==top;)if(!s.log[i].tone&&/^(Dùng |Nấu cơm ăn|Ăn mì|.+ [(]−[0-9.,]+k[)]$)/.test(s.log[i].text))s.log.splice(i,1);else i++;
-  const msg=`${lb}: ${s.money<m0?`−${fmt(m0-s.money)}, `:''}no +${s.no-n0}`;
-  showToast(msg);addLog('Tự ăn theo chế độ '+DIETS[s.diet].n+': '+msg);return p;
-}
 /* minigame (src/minigames.js): lần đầu mỗi tuần, sau đó khoảng 1 trong 3 lần; lần còn lại lấy kết quả trung bình.
  * Trả true nếu đã mở minigame (hành động chạy sau khi chơi xong). */
 const mgAvg=type=>type==='change'?MG_CHANGE_AVG:MG_COOK_AVG;
@@ -372,13 +360,14 @@ function mgApply(type,r,quiet){
   if(quiet)return;const out=applyEff({tt:r.tt||0,no:r.no||0});popFx(out,0);
   addLog(`Canh lửa: trúng ${r.n}/3 bước`+(r.tt?', tinh thần +3, no +4':''),r.tt?'good':'');if(r.burnt)addLog(MG_BURNT);
 }
-/* ăn theo chế độ ăn (src/cards.js); trả bữa đã ăn hoặc null */
-function autoEat(){
-  const p=autoMeal(s);if(!p)return null;
+/* ăn một món của thẻ ăn (src/cards.js): gọi món tại chỗ, ăn đồ trong túi, hoặc mua lẻ rồi ăn ngay.
+ * Không hết buổi; tiếng eat và coinOut phát trong doAction, useItem, txAdd */
+function eatMeal(m){
+  if(!m||s.over||win||s.ateThisSlot)return false;
   const find=id=>{const a=locActs().find(x=>x.id===id);return a&&!reason(a)?a:null};
-  if(p.act){const a=find(p.act);if(!a)return null;doAction(a);return p}
-  if(p.buy){const b=find(p.buy);if(!b)return null;doAction(b)}
-  if(itemReason(p.item))return null;useItem(p.item);return p;
+  if(m.kind==='act'){const a=find(m.id);return a?doAction(a):false}
+  if(m.kind==='buy'){const b=find(m.buy);if(!b)return false;doAction(b)}
+  if(itemReason(m.id))return false;useItem(m.id);return true;
 }
 function useItem(id,mgDone){
   const r=itemReason(id);if(r||s.over)return;
@@ -666,12 +655,22 @@ function cardHTML(c,i){
   const here=c.loc===s.loc,pl=here?`Tại ${c.place}`:`Đi ${c.place}${c.travel?` · ${fk(c.travel)}`:''}`;
   return `<button class="cd${c.hl?' hl':''}${c.lock?' locked':''}" type="button" data-card="${i}"${c.lock?' aria-disabled="true"':''}><span class="key">${i+1}</span>${c.quest?'<span class="qx" title="Nhiệm vụ">!</span>':''}<b>${c.n}</b><span class="pl">${icTag('pin')}${pl}</span><span class="efx">${cardChips(c)}</span>${c.lock?`<span class="why">${c.lock}</span>`:c.warn.length?`<span class="wn">${c.warn.map(k=>STATS.find(S=>S.k===k).n).join(', ')} xuống dưới 25</span>`:''}</button>`;
 }
+/* thẻ ăn: 2–3 món bấm là ăn, "Món khác…" mở nhóm Ăn uống (phím Q, W, E, R) */
+let meals=[];
+const MEAL_KEYS=['q','w','e'];
+function mealCardHTML(){
+  if(!meals.length)return '';
+  const tag=s.no<25?'<span class="hg">Đang đói</span>':'';
+  const opt=(m,i)=>{const ups=STATS.filter(S=>m.eff[S.k]).sort((a,b)=>Math.abs(m.eff[b.k])-Math.abs(m.eff[a.k])).slice(0,2);
+    return `<button class="mo" type="button" data-meal="${i}"><span class="mn"><kbd>${MEAL_KEYS[i].toUpperCase()}</kbd>${m.n}</span><span class="mp">${m.bag?'trong túi':fk(m.cost)}</span><span class="efx">${ups.map(S=>{const v=m.eff[S.k];return `<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`}).join('')}</span></button>`};
+  return `<div class="cd meal${s.no<HUNGRY_HL?' hl':''}" role="group" aria-label="Thẻ ăn" style="--n:${meals.length}"><b>${icTag('eat')}Ăn ${SLOTS[s.slot].toLowerCase()}${tag}</b>${meals.map(opt).join('')}<button class="mo more" type="button" data-meal-more><kbd>R</kbd>Món khác…</button></div>`;
+}
 function renderTools(){
   const n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
   const bill=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&d-s.day<=2),act=QUESTS.filter(q=>s.q[q.id]==='active').length;
   const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}" aria-label="${lb}">${icTag(ic)}${bd}</button>`;
   $('toolbar').innerHTML=tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
-    tool('cal','cal','Lịch',bill?`Lịch, chế độ ăn (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch, chế độ ăn (L)',bill?'<span class="bd dot"></span>':'')+
+    tool('cal','cal','Lịch',bill?`Lịch tháng (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch tháng (L)',bill?'<span class="bd dot"></span>':'')+
     tool('tasks','quest','Nhiệm vụ','Nhiệm vụ (J)',act?`<span class="bd">${act}</span>`:'')+
     tool('map','map','Bản đồ','Bản đồ (M)')+
     `<button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}</button>`;
@@ -680,7 +679,8 @@ function renderCmd(){
   const key=s.day*10+s.slot;if(key!==cardKey){cardKey=key;cardMode=true}
   renderTools();
   cards=pickCards(s);
-  if(cardMode)$('cmdbar').innerHTML='<span class="hb-grp cards">'+cards.map(cardHTML).join('')+'</span>';
+  meals=pickMeals(s);
+  if(cardMode)$('cmdbar').innerHTML='<span class="hb-grp cards">'+mealCardHTML()+cards.map(cardHTML).join('')+'</span>';
   else{const cats=visCats();
   $('cmdbar').innerHTML='<span class="hb-grp hb-acts">'+cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
     return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+
@@ -727,6 +727,8 @@ function openCat(id,focusId){
 }
 function closeMenu(){menuCat=null}
 $('cmdbar').addEventListener('click',e=>{
+  const ml=e.target.closest('[data-meal]');if(ml){eatMeal(meals[+ml.dataset.meal]);return}
+  if(e.target.closest('[data-meal-more]')){openMealMenu();return}
   const cd=e.target.closest('[data-card]');if(cd){runCard(+cd.dataset.card);return}
   if(e.target.closest('[data-back]')){closeMenu();cardMode=true;renderCmd();return}
   if(e.target.closest('[data-tool="map"]')){closeMenu();toggleWin('map');return}
@@ -736,7 +738,8 @@ $('toolbar').addEventListener('click',e=>{
   const t=e.target.closest('[data-tool]');if(!t)return;
   if(t.dataset.tool==='sys')openCat('sys');else{closeMenu();toggleWin(t.dataset.tool)}
 });
-/* bấm 1 thẻ là làm trọn: đi tới nơi, (tự ăn nếu đói), làm việc, sang buổi sau */
+function openMealMenu(){if(win)return;closeMenu();cardMode=false;renderCmd();openCat('eat')}
+/* bấm 1 thẻ là làm trọn: đi tới nơi, làm việc, sang buổi sau */
 let pendingCard=null;
 function runCard(i){
   const c=cards[i];if(!c||s.over||win)return;
@@ -751,7 +754,6 @@ function doCard(c){
 }
 function finishCard(c,at){
   if(s.over||s.day*10+s.slot!==at||s.loc!==c.loc)return;
-  tryAutoEat();if(win)return;
   const a=locActs().find(x=>x.id===c.id);if(a&&!reason(a))doAction(a);
 }
 $('popMenu').addEventListener('click',e=>{
@@ -874,7 +876,7 @@ function finishType(){
 const typingNow=()=>win==='event'&&evType&&!evType.done;
 function processQueue(){
   if(!s.started||s.over||win)return;
-  if(!queue.length){if(pendingCard){const p=pendingCard;pendingCard=null;finishCard(p.c,p.at)}else slotStart();return}
+  if(!queue.length){if(pendingCard){const p=pendingCard;pendingCard=null;finishCard(p.c,p.at)}return}
   curEvent=queue.shift();openWin('event');
 }
 function pickChoice(i){
@@ -941,8 +943,7 @@ function calHTML(){
   const dueQ=QUESTS.filter(q=>q.due===d&&s.q[q.id]==='active');
   dueQ.forEach(q=>{det+=`<p><span class="t-dot" style="--c:#d99a1e"></span><b>Hạn nhiệm vụ: ${q.t}</b></p>`});
   det+=notes.length||dueQ.length?notes.map(n=>`<p><span class="t-dot" style="--c:${n.c}"></span><b>${n.t}</b></p>`).join(''):'<p>Không có việc gì đặc biệt.</p>';
-  const diet=`<div class="diet"><label for="dietSel">Chế độ ăn</label><select id="dietSel">${Object.entries(DIETS).map(([k,D])=>`<option value="${k}"${s.diet===k?' selected':''}>${D.n}</option>`).join('')}</select><span class="est">${DIETS[s.diet].perDay?`Khoảng ${fk(DIETS[s.diet].perDay)} mỗi ngày`:'Tự bấm ăn như cũ'}</span></div>`;
-  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${diet}${det}</div></div>`;
+  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${det}</div></div>`;
 }
 function tasksHTML(){
   const ch=chOf(s.day),active=QUESTS.filter(q=>s.q[q.id]==='active').sort((a,b)=>a.due-b.due);
@@ -1013,7 +1014,7 @@ function rulesHTML(){return `<ul class="rules">
   <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và các việc tiền bạc không tốn thời gian.</li>
   <li>Thẻ gợi ý dưới cùng (phím 1–5): bấm một thẻ là tự đi tới nơi, làm việc đó rồi sang buổi sau. Thẻ <b>Tự chọn</b> mở các nhóm hành động như cũ. Thẻ bị khóa ghi rõ lý do.</li>
   <li>Thỉnh thoảng khi làm ca có minigame <b>Thối tiền</b>, khi nấu cơm có <b>Canh lửa</b>. Bỏ qua thì nhận kết quả trung bình.</li>
-  <li><b>Chế độ ăn</b> chọn trong <b>Lịch</b>. Đầu mỗi buổi, nếu độ no dưới 45 và chưa ăn, Minh tự ăn theo chế độ đó; chọn Tự chọn bữa để tự bấm ăn.</li>
+  <li><b>Thẻ ăn</b> đứng đầu hàng thẻ khi buổi này chưa ăn: bấm một món để ăn ngay (không hết buổi), hoặc “Món khác…” để xem đủ món. Thẻ sáng lên khi độ no dưới 45, có nhãn “Đang đói” khi dưới 25.</li>
   <li>Sáng thứ Hai đến thứ Sáu Minh phải lên lớp; vắng học bị trừ điểm học tập. Sáng thứ Hai ngày 29 là kiểm tra giữa kỳ.</li>
   <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca trưa, ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương hoặc gọi xin thêm bố mẹ bằng điện thoại ở phòng trọ.</li>
   <li>Hóa đơn tự trừ vào buổi sáng ngày 5, 10 và 20. Ví không đủ thì bị trừ hết tiền trong ví và tinh thần −12${rulesOf(s).billScale?' (thêm −1 mỗi 50.000đ thiếu, tối đa −30)':''}.</li>
@@ -1023,7 +1024,7 @@ function rulesHTML(){return `<ul class="rules">
 </ul>
 <div class="formula">Điểm = 1000 × Tài sản<sup>0,30</sup> × Độ no TB<sup>0,15</sup> × Tinh thần TB<sup>0,20</sup> × Sức khỏe cuối<sup>0,15</sup> × Học tập<sup>0,20</sup></div>
 <p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1, học tập là điểm học tập chia 100). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
-<p class="note-line">Phím tắt: 1–5 thẻ gợi ý (trong Tự chọn: nhóm hành động) · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
+<p class="note-line">Phím tắt: 1–5 thẻ gợi ý (trong Tự chọn: nhóm hành động) · Q W E món trên thẻ ăn, R món khác · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
 
 /* Thẻ chương (design/12 thẻ 2): tranh nhỏ khung gỗ, nội dung chương, nhiệm vụ của chương */
 function chapterHTML(e){
@@ -1196,7 +1197,6 @@ document.querySelectorAll('input[name="gender"]').forEach(r=>r.addEventListener(
 $('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;const dv=document.querySelector('input[name="diff"]:checked');pendingChar={name,gender:crGender,diff:dv?dv.value:'thuong'};startIntro()});
 $('crBack').addEventListener('click',showTitle);
 document.querySelectorAll('input[name="diff"]').forEach(r=>r.addEventListener('change',()=>{$('crDtx').textContent=DIFF_TXT[r.value]}));
-$('win').addEventListener('change',e=>{if(e.target.id==='dietSel'&&DIETS[e.target.value]){s.diet=e.target.value;save();renderWin();const f=$('dietSel');if(f)f.focus()}});
 
 /* Chuyển cảnh ngày 1 (design/03): đêm → bình minh → mặt trời mọc → thẻ Ngày 1 */
 const IN_T={fade:1.2,p0:1.0,p1:7.5,card:7.8,ready:8.5};
@@ -1239,7 +1239,9 @@ document.addEventListener('keydown',e=>{
     return}
   const k={b:'bag',l:'cal',m:'map',n:'log',j:'tasks'}[e.key.toLowerCase()];
   if(k){e.preventDefault();if(TAB_WINS.includes(win)&&TAB_WINS.includes(k)&&win!==k)openWin(k);else toggleWin(k);return}
-  if(cardMode){const n=/^[1-5]$/.test(e.key)?+e.key:0;if(n&&!win&&cards[n-1]){e.preventDefault();runCard(n-1)}return}
+  if(cardMode){const n=/^[1-5]$/.test(e.key)?+e.key:0;if(n&&!win&&cards[n-1]){e.preventDefault();runCard(n-1);return}
+    const mk=MEAL_KEYS.indexOf(e.key.toLowerCase());if(mk>=0&&!win&&meals[mk]){e.preventDefault();eatMeal(meals[mk]);return}
+    if(e.key.toLowerCase()==='r'&&!win&&meals.length){e.preventDefault();openMealMenu()}return}
   const c=/^[1-9]$/.test(e.key)&&visCats()[+e.key-1];
   if(c&&!win){e.preventDefault();openCat(c.id)}
 });

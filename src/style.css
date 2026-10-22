@@ -589,11 +589,21 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .warnc .wn-b button{display:flex;flex-direction:column;align-items:flex-start;gap:.1em}
 .warnc .wn-b small{font-size:.72em;font-weight:600;opacity:.85}
 .warnc .wn-b button:disabled{opacity:.55;cursor:not-allowed}
-/* chế độ ăn trong khung lịch */
-.diet{display:flex;align-items:center;flex-wrap:wrap;gap:.4em .6em;padding-bottom:calc(var(--p)*5);margin-bottom:calc(var(--p)*2);border-bottom:var(--p) solid var(--u-in)}
-.diet label{font-weight:800}
-.diet select{font:inherit;font-weight:700;color:var(--fg);background:var(--u-fill);border:var(--p) solid var(--u-hi);padding:.2em .4em;cursor:pointer}
-.diet .est{font-size:.85em;color:var(--muted);font-weight:700}
+/* thẻ ăn: đứng đầu hàng thẻ, mỗi món là một nút */
+.cd.meal{width:calc(var(--p)*104);cursor:default;gap:calc(var(--p)*2);padding:calc(var(--p)*4)}
+.cd.meal:hover{background:var(--u-well)}
+.cd.meal.hl:hover{background:rgba(255,201,77,.15)}
+.cd.meal>b{display:flex;align-items:center;gap:.35em;padding:0}
+.cd.meal>b .ic{width:1.3em;height:1.3em}
+.cd.meal .hg{margin-left:auto;font-size:.72em;font-weight:900;color:#fff;background:var(--bad);padding:0 .45em;line-height:1.5}
+.cd .mo{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;background:#1d2245;padding:calc(var(--p)*1.5) calc(var(--p)*3);display:grid;grid-template-columns:1fr auto;gap:0 .4em;align-items:center}
+.cd .mo:hover{background:#2a3160}
+.cd .mo .mn{font-size:.74em;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd .mo kbd{font:inherit;color:#8a90c0;margin-right:.35em}
+.cd .mo .mp{font-family:var(--f-num);font-size:.95em;line-height:1;color:var(--lantern)}
+.cd .mo .efx{grid-column:1/-1;flex-wrap:nowrap;overflow:hidden}
+.cd .mo.more{display:block;font-size:.7em;font-weight:700;color:var(--muted);background:transparent;padding-top:0}
+.cd .mo.more:hover{color:var(--fg)}
 /* chọn độ khó ở màn tạo nhân vật */
 .cr-diff{border:0;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:.45em}
 .cr-diff legend{font-weight:700;font-size:.9em;padding:0;margin-bottom:.45em}
@@ -786,4 +796,17 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
   .cd .efx span{white-space:nowrap}
   .cd .pl{white-space:nowrap}
   .cd .why,.cd .wn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+
+/* điện thoại nằm ngang: thẻ ăn gọn, các món xếp ngang thành nút từ 44 điểm */
+@media (pointer:coarse) and (orientation:landscape){
+  .cd.meal{width:230px;display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr)) 52px;gap:2px 3px;padding:3px 6px}
+  .cards{gap:3px}
+  .cd.meal>b{grid-column:1/-1;font-size:12px}
+  .cd .mo{min-width:0;min-height:44px;padding:2px 4px;display:flex;flex-direction:column;justify-content:center;gap:1px}
+  .cd .mo .mn{font-size:11px}.cd .mo kbd{display:none}
+  .cd .mo .mp{font-size:13px}
+  .cd .mo .efx{display:none}
+  .cd .mo.more{font-size:11px;text-align:center;align-items:center;padding:2px}
+  .cd.meal .hg{font-size:11px}
 }
