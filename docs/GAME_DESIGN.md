@@ -334,7 +334,9 @@ Thiết kế chi tiết từng màn hình nằm trong `design/`, đặc tả tro
 
 **Cửa sổ:** Bản đồ toàn màn hình; Túi đồ, Lịch, Nhiệm vụ chung một khung có tab; hội thoại có chân dung, lời thoại hiện dần, tin nhắn qua khung điện thoại; minigame; điện thoại trong game ở phòng trọ; tổng kết có đồ thị 30 ngày và 5 thanh yếu tố điểm kèm số mũ.
 
-**Điện thoại nằm ngang** (`pointer: coarse`, `orientation: landscape`): cảnh phủ kín màn hình, giao diện chừa vùng an toàn; thẻ hành động xếp dọc bên phải (cao từ 52 điểm), cột công cụ 48×48 bên trái, nhiệm vụ cạnh ví; nút chính từ 48×48 điểm, hàng danh sách từ 44 điểm, chữ nhỏ nhất 11 điểm. Điện thoại dọc hiện lời nhắc xoay ngang.
+**Co giãn** (`src/layout.js`): khung 16:9 tính bằng JavaScript theo vùng nhìn thấy, không phụ thuộc container query; chữ nhỏ nhất 11px và nút từ 44px ở mọi kích thước. `?debug=layout` hiện thông số co giãn, `?legacy=1` chạy nhánh không dùng container query.
+
+**Điện thoại nằm ngang** (lớp `html.phone`: máy có cảm ứng, cạnh ngắn màn hình tối đa 500px): cảnh phủ kín màn hình, giao diện chừa vùng an toàn; thẻ hành động xếp dọc bên phải (cao từ 52 điểm), cột công cụ 48×48 bên trái, nhiệm vụ cạnh ví; nút chính từ 48×48 điểm, hàng danh sách từ 44 điểm, chữ nhỏ nhất 11 điểm. Điện thoại dọc hiện lời nhắc xoay ngang, có nút "Vẫn chơi dọc" (khung game thu vào giữa màn hình, chữ rất nhỏ).
 
 **Trợ năng:** phím tắt B, L, J, M, N, 1–5, Q, W, E, R, Space, Esc; vùng có `aria-label`, cửa sổ có tiêu điểm bàn phím; tắt hoạt ảnh và bỏ giới hạn thời gian minigame khi bật `prefers-reduced-motion`.
 

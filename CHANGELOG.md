@@ -10,6 +10,13 @@
 - Bot mô phỏng ăn qua thẻ ăn; bảng mô phỏng có thêm cột "Độ no TB".
 - Độ khó Thường: độ no giảm 11 mỗi buổi (trước là 9), vì bot Thận trọng ăn chủ động qua thẻ ăn đạt 795 điểm, vượt mục tiêu. Sau khi chỉnh (300 ván): Thận trọng trung vị 763, phân vị 90 là 804 (13% đạt S), độ no trung bình 50; Chỉ lo làm ca 284; Ví trống ngày 5 là 380; Ngẫu nhiên 134; Thận trọng ở độ khó Dễ 831.
 
+### Sửa lỗi
+
+- **Giao diện điện thoại không co giãn trên một số trình duyệt.** Nguyên nhân: kích thước giao diện tính bằng container query (cqw, cqh), mà Safari dưới 16, Chrome dưới 105, Samsung Internet cũ và trình duyệt trong Zalo, Messenger, Facebook không hỗ trợ; chiều cao dùng 100dvh không có dự phòng; bố cục điện thoại chỉ bật qua media query `(pointer: coarse)`, máy báo sai loại con trỏ thì rơi về bố cục thu nhỏ với chữ 7px, nút 8px. Nay `src/layout.js` tính khung 16:9 bằng JavaScript theo vùng nhìn thấy (visualViewport) và gắn lớp `html.phone` theo kích thước màn hình và khả năng chạm; container query chỉ còn là dự phòng.
+- Chữ nhỏ nhất 11px và nút từ 44px ở mọi kích thước (điện thoại: nút chính 48px, thẻ cao từ 52px). Không chạm đúp phóng to, không kéo nảy trang, chữ không tự phóng to khi xoay ngang trên iOS. Chạm trên bản đồ đúng vị trí ở mọi tỉ lệ.
+- Cầm dọc: màn nhắc xoay ngang có nút "Vẫn chơi dọc" (khung game thu vào giữa màn hình).
+- Thêm `?debug=layout` hiện kích thước vùng nhìn thấy, devicePixelRatio, `--p`, hỗ trợ container query, vùng an toàn để người chơi thử chụp gửi lại; `?legacy=1` buộc chạy nhánh không dùng container query.
+
 ## [0.4.0] - 2026-10-22
 
 Bản chơi thử thứ 2 theo góp ý vòng 2: ít thao tác hơn, khó hơn và có chiều sâu hơn. Kế hoạch và từng giai đoạn: `docs/PLAN-BAN-THU-2.md`.
