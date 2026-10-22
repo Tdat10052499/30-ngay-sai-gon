@@ -799,7 +799,7 @@ function openWin(name){
 }
 /* điện thoại nằm ngang: các cửa sổ tính kích thước theo chiều cao màn hình nên chữ phụ có thể nhỏ hơn 11 điểm;
  * nâng mọi chữ dưới 11px lên 11px (chữ lớn giữ nguyên), theo DESIGN_SPEC mục 1 và design/12 thẻ 4 */
-const isPhone=()=>typeof matchMedia==='function'&&matchMedia('(pointer:coarse) and (orientation:landscape)').matches;
+const isPhone=()=>Layout.isPhone();
 function phoneMinFont(root){
   if(!root||!isPhone()||typeof getComputedStyle!=='function')return;
   root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11)el.style.fontSize='11px'});
@@ -1003,7 +1003,10 @@ function drawMap(t=0){
   Scenes.map.frame(cv.getContext('2d'),t,{animate:!reduceMotion(),slot:s.slot,at:s.loc,sel:mapSel,weekend:isWE(s.day),quests:Object.keys(mapQuests()),broken:s.bikeBroken>0,gender:s.gender});
 }
 $('layer').addEventListener('pointerdown',e=>{
-  if(e.target.id!=='mapCv')return;const r=e.target.getBoundingClientRect(),k=Math.min(r.width/320,r.height/180),x=(e.clientX-r.left)/k,y=(e.clientY-r.top-(r.height-180*k)/2)/k;
+  if(e.target.id!=='mapCv')return;
+  /* canvas 320×180 vẽ theo object-fit:contain; đổi tọa độ chạm theo đúng tỉ lệ và vị trí căn (object-position) */
+  const r=e.target.getBoundingClientRect(),k=Math.min(r.width/320,r.height/180),op=(getComputedStyle(e.target).objectPosition||'50% 50%').split(' ').map(v=>parseFloat(v)/100);
+  const x=(e.clientX-r.left-(r.width-320*k)*(isNaN(op[0])?.5:op[0]))/k,y=(e.clientY-r.top-(r.height-180*k)*(isNaN(op[1])?.5:op[1]))/k;
   const hit=Scenes.map.PLACES.find(p=>{const [bx,by,bw,bh]=p.box;return x>=bx-3&&x<=bx+bw+3&&y>=by-12&&y<=by+bh+3});if(hit){mapSel=hit.id;renderWin()}
 });
 
@@ -1196,6 +1199,21 @@ $('crName').addEventListener('input',crCheck);
 document.querySelectorAll('input[name="gender"]').forEach(r=>r.addEventListener('change',()=>{crGender=r.value;$('crAva').setAttribute('aria-label',CR_LABEL[crGender])}));
 $('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;const dv=document.querySelector('input[name="diff"]:checked');pendingChar={name,gender:crGender,diff:dv?dv.value:'thuong'};startIntro()});
 $('crBack').addEventListener('click',showTitle);
+/* co giãn (src/layout.js): đổi kích thước hoặc xoay máy thì vẽ lại HUD và cửa sổ đang mở */
+window.onLayout=()=>{if(!s||!s.started||$('ui').hidden)return;render();if(win)renderWin()};
+$('rotPlay').addEventListener('click',()=>Layout.allowPortrait());
+/* chạm trong khung game không cuộn hay kéo nảy trang; các vùng có nội dung dài (nhiệm vụ, nhật ký, menu) vẫn cuộn được */
+function canScroll(el){
+  for(;el&&el!==document.body;el=el.parentElement){
+    if(el.matches&&el.matches('input[type=range]'))return true;
+    const cs=getComputedStyle(el);
+    if(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+1)return true;
+    if(/(auto|scroll)/.test(cs.overflowX)&&el.scrollWidth>el.clientWidth+1)return true;
+  }
+  return false;
+}
+document.addEventListener('touchmove',e=>{if(e.touches.length>1||!canScroll(e.target))e.preventDefault()},{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault());
 document.querySelectorAll('input[name="diff"]').forEach(r=>r.addEventListener('change',()=>{$('crDtx').textContent=DIFF_TXT[r.value]}));
 
 /* Chuyển cảnh ngày 1 (design/03): đêm → bình minh → mặt trời mọc → thẻ Ngày 1 */
