@@ -19,7 +19,7 @@ Người chơi đặt tên, chọn Nam hoặc Nữ cho nhân vật 18 tuổi r�
 - **4 chương** theo 4 tuần: Tân sinh viên · Vừa học vừa làm · Lương part-time đầu tiên · Về đích
 - **14 nhiệm vụ chính** và 2 việc nhỏ mỗi ngày dẫn dắt người chơi
 - **Học và làm**: lên lớp mỗi sáng, ca part-time trưa, chiều, tối, điểm học tập và bài kiểm tra giữa kỳ
-- **Thẻ hành động** theo buổi, một ngày thường chỉ khoảng 5 lần bấm; **chế độ ăn** tự ăn khi đói (Tự nấu, Bình dân, Thoải mái, Tự chọn bữa)
+- **Thẻ hành động** theo buổi, một ngày thường chỉ khoảng 5 lần bấm; **thẻ ăn** hiện 2–3 món ăn được ngay, bấm là ăn
 - **Hai độ khó**: Thường (hao hụt và hình phạt tăng dần theo chương) và Dễ
 - **Bộ bài sự kiện** 20 sự kiện ngẫu nhiên có giới hạn số lần và thời gian chờ; hộp cảnh báo cho việc quan trọng
 - **Minigame** Thối tiền khi làm ca và Canh lửa khi nấu cơm
@@ -81,7 +81,7 @@ Mọi thao tác khác đều bấm chuột hoặc chạm. Trên điện thoại,
 ├── src/
 │   ├── rules.js            Luật theo độ khó Thường và Dễ, công thức điểm
 │   ├── events.js           Bộ bài sự kiện ngẫu nhiên
-│   ├── cards.js            Chọn thẻ hành động, chế độ ăn
+│   ├── cards.js            Chọn thẻ hành động và món cho thẻ ăn
 │   ├── minigames.js        Minigame Thối tiền và Canh lửa
 │   ├── audio.js            Nhạc nền và hiệu ứng (Web Audio)
 │   ├── game.js             Logic game: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện, chọn cảnh
@@ -130,7 +130,7 @@ npm test          # kiểm tra cú pháp + test cố định + mô phỏng 40 v�
 npm run sim       # mô phỏng đầy đủ 300 ván, in tỉ lệ hoàn thành từng nhiệm vụ
 ```
 
-Trình mô phỏng nạp mọi script theo thứ tự trong `index.html` và chạy logic thật của game với bốn bot, ăn theo chế độ Bình dân như người chơi, minigame lấy kết quả trung bình: **Thận trọng** (lên lớp đủ, làm ca vừa phải, dọn phòng khi bừa, từ chối chi tiêu bốc đồng), **Chỉ lo làm ca** (lấy mọi ca), **Ví trống ngày 5** (cố tình tiêu sạch ví trước ngày đóng tiền nhà) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng (`src/rules.js`).
+Trình mô phỏng nạp mọi script theo thứ tự trong `index.html` và chạy logic thật của game với bốn bot, ăn qua thẻ ăn như người chơi, minigame lấy kết quả trung bình: **Thận trọng** (lên lớp đủ, làm ca vừa phải, dọn phòng khi bừa, từ chối chi tiêu bốc đồng), **Chỉ lo làm ca** (lấy mọi ca), **Ví trống ngày 5** (cố tình tiêu sạch ví trước ngày đóng tiền nhà) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng (`src/rules.js`).
 
 Kết quả hiện tại (300 ván mỗi bot, độ khó Thường):
 

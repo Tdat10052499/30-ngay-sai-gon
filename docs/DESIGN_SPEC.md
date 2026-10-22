@@ -97,4 +97,6 @@ Không có file thiết kế mới; các phần dưới vẽ theo đúng quy t�
 
 **Điện thoại nằm ngang** (bổ sung mục 3, file 12 thẻ 4): thẻ hành động xếp dọc bên phải, rộng 230 điểm, cao từ 52 điểm, cảnh báo một dòng có dấu "…"; cột công cụ 48×48 bên trái; khung nhiệm vụ dời sang cạnh ví. Nút chính từ 48×48 điểm, hàng danh sách và tab từ 44 điểm (ô ngày trong Lịch 38 điểm vì lưới 5 hàng). Chữ nhỏ nhất 11 điểm: các cửa sổ tính kích thước theo chiều cao màn hình nên `phoneMinFont()` nâng chữ dưới 11px lên 11px khi mở cửa sổ.
 
+**Co giãn** (sửa sau v0.4.0): `--p` (1/640 bề ngang khung), `--cw`, `--ch` (1/100 bề ngang, bề cao khung), `--vh` do `src/layout.js` tính và đặt lên thẻ html; CSS không dùng cqw, cqh (container query chỉ còn là dự phòng trong `@supports` khi JS chưa chạy). Bố cục điện thoại bật bằng lớp `html.phone` thay cho media query `(pointer: coarse)`. Chữ nhỏ nhất 11px ở mọi kích thước (`minFont()` nâng chữ nhỏ hơn), nút từ 44px.
+
 **Khóa lưu** `ba-muoi-ngay-sg-v6`. Có bản lưu cũ (v1–v5) mà chưa có bản mới thì trang bìa hiện “Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”; bản cũ bị xóa khi bắt đầu tháng mới.

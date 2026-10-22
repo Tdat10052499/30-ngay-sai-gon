@@ -10,7 +10,7 @@ Phiên bản tài liệu: 0.4.0 · Cập nhật: 22/10/2026
 2. [Cốt truyện và nhân vật](#2-cốt-truyện-và-nhân-vật)
 3. [Vòng lặp chơi](#3-vòng-lặp-chơi)
 4. [Hệ thống chỉ số và độ khó](#4-hệ-thống-chỉ-số-và-độ-khó)
-5. [Địa điểm, hành động và chế độ ăn](#5-địa-điểm-hành-động-và-chế-độ-ăn)
+5. [Địa điểm, hành động và thẻ ăn](#5-địa-điểm-hành-động-và-thẻ-ăn)
 6. [Túi đồ và vật phẩm](#6-túi-đồ-và-vật-phẩm)
 7. [Nhiệm vụ và điểm học tập](#7-nhiệm-vụ-và-điểm-học-tập)
 8. [Sự kiện](#8-sự-kiện)
@@ -59,12 +59,12 @@ Minh (hoặc tên người chơi đặt), 18 tuổi, rời Tuy Hòa vào Sài G�
 
 ![Vòng lặp chơi](images/game-loop.svg)
 
-Mỗi buổi có **3 đến 5 thẻ hành động** gợi ý. Bấm một thẻ là làm trọn: tự đi tới nơi (trừ tiền đi lại), tự ăn nếu đang đói, làm việc đó, chạy cảnh hành động rồi sang buổi sau. Thẻ cuối luôn là **Tự chọn**, mở các nhóm hành động như trước (Ăn uống, Mua, Hoạt động, Tiền bạc, Bản đồ).
+Mỗi buổi có **3 đến 5 thẻ hành động** gợi ý. Bấm một thẻ là làm trọn: tự đi tới nơi (trừ tiền đi lại), làm việc đó, chạy cảnh hành động rồi sang buổi sau. Thẻ cuối luôn là **Tự chọn**, mở các nhóm hành động như trước (Ăn uống, Mua, Hoạt động, Tiền bạc, Bản đồ).
 
 | Việc trong một buổi | Giới hạn | Tốn thời gian |
 | --- | --- | --- |
 | Đi tới địa điểm khác | Không giới hạn | Không |
-| Ăn một bữa (tự ăn theo chế độ ăn, hoặc tự bấm) | Tối đa 1 lần | Không |
+| Ăn một bữa (bấm món trên thẻ ăn, hoặc Tự chọn → Ăn uống) | Tối đa 1 lần | Không |
 | Uống, dùng thuốc | Không giới hạn | Không |
 | Mua đồ, việc tiền bạc (ứng lương, xin tiền) | Không giới hạn | Không |
 | Hoạt động chính (lên lớp, làm ca, nghỉ, giải trí…) | Đúng 1 lần | Có, sang buổi sau |
@@ -101,7 +101,7 @@ Qua đêm: năng lượng hồi 50, độ no giảm 10, đồ hết hạn bị b
 
 | Luật | Thường (mặc định) | Dễ |
 | --- | --- | --- |
-| Hao hụt mỗi buổi | no −9, năng lượng −5, tinh thần −2 | no −9, năng lượng −4, tinh thần −2 |
+| Hao hụt mỗi buổi | no −11, năng lượng −5, tinh thần −2 | no −9, năng lượng −4, tinh thần −2 |
 | Hệ số theo chương 1/2/3/4 | ×1 / ×1 / ×1,05 / ×1,1 | ×1 |
 | Đói (no < 25), mỗi buổi | tinh thần −5, sức khỏe −2 | tinh thần −4, sức khỏe −2 |
 | Đói lả (no = 0), mỗi buổi | sức khỏe −8, năng lượng −5 | sức khỏe −4 |
@@ -130,7 +130,7 @@ Mỗi lần bị phạt, nhật ký ghi rõ nguyên nhân và con số, gộp m�
 
 Tăng +10 mỗi đêm, +6 mỗi bữa ăn trong phòng, +4 mỗi lần nấu (nấu là một bữa nên tổng +10), +2 mỗi buổi ở phòng. Dọn phòng −50, năng lượng −6, mất một buổi.
 
-## 5. Địa điểm, hành động và chế độ ăn
+## 5. Địa điểm, hành động và thẻ ăn
 
 | Địa điểm | Mở cửa | Đi lại | Hành động chính |
 | --- | --- | --- | --- |
@@ -154,20 +154,7 @@ Hết tiền xăng thì đi bộ: năng lượng −8, tinh thần −2. Xe hỏ
 | Ca chiều | Mọi ngày | 90.000đ | Năng lượng −20, tinh thần −3, no −4 |
 | Ca tối | Mọi ngày | 110.000đ | Năng lượng −28, tinh thần −4, sức khỏe −2, no −4 |
 
-**Chế độ ăn** (chọn trong Lịch, mặc định Bình dân): đầu mỗi buổi, nếu độ no dưới 45 và buổi đó chưa ăn, Minh tự ăn theo bảng dưới, hiện thông báo ngắn (ví dụ “Ăn cơm căng tin: −25.000đ, no +33”) và ghi nhật ký. "Đồ trong túi" là đồ ăn trong túi dùng được ở nơi đó, ưu tiên món sắp hỏng nhất. **Tự chọn bữa** thì không tự ăn.
-
-| Nơi | Tự nấu | Bình dân | Thoải mái |
-| --- | --- | --- | --- |
-| Phòng trọ | Nấu nguyên liệu trong túi; không có thì như Bình dân | Đồ trong túi (trừ mì gói); không có thì mì gói; không có gì thì đặt đồ ăn 68.000đ | Đặt đồ ăn 68.000đ |
-| Quán ăn | Như Bình dân | Đồ trong túi; không có thì cơm tấm 40.000đ | Bún bò 75.000đ |
-| Chợ | Như Bình dân | Đồ trong túi; không có thì mua trái cây 25.000đ | Như Bình dân |
-| Công viên | Như Bình dân | Đồ trong túi; không có thì bắp xào 15.000đ | Như Bình dân |
-| Quán cà phê | Như Bình dân | Đồ trong túi; không có thì mua bánh ngọt 30.000đ | Như Bình dân |
-| Trường | Như Bình dân | Buổi trưa cơm căng tin 25.000đ; buổi khác đồ trong túi | Như Bình dân |
-| Cửa hàng tiện lợi | Như Bình dân | Đồ trong túi (trừ mì gói); không có thì cơm hộp 30.000đ | Cơm hộp 30.000đ |
-| TTTM | Như Bình dân | Đồ trong túi; không có thì không tự ăn | Buffet lẩu 199.000đ |
-
-Ước tính tiền ăn mỗi ngày (mô phỏng): Tự nấu khoảng 40.000đ, Bình dân khoảng 45.000đ, Thoải mái khoảng 65.000đ.
+**Thẻ ăn** (`pickMeals` trong `src/cards.js`): đứng đầu hàng thẻ khi buổi hiện tại chưa ăn và có món ăn được ở nơi đang đứng. Trên thẻ có 2 đến 3 món: đồ trong túi sắp hỏng (hỏng sau hôm nay) nếu có, món rẻ nhất, một món no hơn hoặc tốt cho sức khỏe hơn (độ no + 2 × sức khỏe cao nhất). Món lấy từ đồ trong túi (0đ), món gọi tại chỗ và đồ mua lẻ ăn ngay (bánh mì, xôi ở quán ăn; trái cây ở chợ; bánh ngọt ở quán cà phê); món không đủ tiền thì không gợi ý. Mỗi món ghi giá và nhãn hiệu ứng, bấm là ăn (phím Q, W, E); "Món khác…" (phím R) mở nhóm Ăn uống đầy đủ. Ăn không hết buổi; ăn xong thẻ ăn biến mất. Độ no dưới 45 thì thẻ được tô nổi, dưới 25 có nhãn đỏ "Đang đói". Khi có thẻ ăn chỉ hiện 3 thẻ việc.
 
 ## 6. Túi đồ và vật phẩm
 
@@ -293,7 +280,7 @@ Thiếu tiền trả hóa đơn (và viện phí): trừ hết tiền trong ví,
 | Xin ứng lương | Ứng 300k từ lương đang chờ, mỗi kỳ 1 lần, không lãi | Cách lành mạnh |
 | Xin thêm tiền bố mẹ (gọi điện ở phòng trọ, hoặc khi mẹ gọi ngày 18) | +500k, tối đa 2 lần | Tinh thần −8, thất bại nhiệm vụ Tự lập |
 
-**Kết quả mô phỏng** (`npm run sim`, 300 ván mỗi bot, độ khó Thường trừ dòng cuối, v0.4.0). Bot ăn theo chế độ Bình dân như người chơi; minigame lấy kết quả trung bình.
+**Kết quả mô phỏng** (`npm run sim`, 300 ván mỗi bot, độ khó Thường trừ dòng cuối, v0.4.0). Bot ăn qua thẻ ăn như người chơi; minigame lấy kết quả trung bình. Số dưới đây là của bản v0.4.0 (còn chế độ ăn tự động); kết quả sau khi đổi sang thẻ ăn ghi trong CHANGELOG.
 
 | Bot | Điểm trung vị | Phân vị 90 | Hạng S / A / B / C / D | Nhiệm vụ TB | Điểm học tập | Ca | Tài sản cuối | Tinh thần TB | Bị ốm ≥ 1 lần |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -338,18 +325,20 @@ Thiết kế chi tiết từng màn hình nằm trong `design/`, đặc tả tro
 | Vị trí | Thành phần |
 | --- | --- |
 | Trên trái | Thứ, chương, ngày, 4 buổi, nơi đang đứng, độ bừa bộn phòng (khi ở phòng trọ) |
-| Trên phải | Ví và lương chờ; nhiệm vụ đang theo dõi, hạn, việc hôm nay; cột công cụ Túi đồ · Lịch (có chế độ ăn) · Nhiệm vụ · Bản đồ · Menu |
+| Trên phải | Ví và lương chờ; nhiệm vụ đang theo dõi, hạn, việc hôm nay; cột công cụ Túi đồ · Lịch · Nhiệm vụ · Bản đồ · Menu |
 | Dưới trái | 4 chỉ số dạng cột, vạch đỏ ở mức 25 |
-| Giữa dưới | 3–5 thẻ hành động (phím 1–5); trong Tự chọn là các nhóm Ăn uống · Mua · Hoạt động · Tiền bạc · Bản đồ · Thẻ gợi ý |
+| Giữa dưới | Thẻ ăn (phím Q, W, E, R) và 3–5 thẻ hành động (phím 1–5); trong Tự chọn là các nhóm Ăn uống · Mua · Hoạt động · Tiền bạc · Bản đồ · Thẻ gợi ý |
 | Giữa trên | Cảnh báo kèm nút làm ngay: giờ học, nơi đóng cửa, phòng bừa bộn |
 
 **Hộp cảnh báo giữa màn hình** (nút làm ngay và "Để sau", phát âm `warn`, mỗi cảnh báo một lần): tối ngày 4 tiền nhà kèm số dư · tối ngày 28 “Sáng mai là bài kiểm tra giữa kỳ…” (nút Về phòng ngủ sớm) · sáng ngày 29 “Sáng nay là bài kiểm tra giữa kỳ…” (nút Đi thi ngay) · trưa ngày 29, 30 nhắc quà sinh nhật mẹ (nút Đi TTTM) · sáng ngày cuối của nhiệm vụ chính còn đang làm.
 
 **Cửa sổ:** Bản đồ toàn màn hình; Túi đồ, Lịch, Nhiệm vụ chung một khung có tab; hội thoại có chân dung, lời thoại hiện dần, tin nhắn qua khung điện thoại; minigame; điện thoại trong game ở phòng trọ; tổng kết có đồ thị 30 ngày và 5 thanh yếu tố điểm kèm số mũ.
 
-**Điện thoại nằm ngang** (`pointer: coarse`, `orientation: landscape`): cảnh phủ kín màn hình, giao diện chừa vùng an toàn; thẻ hành động xếp dọc bên phải (cao từ 52 điểm), cột công cụ 48×48 bên trái, nhiệm vụ cạnh ví; nút chính từ 48×48 điểm, hàng danh sách từ 44 điểm, chữ nhỏ nhất 11 điểm. Điện thoại dọc hiện lời nhắc xoay ngang.
+**Co giãn** (`src/layout.js`): khung 16:9 tính bằng JavaScript theo vùng nhìn thấy, không phụ thuộc container query; chữ nhỏ nhất 11px và nút từ 44px ở mọi kích thước. `?debug=layout` hiện thông số co giãn, `?legacy=1` chạy nhánh không dùng container query.
 
-**Trợ năng:** phím tắt B, L, J, M, N, 1–5, Space, Esc; vùng có `aria-label`, cửa sổ có tiêu điểm bàn phím; tắt hoạt ảnh và bỏ giới hạn thời gian minigame khi bật `prefers-reduced-motion`.
+**Điện thoại nằm ngang** (lớp `html.phone`: máy có cảm ứng, cạnh ngắn màn hình tối đa 500px): cảnh phủ kín màn hình, giao diện chừa vùng an toàn; thẻ hành động xếp dọc bên phải (cao từ 52 điểm), cột công cụ 48×48 bên trái, nhiệm vụ cạnh ví; nút chính từ 48×48 điểm, hàng danh sách từ 44 điểm, chữ nhỏ nhất 11 điểm. Điện thoại dọc hiện lời nhắc xoay ngang, có nút "Vẫn chơi dọc" (khung game thu vào giữa màn hình, chữ rất nhỏ).
+
+**Trợ năng:** phím tắt B, L, J, M, N, 1–5, Q, W, E, R, Space, Esc; vùng có `aria-label`, cửa sổ có tiêu điểm bàn phím; tắt hoạt ảnh và bỏ giới hạn thời gian minigame khi bật `prefers-reduced-motion`.
 
 **Âm thanh:** nhạc nền theo màn hình và địa điểm, dịu lại buổi tối; hiệu ứng cho thao tác và kết quả. Chỉ bật sau lần bấm đầu tiên; mỗi lần bấm, ngữ cảnh âm thanh bị tạm dừng sẽ được chạy lại; Safari đặt phiên âm thanh "playback" để nút gạt im lặng trên iPhone không chặn. Menu → Âm thanh chỉnh Nhạc nền, Hiệu ứng, Tắt tiếng (lưu ở khóa `ba-muoi-ngay-sg-audio`). Chi tiết: DESIGN_SPEC mục 6.
 

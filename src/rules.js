@@ -4,7 +4,7 @@
 const DIFFS={
   thuong:{
     n:'Thường',
-    decay:{no:9,tt:2,nl:5},             // hao hụt cuối mỗi buổi (mô phỏng: tinh thần −3 làm Thận trọng chỉ còn khoảng 500 điểm)
+    decay:{no:11,tt:2,nl:5},            // hao hụt cuối mỗi buổi (mô phỏng: tinh thần −3 làm Thận trọng chỉ còn khoảng 500 điểm)
     chap:[1,1,1,1.05,1.1],             // hệ số hao hụt theo chương (chỉ số 1–4)
     hungry:{tt:-5,sk:-2},               // no dưới 25
     starve:{sk:-8,nl:-5},               // no về 0

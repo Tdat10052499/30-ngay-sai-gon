@@ -143,7 +143,7 @@ function expText(exp){if(exp===null)return 'Không có hạn';const n=exp-s.day;
 
 /* ============ State ============ */
 function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',money:START_MONEY,no:70,nl:80,tt:65,sk:80,
-  name:'Minh',gender:'nam',diff:'thuong',diet:'binhdan',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
+  name:'Minh',gender:'nam',diff:'thuong',evUse:{},evDay:0,evLast:null,mess:0,askCount:0,absentDays:[],truantDays:[],accrued:0,paid1:false,shiftHalf:0,absences:0,classes:0,shifts:0,study:0,noodleToday:0,noodleTotal:0,cooked:0,
   classToday:0,shiftToday:0,mealsToday:0,spentToday:0,relaxToday:0,cookedToday:0,
   classCh:{1:0,2:0,3:0,4:0},shiftCh:{1:0,2:0,3:0,4:0},studyCh:{1:0,2:0,3:0,4:0},
   ateThisSlot:false,bikeBroken:0,lent:0,flags:{},log:[],hist:[],sumNo:0,sumTt:0,samples:0,
@@ -344,18 +344,6 @@ function doAction(a){
   else if(a.k==='meal'||a.k==='drink')closeMenu();
   afterChange();return true;
 }
-/* đầu mỗi buổi (sau khi các sự kiện đã xong): tự ăn theo chế độ ăn, mỗi buổi xét một lần */
-function slotStart(){if(s.mealChk===s.day*10+s.slot)return;s.mealChk=s.day*10+s.slot;tryAutoEat()}
-const MEAL_LBL={ship:'Đặt đồ ăn qua app',nguyenlieu:'Nấu cơm',mi:'Ăn mì gói'};
-function tryAutoEat(){
-  const m0=s.money,n0=s.no,top=s.log[0],p=autoEat();if(!p)return null;
-  if(win==='event'&&curEvent&&curEvent.kind==='mg')return p;
-  const id=p.act||p.item,lb=MEAL_LBL[id]||('Ăn '+(p.act?A[s.loc].find(a=>a.id===id).n:ITEMS[id].n).toLowerCase());
-  /* bỏ dòng nhật ký riêng của món ăn (và của lần mua), thay bằng một dòng tự ăn */
-  for(let i=0;i<s.log.length&&s.log[i]!==top;)if(!s.log[i].tone&&/^(Dùng |Nấu cơm ăn|Ăn mì|.+ [(]−[0-9.,]+k[)]$)/.test(s.log[i].text))s.log.splice(i,1);else i++;
-  const msg=`${lb}: ${s.money<m0?`−${fmt(m0-s.money)}, `:''}no +${s.no-n0}`;
-  showToast(msg);addLog('Tự ăn theo chế độ '+DIETS[s.diet].n+': '+msg);return p;
-}
 /* minigame (src/minigames.js): lần đầu mỗi tuần, sau đó khoảng 1 trong 3 lần; lần còn lại lấy kết quả trung bình.
  * Trả true nếu đã mở minigame (hành động chạy sau khi chơi xong). */
 const mgAvg=type=>type==='change'?MG_CHANGE_AVG:MG_COOK_AVG;
@@ -372,13 +360,14 @@ function mgApply(type,r,quiet){
   if(quiet)return;const out=applyEff({tt:r.tt||0,no:r.no||0});popFx(out,0);
   addLog(`Canh lửa: trúng ${r.n}/3 bước`+(r.tt?', tinh thần +3, no +4':''),r.tt?'good':'');if(r.burnt)addLog(MG_BURNT);
 }
-/* ăn theo chế độ ăn (src/cards.js); trả bữa đã ăn hoặc null */
-function autoEat(){
-  const p=autoMeal(s);if(!p)return null;
+/* ăn một món của thẻ ăn (src/cards.js): gọi món tại chỗ, ăn đồ trong túi, hoặc mua lẻ rồi ăn ngay.
+ * Không hết buổi; tiếng eat và coinOut phát trong doAction, useItem, txAdd */
+function eatMeal(m){
+  if(!m||s.over||win||s.ateThisSlot)return false;
   const find=id=>{const a=locActs().find(x=>x.id===id);return a&&!reason(a)?a:null};
-  if(p.act){const a=find(p.act);if(!a)return null;doAction(a);return p}
-  if(p.buy){const b=find(p.buy);if(!b)return null;doAction(b)}
-  if(itemReason(p.item))return null;useItem(p.item);return p;
+  if(m.kind==='act'){const a=find(m.id);return a?doAction(a):false}
+  if(m.kind==='buy'){const b=find(m.buy);if(!b)return false;doAction(b)}
+  if(itemReason(m.id))return false;useItem(m.id);return true;
 }
 function useItem(id,mgDone){
   const r=itemReason(id);if(r||s.over)return;
@@ -626,7 +615,7 @@ function finish(){s.over=true;queue=[];closeMenu();save();render();openWin('end'
 const icURL=k=>{const n=ICO_NEW[k]||k;return Icons.has(n)?Icons.url(n):'data:image/svg+xml,'+encodeURIComponent(ico(k).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))};
 const icTag=k=>`<i class="ic" style="--i:url(${icURL(k)})"></i>`;
 const SLOT_IC=['dawn','noon','dusk','night'];
-function render(){syncMusic();renderTop();renderTracker();renderCmd();if(win&&win!=='event'&&win!=='end')renderWin()}
+function render(){syncMusic();renderTop();renderTracker();renderCmd();if(win&&win!=='event'&&win!=='end')renderWin();minFont($('ui'))}
 function renderTop(){
   $('dayNum').textContent=s.day;
   $('dow').textContent=DOW[dowOf(s.day)];
@@ -666,12 +655,22 @@ function cardHTML(c,i){
   const here=c.loc===s.loc,pl=here?`Tại ${c.place}`:`Đi ${c.place}${c.travel?` · ${fk(c.travel)}`:''}`;
   return `<button class="cd${c.hl?' hl':''}${c.lock?' locked':''}" type="button" data-card="${i}"${c.lock?' aria-disabled="true"':''}><span class="key">${i+1}</span>${c.quest?'<span class="qx" title="Nhiệm vụ">!</span>':''}<b>${c.n}</b><span class="pl">${icTag('pin')}${pl}</span><span class="efx">${cardChips(c)}</span>${c.lock?`<span class="why">${c.lock}</span>`:c.warn.length?`<span class="wn">${c.warn.map(k=>STATS.find(S=>S.k===k).n).join(', ')} xuống dưới 25</span>`:''}</button>`;
 }
+/* thẻ ăn: 2–3 món bấm là ăn, "Món khác…" mở nhóm Ăn uống (phím Q, W, E, R) */
+let meals=[];
+const MEAL_KEYS=['q','w','e'];
+function mealCardHTML(){
+  if(!meals.length)return '';
+  const tag=s.no<25?'<span class="hg">Đang đói</span>':'';
+  const opt=(m,i)=>{const ups=STATS.filter(S=>m.eff[S.k]).sort((a,b)=>Math.abs(m.eff[b.k])-Math.abs(m.eff[a.k])).slice(0,2);
+    return `<button class="mo" type="button" data-meal="${i}"><span class="mn"><kbd>${MEAL_KEYS[i].toUpperCase()}</kbd>${m.n}</span><span class="mp">${m.bag?'trong túi':fk(m.cost)}</span><span class="efx">${ups.map(S=>{const v=m.eff[S.k];return `<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`}).join('')}</span></button>`};
+  return `<div class="cd meal${s.no<HUNGRY_HL?' hl':''}" role="group" aria-label="Thẻ ăn" style="--n:${isPhone()?Math.min(2,meals.length):meals.length}"><b>${icTag('eat')}Ăn ${SLOTS[s.slot].toLowerCase()}${tag}</b>${(isPhone()?meals.slice(0,2):meals).map(opt).join('')}<button class="mo more" type="button" data-meal-more><kbd>R</kbd>Món khác…</button></div>`;
+}
 function renderTools(){
   const n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
   const bill=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&d-s.day<=2),act=QUESTS.filter(q=>s.q[q.id]==='active').length;
   const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}" aria-label="${lb}">${icTag(ic)}${bd}</button>`;
   $('toolbar').innerHTML=tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
-    tool('cal','cal','Lịch',bill?`Lịch, chế độ ăn (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch, chế độ ăn (L)',bill?'<span class="bd dot"></span>':'')+
+    tool('cal','cal','Lịch',bill?`Lịch tháng (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch tháng (L)',bill?'<span class="bd dot"></span>':'')+
     tool('tasks','quest','Nhiệm vụ','Nhiệm vụ (J)',act?`<span class="bd">${act}</span>`:'')+
     tool('map','map','Bản đồ','Bản đồ (M)')+
     `<button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}</button>`;
@@ -680,7 +679,8 @@ function renderCmd(){
   const key=s.day*10+s.slot;if(key!==cardKey){cardKey=key;cardMode=true}
   renderTools();
   cards=pickCards(s);
-  if(cardMode)$('cmdbar').innerHTML='<span class="hb-grp cards">'+cards.map(cardHTML).join('')+'</span>';
+  meals=pickMeals(s);
+  if(cardMode)$('cmdbar').innerHTML='<span class="hb-grp cards">'+mealCardHTML()+cards.map(cardHTML).join('')+'</span>';
   else{const cats=visCats();
   $('cmdbar').innerHTML='<span class="hb-grp hb-acts">'+cats.map((c,i)=>{const list=catActs(c),story=list.some(a=>a.story&&!reason(a));
     return `<button class="hb act" type="button" data-cat="${c.id}" aria-expanded="${menuCat===c.id}" data-tip="${c.n} (${i+1})"><span class="key">${i+1}</span>${icTag(c.ic)}<span class="lb">${c.n}</span>${story?'<span class="sd" title="Có việc cho nhiệm vụ"></span>':''}</button>`}).join('')+
@@ -692,7 +692,7 @@ function renderCmd(){
   else if(s.loc==='home'&&messLv()===2){t='Phòng bừa bộn quá. Ở phòng mỗi buổi tinh thần −2, ngủ hồi ít năng lượng hơn.';btn='Dọn phòng';noteAct='clean'}
   warnSfx();
   const note=$('cmdNote');note.hidden=!t||!!menuCat;note.className='pn note '+cls;$('noteT').textContent=nm(t);$('noteBtn').textContent=btn;
-  renderMenu();
+  renderMenu();minFont($('ui'))
 }
 const effSpans=e=>STATS.filter(S=>e[S.k]).map(S=>{const v=e[S.k];return `<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`}).join('');
 function menuRow(x){
@@ -727,6 +727,8 @@ function openCat(id,focusId){
 }
 function closeMenu(){menuCat=null}
 $('cmdbar').addEventListener('click',e=>{
+  const ml=e.target.closest('[data-meal]');if(ml){eatMeal(meals[+ml.dataset.meal]);return}
+  if(e.target.closest('[data-meal-more]')){openMealMenu();return}
   const cd=e.target.closest('[data-card]');if(cd){runCard(+cd.dataset.card);return}
   if(e.target.closest('[data-back]')){closeMenu();cardMode=true;renderCmd();return}
   if(e.target.closest('[data-tool="map"]')){closeMenu();toggleWin('map');return}
@@ -736,7 +738,8 @@ $('toolbar').addEventListener('click',e=>{
   const t=e.target.closest('[data-tool]');if(!t)return;
   if(t.dataset.tool==='sys')openCat('sys');else{closeMenu();toggleWin(t.dataset.tool)}
 });
-/* bấm 1 thẻ là làm trọn: đi tới nơi, (tự ăn nếu đói), làm việc, sang buổi sau */
+function openMealMenu(){if(win)return;closeMenu();cardMode=false;renderCmd();openCat('eat')}
+/* bấm 1 thẻ là làm trọn: đi tới nơi, làm việc, sang buổi sau */
 let pendingCard=null;
 function runCard(i){
   const c=cards[i];if(!c||s.over||win)return;
@@ -751,7 +754,6 @@ function doCard(c){
 }
 function finishCard(c,at){
   if(s.over||s.day*10+s.slot!==at||s.loc!==c.loc)return;
-  tryAutoEat();if(win)return;
   const a=locActs().find(x=>x.id===c.id);if(a&&!reason(a))doAction(a);
 }
 $('popMenu').addEventListener('click',e=>{
@@ -795,13 +797,16 @@ function openWin(name){
   if(kind==='day')sfx('dayStart');else if(kind==='warn')sfx('warn');else if(kind==='dlg'){if(curEvent.who==='me')sfx('message')}else sfx('open');
   const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
-/* điện thoại nằm ngang: các cửa sổ tính kích thước theo chiều cao màn hình nên chữ phụ có thể nhỏ hơn 11 điểm;
- * nâng mọi chữ dưới 11px lên 11px (chữ lớn giữ nguyên), theo DESIGN_SPEC mục 1 và design/12 thẻ 4 */
-const isPhone=()=>typeof matchMedia==='function'&&matchMedia('(pointer:coarse) and (orientation:landscape)').matches;
-function phoneMinFont(root){
-  if(!root||!isPhone()||typeof getComputedStyle!=='function')return;
-  root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11)el.style.fontSize='11px'});
+/* chữ nhỏ nhất 11px ở mọi kích thước: giao diện tính theo tỉ lệ khung (--p) nên trên màn nhỏ, máy tính bảng
+ * hay cửa sổ trình duyệt nhỏ, chữ phụ có thể dưới 11px. Nâng các chữ đó lên 11px, chữ lớn giữ nguyên.
+ * Gọi lại sau mỗi lần vẽ và khi đổi kích thước. Khi chọn chơi dọc (khung thu nhỏ vào giữa) thì bỏ qua. */
+const isPhone=()=>Layout.isPhone();
+function minFont(root){
+  if(!root||typeof getComputedStyle!=='function'||document.documentElement.classList.contains('portrait-play'))return;
+  root.querySelectorAll('[data-mf]').forEach(el=>{el.style.fontSize='';delete el.dataset.mf});
+  root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11){el.style.fontSize='11px';el.dataset.mf='1'}});
 }
+const phoneMinFont=minFont;
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
 function closeWin(){hideWin();sfx('close');processQueue()}
 function toggleWin(name){
@@ -820,7 +825,7 @@ function renderWin(){
     :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():kind==='warn'?warnHTML(curEvent):kind==='mg'?(mgCur&&mgCur.e===curEvent||mgMount(curEvent),mgHTML()):eventHTML())
     :win==='end'?endHTML():win==='phone'?phoneHTML():'';
   w.innerHTML=nm(html);
-  phoneMinFont(w);
+  minFont(w);
   if(win==='map')drawMap();
   else if(isDlg)startType();
   else if(kind==='chapter')Scenes.vignette($('vig'),curEvent.n);
@@ -874,7 +879,7 @@ function finishType(){
 const typingNow=()=>win==='event'&&evType&&!evType.done;
 function processQueue(){
   if(!s.started||s.over||win)return;
-  if(!queue.length){if(pendingCard){const p=pendingCard;pendingCard=null;finishCard(p.c,p.at)}else slotStart();return}
+  if(!queue.length){if(pendingCard){const p=pendingCard;pendingCard=null;finishCard(p.c,p.at)}return}
   curEvent=queue.shift();openWin('event');
 }
 function pickChoice(i){
@@ -941,8 +946,7 @@ function calHTML(){
   const dueQ=QUESTS.filter(q=>q.due===d&&s.q[q.id]==='active');
   dueQ.forEach(q=>{det+=`<p><span class="t-dot" style="--c:#d99a1e"></span><b>Hạn nhiệm vụ: ${q.t}</b></p>`});
   det+=notes.length||dueQ.length?notes.map(n=>`<p><span class="t-dot" style="--c:${n.c}"></span><b>${n.t}</b></p>`).join(''):'<p>Không có việc gì đặc biệt.</p>';
-  const diet=`<div class="diet"><label for="dietSel">Chế độ ăn</label><select id="dietSel">${Object.entries(DIETS).map(([k,D])=>`<option value="${k}"${s.diet===k?' selected':''}>${D.n}</option>`).join('')}</select><span class="est">${DIETS[s.diet].perDay?`Khoảng ${fk(DIETS[s.diet].perDay)} mỗi ngày`:'Tự bấm ăn như cũ'}</span></div>`;
-  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${diet}${det}</div></div>`;
+  return tabHead(`<span class="t-tg good">Ngày ${s.day}/30</span>`)+`<div class="t-wb"><div class="t-paper"><div class="hd2"><span>THÁNG ĐẦU TIÊN Ở SÀI GÒN</span><span>30 NGÀY</span></div><div class="t-cal">${g}</div></div><div class="t-det well" aria-live="polite">${det}</div></div>`;
 }
 function tasksHTML(){
   const ch=chOf(s.day),active=QUESTS.filter(q=>s.q[q.id]==='active').sort((a,b)=>a.due-b.due);
@@ -1002,7 +1006,10 @@ function drawMap(t=0){
   Scenes.map.frame(cv.getContext('2d'),t,{animate:!reduceMotion(),slot:s.slot,at:s.loc,sel:mapSel,weekend:isWE(s.day),quests:Object.keys(mapQuests()),broken:s.bikeBroken>0,gender:s.gender});
 }
 $('layer').addEventListener('pointerdown',e=>{
-  if(e.target.id!=='mapCv')return;const r=e.target.getBoundingClientRect(),k=Math.min(r.width/320,r.height/180),x=(e.clientX-r.left)/k,y=(e.clientY-r.top-(r.height-180*k)/2)/k;
+  if(e.target.id!=='mapCv')return;
+  /* canvas 320×180 vẽ theo object-fit:contain; đổi tọa độ chạm theo đúng tỉ lệ và vị trí căn (object-position) */
+  const r=e.target.getBoundingClientRect(),k=Math.min(r.width/320,r.height/180),op=(getComputedStyle(e.target).objectPosition||'50% 50%').split(' ').map(v=>parseFloat(v)/100);
+  const x=(e.clientX-r.left-(r.width-320*k)*(isNaN(op[0])?.5:op[0]))/k,y=(e.clientY-r.top-(r.height-180*k)*(isNaN(op[1])?.5:op[1]))/k;
   const hit=Scenes.map.PLACES.find(p=>{const [bx,by,bw,bh]=p.box;return x>=bx-3&&x<=bx+bw+3&&y>=by-12&&y<=by+bh+3});if(hit){mapSel=hit.id;renderWin()}
 });
 
@@ -1013,7 +1020,7 @@ function rulesHTML(){return `<ul class="rules">
   <li>Mỗi ngày có 4 buổi. Mỗi buổi được ăn tối đa 1 lần, rồi chọn 1 <b>Hoạt động</b> để sang buổi sau. Mua đồ và các việc tiền bạc không tốn thời gian.</li>
   <li>Thẻ gợi ý dưới cùng (phím 1–5): bấm một thẻ là tự đi tới nơi, làm việc đó rồi sang buổi sau. Thẻ <b>Tự chọn</b> mở các nhóm hành động như cũ. Thẻ bị khóa ghi rõ lý do.</li>
   <li>Thỉnh thoảng khi làm ca có minigame <b>Thối tiền</b>, khi nấu cơm có <b>Canh lửa</b>. Bỏ qua thì nhận kết quả trung bình.</li>
-  <li><b>Chế độ ăn</b> chọn trong <b>Lịch</b>. Đầu mỗi buổi, nếu độ no dưới 45 và chưa ăn, Minh tự ăn theo chế độ đó; chọn Tự chọn bữa để tự bấm ăn.</li>
+  <li><b>Thẻ ăn</b> đứng đầu hàng thẻ khi buổi này chưa ăn: bấm một món để ăn ngay (không hết buổi), hoặc “Món khác…” để xem đủ món. Thẻ sáng lên khi độ no dưới 45, có nhãn “Đang đói” khi dưới 25.</li>
   <li>Sáng thứ Hai đến thứ Sáu Minh phải lên lớp; vắng học bị trừ điểm học tập. Sáng thứ Hai ngày 29 là kiểm tra giữa kỳ.</li>
   <li>Sau khi phỏng vấn ở <b>Cửa hàng tiện lợi</b>, Minh làm part-time ca trưa, ca chiều, ca tối và ca sáng cuối tuần. Lương trả ngày 15 và cuối tháng; kẹt tiền có thể xin ứng lương hoặc gọi xin thêm bố mẹ bằng điện thoại ở phòng trọ.</li>
   <li>Hóa đơn tự trừ vào buổi sáng ngày 5, 10 và 20. Ví không đủ thì bị trừ hết tiền trong ví và tinh thần −12${rulesOf(s).billScale?' (thêm −1 mỗi 50.000đ thiếu, tối đa −30)':''}.</li>
@@ -1023,7 +1030,7 @@ function rulesHTML(){return `<ul class="rules">
 </ul>
 <div class="formula">Điểm = 1000 × Tài sản<sup>0,30</sup> × Độ no TB<sup>0,15</sup> × Tinh thần TB<sup>0,20</sup> × Sức khỏe cuối<sup>0,15</sup> × Học tập<sup>0,20</sup></div>
 <p class="note-line">Mỗi yếu tố quy về thang 0 đến 1 (tài sản 2,5 triệu tính là 1, học tập là điểm học tập chia 100). Kết cục câu chuyện phụ thuộc vào điểm học tập, số ca làm thêm và các nhiệm vụ bạn hoàn thành.</p>
-<p class="note-line">Phím tắt: 1–5 thẻ gợi ý (trong Tự chọn: nhóm hành động) · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
+<p class="note-line">Phím tắt: 1–5 thẻ gợi ý (trong Tự chọn: nhóm hành động) · Q W E món trên thẻ ăn, R món khác · B túi đồ · L lịch · J nhiệm vụ · M bản đồ · N nhật ký · Space hiện hết lời thoại · Esc đóng.</p>`}
 
 /* Thẻ chương (design/12 thẻ 2): tranh nhỏ khung gỗ, nội dung chương, nhiệm vụ của chương */
 function chapterHTML(e){
@@ -1163,8 +1170,10 @@ function renderTitle(){
 }
 /* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
 let mode='title';
-function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game';syncMusic()}
-function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
+function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game';syncMusic();screenMinFont()}
+/* trang bìa, tạo nhân vật, chuyển cảnh ngày 1: nâng chữ dưới 11px (gọi khi đổi màn hoặc đổi kích thước) */
+function screenMinFont(){['titleScreen','createScreen','intro'].forEach(id=>{if(!$(id).hidden)minFont($(id))})}
+function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();screenMinFont();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
 /* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
 function newGame(ch){dropOldSaves();s=newState();s.name=ch.name;s.gender=ch.gender;s.diff=DIFFS[ch.diff]?ch.diff:'thuong';s.started=true;txAdd('Bố mẹ gửi',START_MONEY);startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
@@ -1195,8 +1204,22 @@ $('crName').addEventListener('input',crCheck);
 document.querySelectorAll('input[name="gender"]').forEach(r=>r.addEventListener('change',()=>{crGender=r.value;$('crAva').setAttribute('aria-label',CR_LABEL[crGender])}));
 $('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;const dv=document.querySelector('input[name="diff"]:checked');pendingChar={name,gender:crGender,diff:dv?dv.value:'thuong'};startIntro()});
 $('crBack').addEventListener('click',showTitle);
+/* co giãn (src/layout.js): đổi kích thước hoặc xoay máy thì vẽ lại HUD và cửa sổ đang mở */
+window.onLayout=()=>{screenMinFont();if(!s||!s.started||$('ui').hidden)return;render();if(win)renderWin()};
+$('rotPlay').addEventListener('click',()=>Layout.allowPortrait());
+/* chạm trong khung game không cuộn hay kéo nảy trang; các vùng có nội dung dài (nhiệm vụ, nhật ký, menu) vẫn cuộn được */
+function canScroll(el){
+  for(;el&&el!==document.body;el=el.parentElement){
+    if(el.matches&&el.matches('input[type=range]'))return true;
+    const cs=getComputedStyle(el);
+    if(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+1)return true;
+    if(/(auto|scroll)/.test(cs.overflowX)&&el.scrollWidth>el.clientWidth+1)return true;
+  }
+  return false;
+}
+document.addEventListener('touchmove',e=>{if(e.touches.length>1||!canScroll(e.target))e.preventDefault()},{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault());
 document.querySelectorAll('input[name="diff"]').forEach(r=>r.addEventListener('change',()=>{$('crDtx').textContent=DIFF_TXT[r.value]}));
-$('win').addEventListener('change',e=>{if(e.target.id==='dietSel'&&DIETS[e.target.value]){s.diet=e.target.value;save();renderWin();const f=$('dietSel');if(f)f.focus()}});
 
 /* Chuyển cảnh ngày 1 (design/03): đêm → bình minh → mặt trời mọc → thẻ Ngày 1 */
 const IN_T={fade:1.2,p0:1.0,p1:7.5,card:7.8,ready:8.5};
@@ -1239,7 +1262,9 @@ document.addEventListener('keydown',e=>{
     return}
   const k={b:'bag',l:'cal',m:'map',n:'log',j:'tasks'}[e.key.toLowerCase()];
   if(k){e.preventDefault();if(TAB_WINS.includes(win)&&TAB_WINS.includes(k)&&win!==k)openWin(k);else toggleWin(k);return}
-  if(cardMode){const n=/^[1-5]$/.test(e.key)?+e.key:0;if(n&&!win&&cards[n-1]){e.preventDefault();runCard(n-1)}return}
+  if(cardMode){const n=/^[1-5]$/.test(e.key)?+e.key:0;if(n&&!win&&cards[n-1]){e.preventDefault();runCard(n-1);return}
+    const mk=MEAL_KEYS.indexOf(e.key.toLowerCase());if(mk>=0&&!win&&meals[mk]){e.preventDefault();eatMeal(meals[mk]);return}
+    if(e.key.toLowerCase()==='r'&&!win&&meals.length){e.preventDefault();openMealMenu()}return}
   const c=/^[1-9]$/.test(e.key)&&visCats()[+e.key-1];
   if(c&&!win){e.preventDefault();openCat(c.id)}
 });
