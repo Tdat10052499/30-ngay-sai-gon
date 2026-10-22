@@ -754,3 +754,34 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
   .cr-form>*{grid-column:1/-1}
   .cr-form>.cr-gender{grid-column:1}.cr-form>.cr-diff{grid-column:2}
 }
+
+/* điện thoại nằm ngang (giai đoạn 6): nút chính từ 48×48 điểm, hàng danh sách từ 44 điểm, chữ nhỏ nhất 11 điểm */
+@media (pointer:coarse) and (orientation:landscape){
+  .cd .pl,.cd .efx span,.cd .why,.cd .wn{font-size:11px}
+  .toolbar{gap:5px;padding:4px}
+  .toolbar .hb{width:48px;height:48px}
+  .note button{padding:0 .8em}
+  .warnc .wn-b button,.mg-acts button,.mg-h .btns,.endbtns button,.chsw button{min-height:48px}
+  .amenu h3 .xbtn,.m-hd .xbtn{min-width:48px;height:48px}
+  .layer .t-x{min-height:48px}
+  .t-wt{min-height:44px}
+  .t-q,.m-pl,.t-act,.m-go{min-height:44px}
+  .title-btns .btn,.cr-form .btn.primary,#crName{min-height:48px}
+  .cr-back{min-height:44px;display:inline-flex;align-items:center}
+  .eyebrow,.tagline,.cr-dtx,.cr-help,.cr-form>label,.cr-gender legend,.cr-diff legend,.cr-seg label,.cr-back{font-size:11px}
+  .note button,.layer .btnp{min-height:48px}
+}
+@media (pointer:coarse) and (orientation:landscape){
+  .cards .cd{flex:none}
+  .cd .efx{grid-column:2;min-width:0}
+  .cd .efx span{line-height:1.5}
+  .scorebox .arch span{display:none}
+  .scorebox .fac{gap:4px}
+}
+@media (pointer:coarse) and (orientation:landscape){
+  .cd,.cd.custom{width:230px}
+  .note,.toast{right:calc(var(--sr) + 246px)}
+  .cd .efx span{white-space:nowrap}
+  .cd .pl{white-space:nowrap}
+  .cd .why,.cd .wn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}

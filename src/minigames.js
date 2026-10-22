@@ -80,7 +80,7 @@ function mgHTML(){
   return `<div class="mg-h"><h2 id="mgT">${T.t}</h2><span class="mg-time" id="mgTime">${tl===null?'Không giới hạn':tl+' giây'}</span><button class="btns" type="button" data-mg="skip">Bỏ qua</button></div>
     <p class="mg-hint">${T.h}</p><div class="mg-b" id="mgB">${mgBody()}</div>`;
 }
-function mgRender(){const w=document.getElementById('win');if(!w||!mgCur)return;const b=document.getElementById('mgB');if(b)b.innerHTML=mgBody();else w.innerHTML=mgHTML()}
+function mgRender(){const w=document.getElementById('win');if(!w||!mgCur)return;const b=document.getElementById('mgB');if(b)b.innerHTML=mgBody();else w.innerHTML=mgHTML();if(typeof phoneMinFont==='function')phoneMinFont(w)}
 /* bắt đầu: gọi sau khi khung cửa sổ đã có HTML */
 function mgMount(e){
   mgCur={e,end:performance.now()+MG_TIME[e.type]*1000,fin:null};

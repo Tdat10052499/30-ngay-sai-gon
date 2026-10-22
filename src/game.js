@@ -791,6 +791,13 @@ function openWin(name){
   if(kind==='day')sfx('dayStart');else if(kind==='warn')sfx('warn');else if(kind==='dlg'){if(curEvent.who==='me')sfx('message')}else sfx('open');
   const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
+/* điện thoại nằm ngang: các cửa sổ tính kích thước theo chiều cao màn hình nên chữ phụ có thể nhỏ hơn 11 điểm;
+ * nâng mọi chữ dưới 11px lên 11px (chữ lớn giữ nguyên), theo DESIGN_SPEC mục 1 và design/12 thẻ 4 */
+const isPhone=()=>typeof matchMedia==='function'&&matchMedia('(pointer:coarse) and (orientation:landscape)').matches;
+function phoneMinFont(root){
+  if(!root||!isPhone()||typeof getComputedStyle!=='function')return;
+  root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11)el.style.fontSize='11px'});
+}
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
 function closeWin(){hideWin();sfx('close');processQueue()}
 function toggleWin(name){
@@ -809,6 +816,7 @@ function renderWin(){
     :win==='event'?(kind==='chapter'?chapterHTML(curEvent):kind==='day'?dayCardHTML():kind==='warn'?warnHTML(curEvent):kind==='mg'?(mgCur&&mgCur.e===curEvent||mgMount(curEvent),mgHTML()):eventHTML())
     :win==='end'?endHTML():win==='phone'?phoneHTML():'';
   w.innerHTML=nm(html);
+  phoneMinFont(w);
   if(win==='map')drawMap();
   else if(isDlg)startType();
   else if(kind==='chapter')Scenes.vignette($('vig'),curEvent.n);

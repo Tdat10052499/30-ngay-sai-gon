@@ -212,9 +212,9 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ## Giai đoạn 6: điện thoại nằm ngang
 
-- [ ] **6.1 Thẻ hành động** xếp dọc bên phải, mỗi thẻ cao ít nhất 52 điểm; cột công cụ sang trái; giữ vùng an toàn như `design/12` thẻ 4.
-- [ ] **6.2 Minigame và hộp cảnh báo** vừa màn hình 844×390, nút từ 48×48 điểm.
-- [ ] **6.3 Chụp kiểm tra** ở 844×390 và 1280×720, đo kích thước nút và chữ nhỏ nhất (11 điểm).
+- [x] **6.1 Thẻ hành động** xếp dọc bên phải, mỗi thẻ cao ít nhất 52 điểm; cột công cụ sang trái; giữ vùng an toàn như `design/12` thẻ 4.
+- [x] **6.2 Minigame và hộp cảnh báo** vừa màn hình 844×390, nút từ 48×48 điểm.
+- [x] **6.3 Chụp kiểm tra** ở 844×390 và 1280×720, đo kích thước nút và chữ nhỏ nhất (11 điểm).
 
 ---
 
