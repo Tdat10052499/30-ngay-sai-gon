@@ -111,7 +111,7 @@ function idleAt(day,diff,setup){fresh(diff);s.day=day;s.slot=1;s.loc='park';s.no
   const b={no:s.no,nl:s.nl,tt:s.tt,sk:s.sk},n0=s.log.length;withRandom(0.99,()=>doAction(locActs().find(x=>x.id==='idle')));
   return {d:{no:s.no-b.no,nl:s.nl-b.nl,tt:s.tt-b.tt,sk:s.sk-b.sk},log:s.log.slice(0,s.log.length-n0).map(l=>l.text).join(' | ')}}
 // ngồi nghỉ: năng lượng +3, tinh thần −1, rồi hao hụt cuối buổi
-for(const [day,no] of [[1,-9],[8,-9],[15,-9],[22,-10]]){const r=idleAt(day,'thuong');check(\`T hao hụt cuối buổi ngày \${day} (Thường, hệ số chương): no \${no}\`,r.d.no===no,JSON.stringify(r.d))}
+for(const [day,no] of [[1,-11],[8,-11],[15,-12],[22,-12]]){const r=idleAt(day,'thuong');check(\`T hao hụt cuối buổi ngày \${day} (Thường, hệ số chương): no \${no}\`,r.d.no===no,JSON.stringify(r.d))}
 let r2=idleAt(22,'de');check('T hao hụt ở Dễ không tăng theo chương: no −9, tinh thần −3, năng lượng −1',r2.d.no===-9&&r2.d.tt===-3&&r2.d.nl===-1,JSON.stringify(r2.d));
 r2=idleAt(1,'thuong',()=>{s.no=30});check('T đói (no dưới 25): ghi "Đói: tinh thần −5, sức khỏe −2"',r2.log.includes('Đói: tinh thần −5, sức khỏe −2')&&r2.d.sk===-2,r2.log);
 r2=idleAt(1,'de',()=>{s.no=30});check('T đói ở Dễ: tinh thần −4, sức khỏe −2',r2.log.includes('Đói: tinh thần −4, sức khỏe −2'),r2.log);

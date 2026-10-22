@@ -101,7 +101,7 @@ Qua đêm: năng lượng hồi 50, độ no giảm 10, đồ hết hạn bị b
 
 | Luật | Thường (mặc định) | Dễ |
 | --- | --- | --- |
-| Hao hụt mỗi buổi | no −9, năng lượng −5, tinh thần −2 | no −9, năng lượng −4, tinh thần −2 |
+| Hao hụt mỗi buổi | no −11, năng lượng −5, tinh thần −2 | no −9, năng lượng −4, tinh thần −2 |
 | Hệ số theo chương 1/2/3/4 | ×1 / ×1 / ×1,05 / ×1,1 | ×1 |
 | Đói (no < 25), mỗi buổi | tinh thần −5, sức khỏe −2 | tinh thần −4, sức khỏe −2 |
 | Đói lả (no = 0), mỗi buổi | sức khỏe −8, năng lượng −5 | sức khỏe −4 |
