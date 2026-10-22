@@ -620,6 +620,12 @@ html.portrait-play .screen{padding:8px}
 .cr-diff legend{font-weight:700;font-size:.9em;padding:0;margin-bottom:.45em}
 .cr-dtx{margin:0;font-size:.8em;color:var(--muted);text-align:center}
 
+/* kích thước bấm tối thiểu ở mọi kích thước màn hình: nút và hàng chọn cao từ 44px (điện thoại: nút chính 48px, xem html.phone) */
+html.js-fit .toolbar .hb,html.js-fit .hotbar .hb,html.js-fit .note button,html.js-fit .t-wt,html.js-fit .t-x,html.js-fit .xbtn,html.js-fit .btns,html.js-fit .btnp,html.js-fit .btn,html.js-fit .cd .mo,html.js-fit .e-ch,html.js-fit .row,html.js-fit .t-q,html.js-fit .m-pl,html.js-fit .t-act,html.js-fit .m-go,html.js-fit .mg-note,html.js-fit .t-slot,html.js-fit .cr-back,html.js-fit .cr-seg label,html.js-fit .amenu h3 .xbtn,html.js-fit .m-hd .xbtn,html.js-fit .chsw .btns,html.js-fit #crName{min-height:44px}
+html.js-fit .toolbar .hb,html.js-fit .hotbar .hb,html.js-fit .t-x,html.js-fit .xbtn,html.js-fit .amenu h3 .xbtn,html.js-fit .m-hd .xbtn{min-width:44px}
+html.js-fit .note button{display:inline-flex;align-items:center}
+html.js-fit .t-x,html.js-fit .xbtn{display:inline-flex;align-items:center;justify-content:center}
+
 html.phone .screen{padding:0;background:var(--bezel)}
 html.phone .stage{width:var(--sw);height:var(--sh);aspect-ratio:auto;border-radius:0;box-shadow:none;
     --sl:max(12px,env(safe-area-inset-left,0px));--sr:max(12px,env(safe-area-inset-right,0px));--st:max(8px,env(safe-area-inset-top,0px));--sb:max(8px,env(safe-area-inset-bottom,0px))}
@@ -820,3 +826,10 @@ html.phone .cd.meal .hg{font-size:11px}
 .rotate .btn{margin-top:8px;min-height:48px;padding:0 1.4em;font-size:15px}
 #layoutDebug{position:fixed;left:4px;top:4px;z-index:200;margin:0;padding:6px 8px;max-width:calc(100vw - 8px);background:rgba(0,0,0,.84);color:#9effa6;
   font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;pointer-events:none;border-radius:4px}
+/* chip hiệu ứng trên thẻ luôn một dòng để thẻ không cao quá khi chữ được nâng lên 11px (máy tính bảng, cửa sổ nhỏ) */
+.cd .efx{flex-wrap:nowrap;overflow:hidden}
+.cd .efx span{white-space:nowrap}
+.cd b{overflow-wrap:anywhere}
+html.phone .cd .mo .mn{display:block;width:100%}
+/* thông báo ngắn trên máy tính: đặt dưới cột công cụ, không đè lên hàng thẻ */
+html.js-fit:not(.phone) .toast{bottom:auto;top:calc(var(--p)*112);right:calc(var(--p)*40)}
