@@ -2,6 +2,39 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), đánh số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [0.4.0] - 2026-10-22
+
+Bản chơi thử thứ 2 theo góp ý vòng 2: ít thao tác hơn, khó hơn và có chiều sâu hơn. Kế hoạch và từng giai đoạn: `docs/PLAN-BAN-THU-2.md`.
+
+### Thêm mới
+
+- **Thẻ hành động theo buổi** thay thanh lệnh: 3–5 thẻ gợi ý, bấm một thẻ là tự đi tới nơi, tự ăn nếu đói, làm việc rồi sang buổi sau (phím 1–5). Sáng ngày thường "Đi học" đứng đầu; thẻ nhiệm vụ đúng ngày luôn có mặt kể cả khi khóa; các thẻ khác ưu tiên việc bù chỉ số đang thấp. Thẻ "Tự chọn" mở các nhóm hành động như cũ. Một ngày thường (đi học, ăn trưa, ca chiều, ca tối) từ 15 lần bấm còn 5.
+- **Chế độ ăn** trong Lịch: Tự nấu, Bình dân (mặc định), Thoải mái, Tự chọn bữa. Đầu mỗi buổi, độ no dưới 45 thì tự ăn theo bảng chế độ ăn × địa điểm, có thông báo ngắn và dòng nhật ký.
+- **Độ khó** Thường và Dễ chọn ở màn tạo nhân vật. Thường: hao hụt tăng theo chương, đói và kiệt sức phạt nặng hơn, đi ngủ đói hồi ít năng lượng, vắng học −4 điểm và thầy Hải nhắc khi vắng 3 buổi một tuần, xác suất ốm tăng dần theo sức khỏe, "Kệ, ráng chịu" có thể còn ốm hôm sau, đội mưa có thể ốm hôm sau, thiếu tiền hóa đơn phạt theo số tiền thiếu, nhiệm vụ thất bại tinh thần −5, ngất xỉu nghỉ cả sáng hôm sau. Dễ giữ số của v0.3.0.
+- **Ca trưa** ở cửa hàng mọi ngày: 90.000đ, năng lượng −30.
+- **Điểm học tập vào công thức điểm**: 1000 × Tài sản^0,30 × No^0,15 × Tinh thần^0,20 × Sức khỏe^0,15 × Học tập^0,20. Màn tổng kết có thanh "Điểm học tập".
+- **Hộp cảnh báo giữa màn hình** có nút làm ngay và "Để sau": tối ngày 4 tiền nhà, tối ngày 28 và sáng ngày 29 bài kiểm tra giữa kỳ, trưa ngày 29 và 30 quà sinh nhật mẹ, ngày cuối của nhiệm vụ chính còn đang làm.
+- **Bộ bài sự kiện** (`src/events.js`): mỗi sự kiện có nơi, buổi, loại, số lần tối đa và thời gian chờ; mỗi ngày tối đa 1 sự kiện ngẫu nhiên, không cùng loại hai ngày liền, ngày 14–19 sự kiện bạn bè và chuyện vui ra nhiều hơn.
+- **10 sự kiện mới**: tin nhắn trúng thưởng lừa đảo, nhặt được ví, thùng đồ quê của mẹ, tô canh của cô Tư, bạn cùng quê rủ đi ăn, hỏng sạc laptop, cúp điện (có thẻ "Ra quán cà phê"), khách để quên điện thoại, bài tập nhóm, Khoa rủ chạy bộ.
+- **Nhân vật Ngân**, bạn cùng lớp: chân dung 48×48 (bình thường, vui), dáng đứng, nhắn tin rủ đi cà phê chiều ngày 11, 17, 24, cảnh ngồi bàn cà phê cùng Ngân, lời kết riêng khi đi đủ 2 lần.
+- **Sinh nhật mẹ ở TTTM**: trưa ngày 30 mẹ lên Sài Gòn, có thể đưa mẹ đi ăn mừng (300.000đ) với cảnh và lời thoại riêng, thêm câu ở kết cục.
+- **Minigame** (`src/minigames.js`): Thối tiền khi làm ca (3 khách, 25 giây, thưởng 0–20.000đ) và Canh lửa khi nấu cơm (3 bước, vùng xanh 25%). Lần đầu mỗi tuần, sau đó khoảng 1 trong 3 lần; có nút Bỏ qua; không giới hạn thời gian khi bật giảm chuyển động.
+- Tờ tiền Việt Nam pixel 12×24 (`src/gfx/money.js`).
+- Mô phỏng 4 bot (thêm "Chỉ lo làm ca"), 300 ván, cột phân vị 90 và tỉ lệ ván bị ốm; dòng Thận trọng ở độ khó Dễ. `tools/test.js` có 154 test.
+
+### Thay đổi
+
+- Mỗi lần bị phạt, nhật ký ghi rõ nguyên nhân và con số.
+- Mưa khi đi lại còn 8%, chỉ buổi trưa hoặc chiều, tối đa 2 lần mỗi tháng, cách nhau ít nhất 5 ngày.
+- Thiếu tiền nhà ngày 5 thì nhiệm vụ "Tiền nhà cho cô Tư" thất bại ngay.
+- Túi đồ, Lịch, Nhiệm vụ, Bản đồ, Menu dời thành cột biểu tượng nhỏ.
+- Điện thoại nằm ngang: thẻ xếp dọc bên phải, cột công cụ bên trái, nút chính từ 48×48 điểm, chữ nhỏ nhất 11 điểm.
+- Khóa lưu đổi thành `ba-muoi-ngay-sg-v6`; bản lưu v0.3.0 không dùng được, trang bìa báo và game bắt đầu ván mới.
+
+### Sửa lỗi
+
+- Trên một số máy không nghe được âm thanh: đường dẫn script và CSS có số phiên bản (`?v=0.4.0`) để trình duyệt không dùng bản cũ trong bộ nhớ đệm; Safari đặt phiên âm thanh "playback" để nút gạt im lặng trên iPhone không chặn; mỗi lần bấm, ngữ cảnh âm thanh bị tạm dừng được chạy lại.
+
 ## [0.3.0] - 2026-10-21
 
 Đồ họa và giao diện mới theo bộ thiết kế trong `design/` (đặc tả ở `docs/DESIGN_SPEC.md`), cùng các thay đổi luật đã chốt.

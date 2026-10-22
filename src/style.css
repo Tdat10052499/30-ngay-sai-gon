@@ -554,6 +554,8 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
    Mọi nút từ 48×48 điểm, dòng menu cao từ 52 điểm, chữ nhỏ nhất 11 điểm.
    Cửa sổ co theo chiều cao màn hình (--p theo cqh). */
 .rotate{display:none}
+.title-old{flex-basis:100%;margin:.4em 0 0;font-size:.85em;color:var(--lantern);max-width:30em}
+
 /* Thẻ hành động (bản chơi thử 2, mục 3.1): hàng 3–5 thẻ giữa dưới; công cụ thành cột nhỏ bên phải */
 .cards{display:flex;gap:calc(var(--p)*3)}
 .cd{position:relative;font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;width:calc(var(--p)*84);min-height:calc(var(--p)*46);padding:calc(var(--p)*4) calc(var(--p)*5);display:flex;flex-direction:column;gap:calc(var(--p)*2.5);background:var(--u-well);box-shadow:inset var(--p) var(--p) 0 #0b0d1c,inset calc(var(--p)*-1) calc(var(--p)*-1) 0 #262c50}

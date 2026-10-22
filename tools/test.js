@@ -250,6 +250,13 @@ fresh('thuong');s.day=3;s.slot=3;s.loc='home';s.bag=[{id:'nguyenlieu',exp:5}];qu
 check('Nấu cơm: mở Canh lửa',win==='event'&&curEvent.type==='cook');
 const no0=s.no;mgDo('skip');check('Canh lửa: bỏ qua thì vẫn nấu, không cộng thêm',s.cooked===1&&!win&&s.no>no0);
 MG.off=true;
+/* ---------- khóa lưu v6: bản lưu cũ ---------- */
+{const LS=globalThis.localStorage,mem={'ba-muoi-ngay-sg-v5':'{"started":true}'};
+ globalThis.localStorage={getItem:k=>mem[k]??null,setItem:(k,v)=>{mem[k]=v},removeItem:k=>{delete mem[k]}};
+ check('Lưu: khóa mới ba-muoi-ngay-sg-v6',KEY==='ba-muoi-ngay-sg-v6');
+ renderTitle();check('Lưu: bản lưu cũ thì trang bìa báo bắt đầu tháng mới',$('titleBtns').innerHTML.includes('Bản lưu cũ không dùng được với phiên bản mới')&&!$('titleBtns').innerHTML.includes('Chơi tiếp'));
+ newGame({name:'Lan',gender:'nu'});clearEvents();check('Lưu: bắt đầu tháng mới thì xóa bản lưu cũ',!mem['ba-muoi-ngay-sg-v5']&&!!mem[KEY]);
+ globalThis.localStorage=LS}
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

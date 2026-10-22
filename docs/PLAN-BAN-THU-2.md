@@ -220,8 +220,8 @@ Theo đề bài `CLAUDE-CODE-BAN-THU-2.md`. Làm trên nhánh `v0.3`. Mỗi vi�
 
 ## Giai đoạn 7: tài liệu và phát hành
 
-- [ ] **7.1** Cập nhật `docs/GAME_DESIGN.md`, `docs/DESIGN_SPEC.md`, README, CHANGELOG mục `[0.4.0]`; `package.json` lên 0.4.0.
-- [ ] **7.2** Tăng khóa lưu lên `ba-muoi-ngay-sg-v6`; bản lưu cũ bắt đầu ván mới, có thông báo. Văn bản đề xuất: “Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”
+- [x] **7.1** Cập nhật `docs/GAME_DESIGN.md`, `docs/DESIGN_SPEC.md`, README, CHANGELOG mục `[0.4.0]`; `package.json` lên 0.4.0.
+- [x] **7.2** Tăng khóa lưu lên `ba-muoi-ngay-sg-v6`; bản lưu cũ bắt đầu ván mới, có thông báo. Văn bản đề xuất: “Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”
 - [ ] **7.3** Hỏi rồi mở pull request `v0.3` → `main`.
 - [ ] **7.4** Sau khi merge: kiểm tra trang Pages (có âm thanh, không lỗi console) và báo link để gửi anh Đạt. Hỏi trước khi tạo tag và release v0.4.0.
 

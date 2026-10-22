@@ -1,4 +1,4 @@
-# 30 Ngày Sài Gòn · Đặc tả thiết kế v0.3
+# 30 Ngày Sài Gòn · Đặc tả thiết kế (v0.3, bổ sung v0.4.0)
 
 Tài liệu này mô tả bộ thiết kế trong thư mục `design/` và các thay đổi luật chơi đã chốt sau v0.2.0. Mỗi file trong `design/` là một trang HTML tự chạy (mở bằng trình duyệt), có mã vẽ canvas dùng được làm nguồn khi đưa vào game.
 
@@ -58,7 +58,7 @@ Mã vẽ trong các file trùng nhau một phần (ví dụ hàm `outlined`, `ca
 4. **Đồng phục** chỉ mặc khi `s.loc === 'store' && s.flags.hired`. Áo cam cuối tuần, áo xanh ngày thường.
 5. **Độ bừa bộn phòng** (chỉ số ẩn 0 đến 100, 3 mức): tăng +10 mỗi đêm, +6 mỗi bữa ăn trong phòng, +4 mỗi lần nấu, +2 mỗi buổi ở phòng. Dọn phòng −50. Ảnh hưởng: gọn gàng (0–33) sáng hôm sau tinh thần +2; hơi bừa (34–66) mỗi buổi ở phòng tinh thần −1; bừa bộn (67–100) mỗi buổi ở phòng tinh thần −2, ngủ hồi 40 năng lượng thay vì 50. Dọn phòng cho tinh thần +5, +8, +12 theo mức trước khi dọn.
 6. **Bản đồ mới**: vị trí 8 địa điểm theo file 09. Giá đi lại giữ nguyên (cà phê 5K, trường 6K, TTTM 12K, còn lại miễn phí).
-7. **Khóa lưu** tăng lên `ba-muoi-ngay-sg-v5`.
+7. **Khóa lưu** tăng lên `ba-muoi-ngay-sg-v5` (v0.4.0: `ba-muoi-ngay-sg-v6`, xem mục 8).
 
 ## 5. Quyết định còn chờ (đã chốt ở v0.3.0)
 
@@ -80,3 +80,21 @@ Mã vẽ trong các file trùng nhau một phần (ví dụ hàm `outlined`, `ca
 ## 7. Ngoài phạm vi v0.3
 
 Chạy trên điện thoại dọc, bản nữ quay lưng ở trang bìa.
+
+## 8. Bổ sung v0.4.0 (bản chơi thử thứ 2)
+
+Không có file thiết kế mới; các phần dưới vẽ theo đúng quy tắc mục 1 và bảng màu mục 2. Luật chơi chi tiết: [GAME_DESIGN.md](GAME_DESIGN.md).
+
+| Thành phần | Đặc tả |
+| --- | --- |
+| Thẻ hành động | Hàng 3–5 thẻ giữa dưới, mỗi thẻ rộng 84 điểm giao diện: phím số, tên việc, nơi diễn ra kèm tiền đi lại (biểu tượng ghim), nhãn tiền và chỉ số theo màu chỉ số, dấu chấm than nền đèn lồng khi gắn nhiệm vụ, lý do khóa màu san hô nhạt, cảnh báo dưới 25 màu đỏ. Thẻ "Đi học" sáng ngày thường tô nền đèn lồng mờ. Thẻ cuối "Tự chọn" |
+| Cột công cụ | Túi đồ, Lịch, Nhiệm vụ, Bản đồ, Menu xếp dọc dưới khung nhiệm vụ, nút 24 điểm giao diện, chỉ có biểu tượng và huy hiệu |
+| Hộp cảnh báo | Giữa màn hình, khung gỗ ấm (cùng màu dải cảnh báo HUD), tiêu đề màu đèn lồng, nút làm ngay nền đèn lồng và nút "Để sau" |
+| Minigame | Khung giữa màn hình rộng 330 điểm giao diện: tiêu đề, đồng hồ (VT323), nút Bỏ qua, một dòng hướng dẫn. Thối tiền: danh sách món, tổng, tiền khách đưa, tờ tiền đã chọn, 8 nút tờ tiền. Canh lửa: 3 nhãn bước, thanh lửa chuyển màu nâu → cam, vùng xanh 25%, vạch trắng |
+| Tờ tiền 12×24 | Dựng đứng, viền đậm, hai vạch ngang, hoa văn chấm, khung chân dung không vẽ mặt, ô cửa sổ trong cho tờ polymer (từ 10.000đ). Màu nền: 1.000đ #C8BC6A · 2.000đ #B49478 · 5.000đ #7A9AC8 · 10.000đ #D8B45A · 20.000đ #6A8ED8 · 50.000đ #D27AA8 · 100.000đ #6AB07A · 200.000đ #D4785A |
+| Chân dung Ngân | Tóc nâu đen ngắn ngang vai, mái thưa, kẹp tóc hồng, kính tròn gọng nâu #5A3A2A, cardigan vàng nhạt #F2DC8C ngoài áo trắng, nền xanh ngọc #D2F0EE / #B8E6E2 / #9ED8D4. Biểu cảm bình thường và vui. Dáng đứng 30×54 cùng kiểu tóc (`bob`) và kính tròn |
+| Cảnh mới | Cà phê ngồi bàn biến thể `ngan`: Ngân ngồi đối diện, hai ly cà phê, sổ phác thảo, hộp bút chì. TTTM có `mom`: mẹ đứng cạnh nhân vật, túi quà hồng, trái tim bay lên |
+
+**Điện thoại nằm ngang** (bổ sung mục 3, file 12 thẻ 4): thẻ hành động xếp dọc bên phải, rộng 230 điểm, cao từ 52 điểm, cảnh báo một dòng có dấu "…"; cột công cụ 48×48 bên trái; khung nhiệm vụ dời sang cạnh ví. Nút chính từ 48×48 điểm, hàng danh sách và tab từ 44 điểm (ô ngày trong Lịch 38 điểm vì lưới 5 hàng). Chữ nhỏ nhất 11 điểm: các cửa sổ tính kích thước theo chiều cao màn hình nên `phoneMinFont()` nâng chữ dưới 11px lên 11px khi mở cửa sổ.
+
+**Khóa lưu** `ba-muoi-ngay-sg-v6`. Có bản lưu cũ (v1–v5) mà chưa có bản mới thì trang bìa hiện “Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”; bản cũ bị xóa khi bắt đầu tháng mới.

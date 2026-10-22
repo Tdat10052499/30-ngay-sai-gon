@@ -1,4 +1,4 @@
-/* 30 Ngày Sài Gòn · v0.3.0
+/* 30 Ngày Sài Gòn · v0.4.0
  * Toàn bộ logic game: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện và cảnh pixel. */
 /* ============ Helpers ============ */
 const $=id=>document.getElementById(id);
@@ -16,7 +16,11 @@ const BILLS={5:['Tiền nhà',1200000],10:['Điện, nước, internet',200000],
 const START_MONEY=3000000;
 const HUNGRY_BED=30; // độ no dưới mức này lúc đi ngủ thì ngủ không ngon
 const CLASS_DAYS=22;
-const KEY='ba-muoi-ngay-sg-v5';
+const KEY='ba-muoi-ngay-sg-v6';
+/* bản lưu của phiên bản trước (v0.3.0 trở về trước) không dùng được với luật mới: báo ở trang bìa, xóa khi bắt đầu tháng mới */
+const OLD_KEYS=['ba-muoi-ngay-sg-v5','ba-muoi-ngay-sg-v4','ba-muoi-ngay-sg-v3','ba-muoi-ngay-sg-v2','ba-muoi-ngay-sg-v1'];
+const hasOldSave=()=>{try{return OLD_KEYS.some(k=>localStorage.getItem(k))}catch(e){return false}};
+function dropOldSaves(){try{OLD_KEYS.forEach(k=>localStorage.removeItem(k))}catch(e){}}
 const RELAX=['net','trada','oc','walk','bench','chill','movie','shop','window','stroll','club','khoa','clean'];
 
 let s, queue=[], curEvent=null, win=null, bagSel=null, calSel=1, toastTimer=0, menuCat=null;
@@ -1154,7 +1158,8 @@ function renderTitle(){
   const st=loadSaved(),cont=st&&st.started&&!st.over;
   $('titleBtns').innerHTML=`<button class="btn primary lg" type="button" data-m="new">Bắt đầu câu chuyện</button>`+
     (cont?`<button class="btn" type="button" data-m="cont">Chơi tiếp · ngày ${st.day}, chương ${chOf(st.day)}</button>`:'')+
-    `<button class="btn" type="button" data-m="rules">Luật chơi</button>`;
+    `<button class="btn" type="button" data-m="rules">Luật chơi</button>`+
+    (!st&&hasOldSave()?'<p class="title-old" role="status">“Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”</p>':'');
 }
 /* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
 let mode='title';
@@ -1162,7 +1167,7 @@ function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScree
 function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
 /* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
-function newGame(ch){s=newState();s.name=ch.name;s.gender=ch.gender;s.diff=DIFFS[ch.diff]?ch.diff:'thuong';s.started=true;txAdd('Bố mẹ gửi',START_MONEY);startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
+function newGame(ch){dropOldSaves();s=newState();s.name=ch.name;s.gender=ch.gender;s.diff=DIFFS[ch.diff]?ch.diff:'thuong';s.started=true;txAdd('Bố mẹ gửi',START_MONEY);startGame();addLog(`Ngày đầu ở Sài Gòn. Bố mẹ gửi ${fmt(START_MONEY)}.`);
   activateChapter(1);
   queue.push(ev('Tin nhắn của mẹ','“Bố mẹ gửi con 3 triệu cho tháng đầu, đã gồm tiền nhà. Con chi tiêu cho khéo, học hành cho đàng hoàng nghe con.”',[{l:'Dạ, con biết rồi mẹ'}],'me'));
   queue.push(ev('Phòng ghép với Khoa','“Chìa khóa nè. Con ở chung với thằng Khoa, tiền nhà phần con 1 triệu 2, đóng sáng mùng 5 nghen. Trong túi con có ít nguyên liệu cô cho, tối về nấu ăn cho đỡ tốn.”',[{l:'Dạ, con cảm ơn cô'}],'tu'));
