@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=VT323&display=swap">
-<link rel="stylesheet" href="src/style.css">
+<link rel="stylesheet" href="src/style.css?v=0.4.0">
 </head>
 <body>
 <div class="screen">
@@ -30,7 +30,8 @@
       <div class="pn stats" id="mstats" aria-label="Chỉ số"></div>
       <div class="pn note" id="cmdNote" role="status" hidden><i class="ic" data-ic="warn"></i><span id="noteT"></span><button type="button" id="noteBtn"></button></div>
       <div class="pn amenu" id="popMenu" hidden role="dialog" aria-modal="false" aria-labelledby="popT"></div>
-      <nav class="pn hotbar" id="cmdbar" aria-label="Thanh lệnh"></nav>
+      <nav class="pn hotbar" id="cmdbar" aria-label="Thẻ hành động"></nav>
+      <nav class="pn toolbar" id="toolbar" aria-label="Công cụ"></nav>
       <div class="pn toast out" id="toast" role="status"></div>
     </div>
 
@@ -58,6 +59,14 @@
               <input type="radio" name="gender" id="gNam" value="nam" checked><label for="gNam"><i id="icNam"></i>Nam</label>
               <input type="radio" name="gender" id="gNu" value="nu"><label for="gNu"><i id="icNu"></i>Nữ</label>
             </div>
+          </fieldset>
+          <fieldset class="cr-diff">
+            <legend>Độ khó</legend>
+            <div class="cr-seg">
+              <input type="radio" name="diff" id="dThuong" value="thuong" checked><label for="dThuong">Thường</label>
+              <input type="radio" name="diff" id="dDe" value="de"><label for="dDe">Dễ</label>
+            </div>
+            <p class="cr-dtx" id="crDtx">Thường: hao hụt và hình phạt tăng dần theo chương.</p>
           </fieldset>
           <label for="crName">Tên nhân vật</label>
           <div class="cr-field" id="crField">
@@ -90,19 +99,24 @@
 
 <div class="rotate" role="alert"><div><i aria-hidden="true"></i><b>Xoay ngang điện thoại</b><span>30 Ngày Sài Gòn chơi ở chế độ màn hình ngang. Hãy xoay điện thoại để bắt đầu.</span></div></div>
 
-<script src="src/gfx/core.js"></script>
-<script src="src/gfx/characters.js"></script>
-<script src="src/gfx/portraits.js"></script>
-<script src="src/gfx/icons.js"></script>
-<script src="src/gfx/scenes/cover.js"></script>
-<script src="src/gfx/scenes/room.js"></script>
-<script src="src/gfx/scenes/school.js"></script>
-<script src="src/gfx/scenes/store.js"></script>
-<script src="src/gfx/scenes/food.js"></script>
-<script src="src/gfx/scenes/rest.js"></script>
-<script src="src/gfx/scenes/map.js"></script>
-<script src="src/gfx/scenes/cards.js"></script>
-<script src="src/audio.js"></script>
-<script src="src/game.js"></script>
+<script src="src/rules.js?v=0.4.0"></script>
+<script src="src/events.js?v=0.4.0"></script>
+<script src="src/cards.js?v=0.4.0"></script>
+<script src="src/minigames.js?v=0.4.0"></script>
+<script src="src/gfx/core.js?v=0.4.0"></script>
+<script src="src/gfx/money.js?v=0.4.0"></script>
+<script src="src/gfx/characters.js?v=0.4.0"></script>
+<script src="src/gfx/portraits.js?v=0.4.0"></script>
+<script src="src/gfx/icons.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/cover.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/room.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/school.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/store.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/food.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/rest.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/map.js?v=0.4.0"></script>
+<script src="src/gfx/scenes/cards.js?v=0.4.0"></script>
+<script src="src/audio.js?v=0.4.0"></script>
+<script src="src/game.js?v=0.4.0"></script>
 </body>
 </html>

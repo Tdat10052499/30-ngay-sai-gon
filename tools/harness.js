@@ -47,7 +47,7 @@ function setupFakeDom() {
 function gameSource() {
   const root = path.join(__dirname, '..');
   const scripts = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)"><\/script>/g)]
-    .map(m => m[1]).filter(src => src !== 'src/audio.js');
+    .map(m => m[1].split("?")[0]).filter(src => src !== "src/audio.js");
   return scripts.map(src => fs.readFileSync(path.join(root, src), 'utf8')).join('\n;\n').replace(/\nboot\(\{\}\);\s*$/, '\n');
 }
 

@@ -16,6 +16,8 @@ Object.assign(LOOK,{
   ba:{hair:'side',tuft:false,lash:1,armsUp:1,c:{h:'#5a5650',hD:'#3a3630',hL:'#8a8680',hR:'#7a7670',sh:'#c9a0e8',shD:'#a07cc4',shL:'#e4c8ff',col:'#c9a0e8',pa:'#3a3a48',sk:'#e8b890',skD:'#c99872',skL:'#f6d0ac'}},
   bap:{hair:'side',tuft:false,lash:1,cap:'#ffc94d',apronK:'#3f7ac0',c:{sh:'#e85a3a',shD:'#b44a40',shL:'#f8907c',col:'#e85a3a',pa:'#3a3a48',sk:'#d8a078',skD:'#b07c58',skL:'#ecbc94'}},
   nv:{hair:'pony',lash:1,tieC:'#ff86b3',c:{sh:'#2c3550',shD:'#1d2136',shL:'#4a5578',col:'#f4f1ea',pa:'#2c3550'}},
+  ngan:{hair:'bob',glasses:'round',lash:1,clip:'#ff86b3',c:{h:'#2a1a12',hD:'#170e0a',hL:'#5a3a28',hR:'#7a4a30',sh:'#f2dc8c',shD:'#d4b860',shL:'#fff0b8',col:'#f4f1ea',pa:'#3a4a70',paD:'#2a3656',paL:'#4a5a84'}},
+  meS:{hair:'side',tuft:false,lash:1,c:{h:'#3a2418',hD:'#24150e',hL:'#5a3a28',hR:'#6e4630',sh:'#c97aa8',shD:'#a85a88',shL:'#e8a0c8',col:'#f4e0ec',pa:'#3a3a48',sk:'#eebc94',skD:'#cc9670',skL:'#fad4b0'}},
 });
 function mini(o,up){return outlined(14,26,()=>{const c=7;
   R(c-3,18,2,6,o.b);R(c+1,18,2,6,o.b);R(c-3,24,3,1,'#2a2a34');R(c+1,24,3,1,'#2a2a34');
@@ -78,6 +80,10 @@ function cafeTableFront(v){
   if(v==='chill'){R(130,92,34,8,'#f4f1ea');R(130,92,34,1,'#ffffff');R(146,92,2,8,'#c8c0b4');for(let k=0;k<3;k++){R(133,94+k*2,10,1,'#9a9aa8');R(150,94+k*2,10,1,'#9a9aa8')}R(128,98,38,2,'#d65a5a');
     cfsd(176);R(110,94,14,6,'#f4f1ea');R(112,90,10,5,'#ff86b3');R(112,90,10,1,'#ffffff');P(116,89,'#d6453a')}
   if(v==='khoa'){cfsd(132);cfsd(176);R(150,94,20,6,'#f4f1ea');for(let k=0;k<4;k++)R(152+k*4,92,3,3,'#c8803a')}
+  /* Ngân: hai ly cà phê, cuốn sổ phác thảo mở và hộp bút chì */
+  if(v==='ngan'){cfsd(128);cfsd(182);R(146,90,30,10,'#f4f1ea');R(146,90,30,1,'#ffffff');R(160,90,2,10,'#c8c0b4');
+    R(149,92,8,5,'rgba(79,127,208,.35)');R(150,93,3,1,'#4f7fd0');R(164,93,8,1,'#9a9aa8');R(164,95,6,1,'#9a9aa8');R(165,92,4,3,'rgba(255,134,179,.4)');
+    R(108,96,16,4,'#e85a3a');for(let k=0;k<4;k++)R(110+k*3,93,2,3,['#ffc94d','#4f7fd0','#3f9a5a','#ff86b3'][k])}
   return c;
 }
 /* =================== 2. Công viên =================== */
@@ -179,9 +185,10 @@ function frame(ctx,scene,t,o={}){
   }
   if(scene==='cafeTable'){
     const v=o.variant||'cfsd';if(!B.ctb[slot])B.ctb[slot]=cafeTableBg(slot);ctx.drawImage(B.ctb[slot],0,0);GFX.use(ctx);stringLights(t,6,anim);
-    if(v==='khoa'){drawPerson(ctx,'khoa',120,116,t,anim);heroAt(ctx,o,196,116,t,anim,true)}else heroAt(ctx,o,156,116,t,anim);
+    if(v==='khoa'){drawPerson(ctx,'khoa',120,116,t,anim);heroAt(ctx,o,196,116,t,anim,true)}
+    else if(v==='ngan'){drawPerson(ctx,'ngan',120,116,t,anim);heroAt(ctx,o,196,116,t,anim,true)}else heroAt(ctx,o,156,116,t,anim);
     ctx.drawImage(B.ctf[v]||(B.ctf[v]=cafeTableFront(v)),0,0);
-    if(anim){GFX.use(ctx);const xs=v==='khoa'?[136,180]:v==='chill'?[180]:[154];xs.forEach(x=>{if(Math.floor(t/400)%3===0)P(x+2,82,'#5a3a20')})}
+    if(anim){GFX.use(ctx);const xs=v==='khoa'||v==='ngan'?[136,180]:v==='chill'?[180]:[154];xs.forEach(x=>{if(Math.floor(t/400)%3===0)P(x+2,82,'#5a3a20')})}
     if(v==='khoa'&&anim){GFX.use(ctx);if(Math.floor(t/1400)%2){R(96,50,22,12,'#f4f1ea');R(96,62,4,3,'#f4f1ea');for(let k=0;k<3;k++)R(100+k*5,55,3,2,'#9a9aa8')}else{R(204,50,22,12,'#f4f1ea');R(220,62,4,3,'#f4f1ea');text('HAHA',206,54,'#e85a3a')}}
   }
   if(scene==='park'){
@@ -198,9 +205,12 @@ function frame(ctx,scene,t,o={}){
     ctx.drawImage(B.mall,0,0);GFX.use(ctx);
     if(slot===0){ctx.drawImage(B.closed,0,0);heroAt(ctx,o,160,170,t,anim);return}
     mallOverlay(o.state||0,t,anim);
+    /* sinh nhật mẹ: mẹ đứng cạnh nhân vật chính, túi quà và trái tim bay lên */
+    if(o.mom){drawPerson(ctx,'meS',152,170,t,anim);GFX.use(ctx);R(166,150,9,10,'#ff86b3');R(166,150,9,1,'#ffd0e0');R(169,147,3,3,'#ffc94d');
+      if(anim)for(let k=0;k<3;k++){const ph=((t/1500)+k*.33)%1,x=136+k*10+Math.round(Math.sin(ph*6+k)*2),y=Math.round(110-ph*30);if(ph<.85){P(x,y,'#ff6474');P(x+2,y,'#ff6474');R(x,y+1,3,1,'#ff6474');P(x+1,y+2,'#ff6474')}}}
     const n=slot===3?3:2;for(let i=0;i<n;i++){const v=[8,-6,5][i];let x=anim?(([40,280,160][i]+v*t/1000)%360+360)%360-20:[60,250,110][i];const im=walker(i,anim?Math.floor(t/160+i)%4:0);
       if(v<0){ctx.save();ctx.translate(Math.round(x)+10,150-29+i*4);ctx.scale(-1,1);ctx.drawImage(im,0,0);ctx.restore()}else ctx.drawImage(im,Math.round(x)-9,150-29+i*4)}
-    heroAt(ctx,o,124,170,t,anim);
+    heroAt(ctx,o,o.mom?128:124,170,t,anim);
   }
 }
 LOOK.ongD={...LOOK.ong,armsUp:0};LOOK.baD={...LOOK.ba,armsUp:0};
