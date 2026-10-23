@@ -147,13 +147,15 @@ Dải cảnh báo đói và kiệt sức (mục 3.2) lấy câu trong design/14 
 
 ## Giai đoạn 6: bộ kiểm tra
 
-- [ ] **6.1 Test nhanh trong `npm test`** (`tools/test.js`, `package.json`): `pickLayout`, `sceneBox` (phủ kín, tâm), đổi tọa độ chạm, `evStyle` theo bảng, `mealCard`, thêm `node --check` cho file mới.
-- [ ] **6.2 `npm run test:ui`** (`tools/ui-test.js`, `package.json`): Playwright chromium, webkit, firefox × 9 kích thước. Phục vụ trang bằng server tĩnh viết bằng Node (không cần python). Chụp: màn chơi (phòng trọ, sáng ngày thường), thẻ ăn, một cửa sổ, 6 loại hộp, một minigame → `test-results/ui/<máy>/<kích thước>/*.png` (thêm vào `.gitignore`).
+- [x] **6.1 Test nhanh trong `npm test`** (`tools/test.js`, `package.json`): `pickLayout`, `sceneBox` (phủ kín, tâm), đổi tọa độ chạm, `evStyle` theo bảng, `mealCard`, thêm `node --check` cho file mới.
+- [x] **6.2 `npm run test:ui`** (`tools/ui-test.js`, `package.json`): Playwright chromium, webkit, firefox × 9 kích thước. Phục vụ trang bằng server tĩnh viết bằng Node (không cần python). Chụp: màn chơi (phòng trọ, sáng ngày thường), thẻ ăn, một cửa sổ, 6 loại hộp, một minigame → `test-results/ui/<máy>/<kích thước>/*.png` (thêm vào `.gitignore`).
   - Kiểm tự động: không cuộn ngang; mọi nút hiện trọn trong vùng nhìn thấy trừ vùng an toàn giả lập (47/34 dọc, 47 hai bên + 21 đáy ngang); nút nhỏ nhất ≥ 44×44; chữ nhỏ nhất ≥ 11px; hộp không tràn với lời 400 ký tự; không lỗi console.
-  - Kịch bản xoay máy: `choice` mở ở 390×844 → 844×390, cùng lời thoại, bấm được lựa chọn.
+  - Kịch bản xoay máy: `choice` mở ở 390×844 → 844×390, cùng lời thoại, bấm được lựa chọn. Thêm: đang mở cửa sổ, menu, minigame, chữ đang hiện dần (chữ không chạy lại từ đầu).
   - Kịch bản tạo nhân vật trên máy nhỏ: 320×480, 360×640, 375×667, 390×844, 568×320, 667×375, 844×390, 800×450, 1280×720, có giả lập bàn phím ảo (vùng nhìn thấy còn 340/380/180px). Người chơi tự cuộn tới nút "Tạo nhân vật" rồi bấm, không để Playwright tự cuộn hộ. Đạt khi vào được ngày 1 và bố cục không đổi giữa lúc gõ tên.
   - Kịch bản số lần bấm: một ngày thường ở 390×844 (đi học, ăn trưa, ca chiều, ăn tối, ca tối) ≤ 8 lần bấm.
-  - In bảng kết quả theo kích thước, đánh dấu ô chưa đạt.
+  - Hành vi hộp hội thoại (390×844, 844×390, 1280×720): tốc độ chữ 40–50 ký tự/giây, tiếng `text` tối đa 1 lần mỗi 3 chữ, chạm hiện hết, Esc đóng `talk` nhưng không đóng `choice`/`alert`, phím 2 chọn, focus vào lựa chọn đầu, `role`/`aria-labelledby`, tiếng khi mở (giả `window.GameAudio`), `think` tự ẩn sau khoảng 3 giây, `reducedMotion` thì chữ hiện ngay.
+  - Bản đồ: bấm giữa từng địa điểm thì `mapSel` đúng. Ngăn kéo bản dọc: kéo 40px vẫn mở, 140px thì đóng.
+  - In bảng kết quả theo kích thước, đánh dấu ô chưa đạt. Thoát mã 1 nếu có chỗ chưa đạt. Chạy một phần: `node tools/ui-test.js --engines=chromium --sizes=390x844`.
 
 ## Giai đoạn 7: tài liệu và phát hành
 

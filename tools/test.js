@@ -264,6 +264,16 @@ MG.off=true;
 {const b=Layout.box(390,219);check('Cảnh dọc: phủ kín bề ngang, không lộ mép',b.w>=390&&b.h>=219&&b.left<=0&&b.left+b.w>=390&&b.top<=0,JSON.stringify(b))}
 {const W=844-330-47,H=390,b=Layout.box(W,H,.46),cx=b.left+320*.46*b.k;check('Cảnh ngang: phủ kín chiều cao, nhân vật giữa vùng cảnh',b.h>=H&&b.left<=0&&b.left+b.w>=W&&Math.abs(cx-W/2)<1,JSON.stringify(b))}
 {const b=Layout.box(300,400,.98);check('Cảnh: nhân vật sát mép thì dừng ở mép cảnh, không lộ nền',b.left<=0&&b.left+b.w>=300-1e-6,JSON.stringify(b))}
+{const gcs=globalThis.getComputedStyle,cv=fit=>({getBoundingClientRect:()=>({left:10,top:20,width:640,height:480}),fit});globalThis.getComputedStyle=el=>({objectFit:el.fit});
+ const near=(a,x,y)=>Math.abs(a.x-x)<1e-6&&Math.abs(a.y-y)<1e-6;
+ /* fill: kéo đúng khung 640×480 → x nhân 0,5, y nhân 0,375 */
+ const f=Layout.toScene(cv('fill'),10+320,20+240);
+ /* contain: 640×480 thu cảnh theo bề ngang (k=2), dư 60px trên và dưới */
+ const c=Layout.toScene(cv('contain'),10+320,20+60+180),c0=Layout.toScene(cv('contain'),10,20+60);
+ /* cover: phủ theo chiều cao (k=480/180), cắt hai bên */
+ const k=480/180,v=Layout.toScene(cv('cover'),10+320,20+240);
+ check('Chạm: đổi tọa độ màn hình về điểm ảnh cảnh 320×180 (fill, contain, cover)',near(f,160,90)&&near(c,160,90)&&near(c0,0,0)&&near(v,160,90)&&near(Layout.toScene(cv('cover'),10+320+k*10,20),170,0),JSON.stringify({f,c,c0,v}));
+ globalThis.getComputedStyle=gcs}
 fresh('thuong');s.loc='home';s.slot=1;s.ateThisSlot=false;s.bag=[{id:'mi',exp:null},{id:'nguyenlieu',exp:3},{id:'banhmi',exp:1}];
 {const mc=mealCard(s);check('Thẻ ăn: tối đa 3 món, món sắp hỏng trước, chừa chỗ món gọi tại chỗ',mc.length===3&&mc[0].id==='banhmi'&&mc[1].id==='nguyenlieu'&&mc[2].id==='ship',JSON.stringify(mc.map(d=>d.id)))}
 s.ateThisSlot=true;check('Thẻ ăn: ẩn khi buổi này đã ăn',!mealCard(s).length);

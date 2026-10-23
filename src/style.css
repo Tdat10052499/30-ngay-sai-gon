@@ -1085,7 +1085,8 @@ html.lay-landscape .dd-cch .dd-b{min-height:50px}
 .dd-aic{flex:none;width:44px;height:44px;display:grid;place-items:center;background:var(--coral);color:#1d1a10;font-family:var(--f-num);font-size:34px;box-shadow:0 0 0 2px #0b0c16}
 .dd-alert small.num{font-size:15px;color:#ffb09a}
 .dd-alert h2{margin:0;font-size:19px;font-weight:900}
-.dd-alert .dd-say{flex:none;overflow:visible;margin:0 0 6px;font-size:14px;line-height:1.5;color:#d8d4e4}
+/* lời dài cuộn bên trong, hai nút luôn nằm trong màn hình */
+.dd-alert .dd-say{flex:0 1 auto;min-height:3em;overflow-y:auto;margin:0 0 6px;font-size:14px;line-height:1.5;color:#d8d4e4}
 .dd-ab{flex:none;width:100%;display:grid;gap:8px}
 .dd-pri,.dd-sec{font:inherit;width:100%;min-height:52px;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
 .dd-pri{background:var(--lantern);color:#1d1a10;box-shadow:0 3px 0 #a87a1c}
