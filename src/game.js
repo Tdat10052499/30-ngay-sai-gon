@@ -639,6 +639,9 @@ function renderTop(){
   $('placeName').textContent=L.name;$('placeSub').textContent=nm(L.sub);
   $('placeShut').innerHTML=cl?'<span class="shut">Đang đóng cửa</span>':'';
   const rs=$('roomState');rs.hidden=s.loc!=='home';rs.dataset.l=messLv();$('roomName').textContent=MESS_LV[messLv()];
+  /* điện thoại: chip ngày và buổi trên cảnh, tiêu đề danh sách thẻ */
+  $('dchip').innerHTML=`${icTag(SLOT_IC[s.slot])}<span>${DOW[dowOf(s.day)]} · <b class="num">Ngày ${s.day}</b>/30 · ${SLOTS[s.slot]}</span>`;
+  $('ptitle').textContent=`${L.short.toUpperCase()} · BẠN SẼ LÀM GÌ?`;
 }
 function dailyRow(d){const D=DAILY[d.id],[c,m]=D.prog(s);const lbl=D.label?D.label(s):`${c}/${m}`;
   return `<span class="tr-day${d.st==='done'?' done':''}"><span class="ck${d.st==='done'?' on':d.st==='fail'?' fail':''}"></span><span class="tx">${D.t}</span><span class="pc">${lbl}</span></span>`}
@@ -661,20 +664,36 @@ const cardChips=c=>{const o=[];
   ups.concat(dn).forEach(S=>{const v=c.eff[S.k];o.push(`<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`)});
   if(o.length<2&&c.note)o.push(`<span class="k">${c.note.split(' · ')[0]}</span>`);
   return o.join('')};
+/* biểu tượng của thẻ (chỉ hiện trên điện thoại) theo nhóm việc */
+const CARD_IC={work:'money',freelance:'money',study:'quest',sleep:'night',rest:'night',health:'sk'};
+const cardIc=c=>c.custom?'menu':c.id==='exam'?'quest':c.id==='interview'?'money':c.id==='gift'?'coin':CARD_IC[CARD_GROUP[c.id]]||'act';
 function cardHTML(c,i){
-  if(c.custom)return `<button class="cd custom" type="button" data-card="${i}" aria-pressed="${!cardMode}"><span class="key">${i+1}</span><b>${cardMode?'Tự chọn':'Thẻ gợi ý'}</b><span class="pl">${cardMode?'Bản đồ, ăn uống, mua đồ':'Quay lại các thẻ'}</span></button>`;
-  const here=c.loc===s.loc,pl=here?`Tại ${c.place}`:`Đi ${c.place}${c.travel?` · ${fk(c.travel)}`:''}`;
-  return `<button class="cd${c.hl?' hl':''}${c.lock?' locked':''}" type="button" data-card="${i}"${c.lock?' aria-disabled="true"':''}><span class="key">${i+1}</span>${c.quest?'<span class="qx" title="Nhiệm vụ">!</span>':''}<b>${c.n}</b><span class="pl">${icTag('pin')}${pl}</span><span class="efx">${cardChips(c)}</span>${c.lock?`<span class="why">${c.lock}</span>`:c.warn.length?`<span class="wn">${c.warn.map(k=>STATS.find(S=>S.k===k).n).join(', ')} xuống dưới 25</span>`:''}</button>`;
+  if(c.custom)return `<button class="cd custom" type="button" data-card="${i}" aria-pressed="${!cardMode}"><span class="key">${i+1}</span>${icTag(cardIc(c)).replace('class="ic"','class="ic cic"')}<b>${cardMode?'Tự chọn<span class="mo"> việc khác</span>':'Thẻ gợi ý'}</b><span class="pl">${cardMode?'Bản đồ, ăn uống, mua đồ':'Quay lại các thẻ'}</span></button>`;
+  const here=c.loc===s.loc,pl=here?`Tại ${c.place}`:`Đi ${c.place}${c.travel?` · ${fk(c.travel)}`:''}`,g=c.gain+c.pay;
+  return `<button class="cd${c.hl?' hl':''}${c.lock?' locked':''}" type="button" data-card="${i}"${c.lock?' aria-disabled="true"':''}><span class="key">${i+1}</span>${c.quest?'<span class="qx" title="Nhiệm vụ">!</span>':''}${icTag(cardIc(c)).replace('class="ic"','class="ic cic"')}<b>${c.n}</b>${g?`<span class="num cg">+${fk(g)}</span>`:''}<span class="pl">${icTag('pin')}${pl}</span><span class="efx">${cardChips(c)}</span>${c.lock?`<span class="why">${c.lock}</span>`:c.warn.length?`<span class="wn">${c.warn.map(k=>STATS.find(S=>S.k===k).n).join(', ')} xuống dưới 25</span>`:''}</button>`;
 }
+/* thẻ ăn trên điện thoại (src/cards.js mealCard): bấm món là ăn ngay, không mất buổi */
+let meals=[];
+function renderMeal(){
+  const m=$('meal');meals=Layout.phone()&&cardMode?mealCard(s):[];
+  m.hidden=!meals.length;if(!meals.length){m.innerHTML='';return}
+  m.className='meal well'+(s.no<MEAL_NEED?' hot':'');
+  m.innerHTML=`<div class="mh">${icTag('eat')}Ăn gì đây?${s.no<25?'<span class="tg">Đang đói</span>':''}</div><div class="dishes">${meals.map((d,i)=>`<button class="dish" type="button" data-dish="${i}"><b>${d.n}</b><span class="num">${d.cost?fk(d.cost):'Trong túi'}</span><small>No +${d.no}</small></button>`).join('')}</div>`;
+}
+$('meal').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dish]'),d=b&&meals[+b.dataset.dish];if(!d||s.over||win)return;
+  if(d.kind==='item'){useItem(d.id);return}
+  const a=locActs().find(x=>x.id===d.id);if(a&&!reason(a))doAction(a);
+});
 function renderTools(){
   const n=s.bag.length,expiring=s.bag.some(x=>x.exp!==null&&x.exp<=s.day);
   const bill=Object.keys(BILLS).map(Number).find(d=>d>=s.day&&d-s.day<=2),act=QUESTS.filter(q=>s.q[q.id]==='active').length;
-  const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}" aria-label="${lb}">${icTag(ic)}${bd}</button>`;
+  const tool=(id,ic,lb,tip,bd='')=>`<button class="hb" type="button" data-tool="${id}" data-tip="${tip}" aria-label="${lb}">${icTag(ic)}<span class="lb" aria-hidden="true">${lb}</span>${bd}</button>`;
   $('toolbar').innerHTML=tool('bag','bag','Túi đồ','Túi đồ (B)',n?`<span class="bd${expiring?' warn':''}">${n}</span>`:'')+
     tool('cal','cal','Lịch',bill?`Lịch, chế độ ăn (L): ngày ${bill} ${BILLS[bill][0].toLowerCase()}`:'Lịch, chế độ ăn (L)',bill?'<span class="bd dot"></span>':'')+
     tool('tasks','quest','Nhiệm vụ','Nhiệm vụ (J)',act?`<span class="bd">${act}</span>`:'')+
     tool('map','map','Bản đồ','Bản đồ (M)')+
-    `<button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}</button>`;
+    `<button class="hb menu" type="button" data-tool="sys" aria-expanded="${menuCat==='sys'}" aria-label="Menu" data-tip="Nhật ký, Luật chơi">${icTag('menu')}<span class="lb" aria-hidden="true">Menu</span></button>`;
 }
 function renderCmd(){
   const key=s.day*10+s.slot;if(key!==cardKey){cardKey=key;cardMode=true}
@@ -689,9 +708,13 @@ function renderCmd(){
   const closed=LOCS[s.loc].open(s);let t='',btn='',cls='';noteAct=null;
   if(closed){t=`${closed}. Mở Bản đồ để đi nơi khác.`;btn='Bản đồ';noteAct='map';cls='bad'}
   else if(!isWE(s.day)&&s.slot===0&&s.loc!=='school'){const c=travelCost('school');t='Đang giờ học. Không lên lớp sẽ bị tính vắng học.';btn=`Đến trường${c?` (${fk(c)})`:''}`;noteAct='school'}
+  /* điện thoại: dải cảnh báo dưới cảnh thay cho bong bóng trên đầu nhân vật */
+  else if(Layout.phone()&&s.no<25){t='Đang đói: tinh thần và sức khỏe sẽ giảm.';cls='bad'}
+  else if(Layout.phone()&&s.nl<15){t='Kiệt sức: lương ca chỉ còn một nửa.';cls='bad'}
   else if(s.loc==='home'&&messLv()===2){t='Phòng bừa bộn quá. Ở phòng mỗi buổi tinh thần −2, ngủ hồi ít năng lượng hơn.';btn='Dọn phòng';noteAct='clean'}
   warnSfx();
-  const note=$('cmdNote');note.hidden=!t||!!menuCat;note.className='pn note '+cls;$('noteT').textContent=nm(t);$('noteBtn').textContent=btn;
+  const note=$('cmdNote');note.hidden=!t||!!menuCat;note.className='pn note '+cls;$('noteT').textContent=nm(t);$('noteBtn').textContent=btn;$('noteBtn').hidden=!btn;
+  renderMeal();
   renderMenu();
 }
 const effSpans=e=>STATS.filter(S=>e[S.k]).map(S=>{const v=e[S.k];return `<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`}).join('');
@@ -797,7 +820,7 @@ function openWin(name){
 }
 /* điện thoại nằm ngang: các cửa sổ tính kích thước theo chiều cao màn hình nên chữ phụ có thể nhỏ hơn 11 điểm;
  * nâng mọi chữ dưới 11px lên 11px (chữ lớn giữ nguyên), theo DESIGN_SPEC mục 1 và design/12 thẻ 4 */
-const isPhone=()=>typeof matchMedia==='function'&&matchMedia('(pointer:coarse) and (orientation:landscape)').matches;
+const isPhone=()=>Layout.phone();
 function phoneMinFont(root){
   if(!root||!isPhone()||typeof getComputedStyle!=='function')return;
   root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11)el.style.fontSize='11px'});
@@ -1317,6 +1340,7 @@ function loop(t){if(t-lastDraw>66){lastDraw=t;try{drawScene(t);if(win==='map')dr
 
 /* ============ Boot ============ */
 function boot(data){
+  Layout.on(()=>{if(s&&s.started&&mode==='game')render()});Layout.apply();
   document.querySelectorAll('[data-ic]').forEach(el=>el.style.setProperty('--i',`url(${icURL(el.dataset.ic)})`));
   if(data&&data.state&&data.state.started&&data.state.q){s=data.state;startGame();if(s.over)openWin('end');else processQueue()}
   else{s=newState();showTitle()}

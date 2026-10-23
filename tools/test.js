@@ -257,6 +257,18 @@ MG.off=true;
  renderTitle();check('Lưu: bản lưu cũ thì trang bìa báo bắt đầu tháng mới',$('titleBtns').innerHTML.includes('Bản lưu cũ không dùng được với phiên bản mới')&&!$('titleBtns').innerHTML.includes('Chơi tiếp'));
  newGame({name:'Lan',gender:'nu'});clearEvents();check('Lưu: bắt đầu tháng mới thì xóa bản lưu cũ',!mem['ba-muoi-ngay-sg-v5']&&!!mem[KEY]);
  globalThis.localStorage=LS}
+/* ---------- giao diện điện thoại (CLAUDE-CODE-DIEN-THOAI.md) ---------- */
+{const cases=[[390,844,'portrait'],[375,667,'portrait'],[360,780,'portrait'],[430,932,'portrait'],[600,601,'portrait'],[844,390,'landscape'],[667,375,'landscape'],[780,360,'landscape'],[932,430,'landscape'],
+   [1280,720,'desktop'],[601,900,'desktop'],[1024,768,'desktop'],[900,501,'desktop'],[600,600,'desktop']];
+ const bad=cases.filter(([w,h,n])=>Layout.pick(w,h)!==n);check('Bố cục: chọn đúng lớp cho '+cases.length+' kích thước',!bad.length,JSON.stringify(bad))}
+{const b=Layout.box(390,219);check('Cảnh dọc: phủ kín bề ngang, không lộ mép',b.w>=390&&b.h>=219&&b.left<=0&&b.left+b.w>=390&&b.top<=0,JSON.stringify(b))}
+{const W=844-330-47,H=390,b=Layout.box(W,H,.46),cx=b.left+320*.46*b.k;check('Cảnh ngang: phủ kín chiều cao, nhân vật giữa vùng cảnh',b.h>=H&&b.left<=0&&b.left+b.w>=W&&Math.abs(cx-W/2)<1,JSON.stringify(b))}
+{const b=Layout.box(300,400,.98);check('Cảnh: nhân vật sát mép thì dừng ở mép cảnh, không lộ nền',b.left<=0&&b.left+b.w>=300-1e-6,JSON.stringify(b))}
+fresh('thuong');s.loc='home';s.slot=1;s.ateThisSlot=false;s.bag=[{id:'mi',exp:null},{id:'nguyenlieu',exp:3},{id:'banhmi',exp:1}];
+{const mc=mealCard(s);check('Thẻ ăn: tối đa 3 món, món sắp hỏng trước, chừa chỗ món gọi tại chỗ',mc.length===3&&mc[0].id==='banhmi'&&mc[1].id==='nguyenlieu'&&mc[2].id==='ship',JSON.stringify(mc.map(d=>d.id)))}
+s.ateThisSlot=true;check('Thẻ ăn: ẩn khi buổi này đã ăn',!mealCard(s).length);
+s.ateThisSlot=false;s.loc='school';s.slot=0;s.bag=[{id:'nguyenlieu',exp:3}];check('Thẻ ăn: không có món không dùng được ở nơi này',!mealCard(s).length);
+s.loc='street';s.slot=1;s.money=45000;s.bag=[];{const mc=mealCard(s);check('Thẻ ăn: bỏ món không đủ tiền',mc.length===1&&mc[0].id==='comtam',JSON.stringify(mc))}
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

@@ -15,23 +15,32 @@
 <body>
 <div class="screen">
   <div class="stage" id="stage">
-    <canvas id="scene" width="320" height="180" role="img" aria-label="Khung cảnh địa điểm hiện tại"></canvas>
+    <div class="scn" id="scn"><canvas id="scene" width="320" height="180" role="img" aria-label="Khung cảnh địa điểm hiện tại"></canvas></div>
 
     <div class="ui" id="ui" hidden>
-      <div class="pn clock" aria-label="Thời gian và địa điểm">
-        <div class="r1"><span id="dow"></span><b id="chap"></b></div>
-        <div class="r2"><span class="w">Ngày</span><span class="num d" id="dayNum">1</span><span class="num of">/30</span></div>
-        <div class="slots well" id="slots" aria-label="Buổi trong ngày"></div>
-        <div class="where"><i class="ic" data-ic="pin"></i><div><span id="placeName"></span><small id="placeSub"></small><span id="placeShut"></span></div></div>
-        <div class="room" id="roomState" data-l="0" title="Độ bừa bộn của phòng" hidden><span class="rl">Phòng</span><b id="roomName"></b><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span></div>
+      <div class="ov" id="ov">
+        <div class="pn clock" aria-label="Thời gian và địa điểm">
+          <div class="r1"><span id="dow"></span><b id="chap"></b></div>
+          <div class="r2"><span class="w">Ngày</span><span class="num d" id="dayNum">1</span><span class="num of">/30</span></div>
+          <div class="slots well" id="slots" aria-label="Buổi trong ngày"></div>
+          <div class="where"><i class="ic" data-ic="pin"></i><div><span id="placeName"></span><small id="placeSub"></small><span id="placeShut"></span></div></div>
+          <div class="room" id="roomState" data-l="0" title="Độ bừa bộn của phòng" hidden><span class="rl">Phòng</span><b id="roomName"></b><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span></div>
+        </div>
+        <div class="pn dchip" id="dchip"></div>
+        <div class="pn note" id="cmdNote" role="status" hidden><i class="ic" data-ic="warn"></i><span id="noteT"></span><button type="button" id="noteBtn"></button></div>
       </div>
-      <div class="pn wallet"><i class="ic" data-ic="coin"></i><div><div class="num m" id="money"></div><div class="sub" id="ledger"></div></div></div>
-      <button class="pn quest" type="button" id="tracker" data-tip="Mở Nhiệm vụ (J)"></button>
-      <div class="pn stats" id="mstats" aria-label="Chỉ số"></div>
-      <div class="pn note" id="cmdNote" role="status" hidden><i class="ic" data-ic="warn"></i><span id="noteT"></span><button type="button" id="noteBtn"></button></div>
+      <div class="panel" id="panel">
+        <div class="pscroll" id="pscroll">
+          <div class="pn wallet"><i class="ic" data-ic="coin"></i><div><div class="num m" id="money"></div><div class="sub" id="ledger"></div></div></div>
+          <button class="pn quest" type="button" id="tracker" data-tip="Mở Nhiệm vụ (J)"></button>
+          <div class="pn stats" id="mstats" aria-label="Chỉ số"></div>
+          <h2 class="ptitle" id="ptitle"></h2>
+          <div class="meal" id="meal" hidden></div>
+          <nav class="pn hotbar" id="cmdbar" aria-label="Thẻ hành động"></nav>
+        </div>
+        <nav class="pn toolbar" id="toolbar" aria-label="Công cụ"></nav>
+      </div>
       <div class="pn amenu" id="popMenu" hidden role="dialog" aria-modal="false" aria-labelledby="popT"></div>
-      <nav class="pn hotbar" id="cmdbar" aria-label="Thẻ hành động"></nav>
-      <nav class="pn toolbar" id="toolbar" aria-label="Công cụ"></nav>
       <div class="pn toast out" id="toast" role="status"></div>
     </div>
 
@@ -97,8 +106,8 @@
   </div>
 </div>
 
-<div class="rotate" role="alert"><div><i aria-hidden="true"></i><b>Xoay ngang điện thoại</b><span>30 Ngày Sài Gòn chơi ở chế độ màn hình ngang. Hãy xoay điện thoại để bắt đầu.</span></div></div>
 
+<script src="src/layout.js?v=0.4.0"></script>
 <script src="src/rules.js?v=0.4.0"></script>
 <script src="src/events.js?v=0.4.0"></script>
 <script src="src/cards.js?v=0.4.0"></script>

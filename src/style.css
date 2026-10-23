@@ -36,6 +36,7 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 /* --p: một điểm ảnh của lưới giao diện 640×360 (DESIGN_SPEC mục 1); thay thế dần các đơn vị cqw ở giai đoạn 4 */
 .stage{--p:calc(100cqw / 640);position:relative;container:stage/size;width:min(100%,calc((100dvh - 20px) * 16 / 9));aspect-ratio:16/9;
   border-radius:14px;overflow:hidden;background:#0b0c17;box-shadow:0 0 0 2px #2c3150,0 0 0 7px #080911,0 24px 70px rgba(0,0,0,.65)}
+.scn{position:absolute;inset:0;overflow:hidden}
 #scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;image-rendering:pixelated;image-rendering:crisp-edges;transition:opacity .22s}
 .stage.fade #scene{opacity:0}
 
@@ -553,7 +554,6 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
    Thông tin dồn lên trên; tay phải bấm 3 nút hành động ở góc phải dưới, tay trái bấm công cụ ở góc trái dưới.
    Mọi nút từ 48×48 điểm, dòng menu cao từ 52 điểm, chữ nhỏ nhất 11 điểm.
    Cửa sổ co theo chiều cao màn hình (--p theo cqh). */
-.rotate{display:none}
 .title-old{flex-basis:100%;margin:.4em 0 0;font-size:.85em;color:var(--lantern);max-width:30em}
 
 /* Thẻ hành động (bản chơi thử 2, mục 3.1): hàng 3–5 thẻ giữa dưới; công cụ thành cột nhỏ bên phải */
@@ -665,18 +665,6 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
   .t-x,.m-hd .xbtn,.btnp,.btns,.e-ch{min-height:44px}
   .layer .t-x{min-width:64px}
 }
-/* điện thoại dọc: nhắc xoay ngang */
-@media (pointer:coarse) and (orientation:portrait){
-  .rotate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:var(--bezel);color:var(--fg);text-align:center;font-family:var(--f-body)}
-  .rotate div{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:22em}
-  .rotate i{width:64px;height:104px;border:4px solid var(--lantern);border-radius:12px;position:relative;animation:tilt 2.4s ease-in-out infinite}
-  .rotate i::after{content:"";position:absolute;left:50%;bottom:6px;width:18px;height:4px;margin-left:-9px;border-radius:2px;background:var(--lantern)}
-  .rotate b{font-size:20px;font-weight:900}
-  .rotate span{color:var(--muted);font-size:15px;line-height:1.5}
-  .screen{visibility:hidden}
-}
-@keyframes tilt{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
-@media (prefers-reduced-motion:reduce){.rotate i{animation:none;transform:rotate(-90deg)}}
 
 @media (prefers-reduced-motion:reduce){.pop{animation-duration:.01s}.st.low .sbar i{animation:none}#scene,.toast,.sbar i,.bar i{transition:none}}
 
@@ -787,3 +775,137 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
   .cd .pl{white-space:nowrap}
   .cd .why,.cd .wn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+
+/* ---------- Bố cục theo thiết bị (CLAUDE-CODE-DIEN-THOAI.md, src/layout.js) ----------
+   <html> mang đúng một lớp: lay-desktop, lay-portrait, lay-landscape.
+   Máy tính: các vùng bọc (.ov cảnh, .panel bảng điều khiển, .pscroll phần cuộn) là display:contents nên mọi bảng
+   vẫn đặt tuyệt đối trong khung 16:9 như trước; các phần chỉ dành cho điện thoại bị ẩn. */
+.ov,.panel,.pscroll{display:contents}
+.dchip,.ptitle,.meal,.toolbar .lb,.cd .cic,.cd .cg,.cd .mo{display:none}
+/* thẻ ăn: dùng chung cho hai bố cục điện thoại */
+.meal{flex-direction:column;gap:8px;padding:10px 12px}
+.meal.hot{box-shadow:inset 0 0 0 2px var(--c-no)}
+.mh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.mh .ic{width:20px;height:20px}
+.mh .tg{margin-left:auto;font-size:11px;padding:1px 6px;background:var(--bad);color:#fff}
+.dishes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dish{font:inherit;color:inherit;border:0;cursor:pointer;text-align:left;min-height:56px;padding:6px 7px 7px;display:flex;flex-direction:column;gap:2px;background:#262c52}
+.dish:active{transform:translateY(1px)}
+.dish b{font-size:12px;font-weight:800;line-height:1.15}
+.dish .num{font-size:17px;color:var(--lantern)}
+.dish small{font-size:11px;color:var(--muted)}
+/* ?debug=layout */
+.dbg-layout .scn,.dbg-layout .ov,.dbg-layout .panel,.dbg-layout .pscroll,.dbg-layout .toolbar{outline:1px dashed #3cff7a;outline-offset:-1px}
+#dbgLay{position:fixed;left:4px;bottom:4px;z-index:999;pointer-events:none;font:11px/1.3 ui-monospace,monospace;color:#3cff7a;background:rgba(0,0,0,.75);padding:2px 6px}
+
+/* ---------- Điện thoại cầm dọc (phương án A, design/14) ----------
+   Từ trên xuống: vùng an toàn tô tối, cảnh 16:9 phủ bề ngang (chip ngày, dải cảnh báo), bảng điều khiển cuộn được
+   (tiền, chỉ số, nhiệm vụ, thẻ ăn, thẻ hành động), thanh công cụ ở đáy. Mọi kích thước tính bằng px cố định. */
+html.lay-portrait .screen{padding:0;background:var(--bezel)}
+html.lay-portrait .stage{position:fixed;inset:0;width:auto;height:auto;aspect-ratio:auto;border-radius:0;box-shadow:none;background:var(--bezel);
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);
+  --sh:calc(100vw * 9 / 16)}
+html.lay-portrait .scn{inset:var(--st) 0 auto 0;height:var(--sh)}
+html.lay-portrait #scene{right:auto;bottom:auto;object-fit:fill}
+html.lay-portrait .ui{--p:2px;font-size:13px;line-height:1.3}
+html.lay-portrait .ov{display:block;position:absolute;left:0;right:0;top:var(--st);height:var(--sh);pointer-events:none}
+html.lay-portrait .ov>*{pointer-events:auto}
+html.lay-portrait .clock{display:none}
+html.lay-portrait .dchip{display:flex;position:absolute;left:10px;top:8px;align-items:center;gap:6px;padding:4px 9px;font-size:12px;font-weight:800}
+.dchip .ic{width:20px;height:20px}
+.dchip .num{font-size:17px;font-weight:400;color:var(--lantern)}
+html.lay-portrait .note{left:10px;right:10px;top:auto;bottom:6px;transform:none;white-space:normal;font-size:12px;font-weight:700;padding:5px 9px;gap:6px}
+html.lay-portrait .note .ic{width:20px;height:20px}
+/* dải cảnh báo chỉ để đọc như design/14; việc tương ứng đã có thẻ (Đi học, Dọn phòng) hoặc nút Bản đồ ở đáy */
+html.lay-portrait .note button{display:none}
+html.lay-portrait .panel{display:flex;flex-direction:column;position:absolute;left:0;right:0;top:calc(var(--st) + var(--sh));bottom:0;background:#141832}
+html.lay-portrait .pscroll{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px 12px}
+html.lay-portrait .pscroll>*{position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none;flex:none}
+/* tiền và lương chờ */
+html.lay-portrait .wallet{width:auto;padding:4px 10px;gap:8px}
+html.lay-portrait .wallet .ic{width:20px;height:20px}
+html.lay-portrait .wallet>div{flex:1;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+html.lay-portrait .wallet .m{font-size:22px}
+html.lay-portrait .wallet .sub{font-size:11px;margin:0}
+/* 4 chỉ số: thanh ngang xếp 2×2, số bên phải */
+html.lay-portrait .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;padding:8px 10px}
+html.lay-portrait .st{width:auto;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px}
+html.lay-portrait .st .ic{order:0;width:20px;height:20px}
+html.lay-portrait .st .sbar{order:1;width:auto;height:9px}
+html.lay-portrait .st .v{order:2;font-size:17px;min-width:22px;text-align:right}
+html.lay-portrait .sbar i{top:var(--p);right:auto;height:auto;width:calc((100% - var(--p)*2) * var(--v));transition:width .35s}
+html.lay-portrait .sbar::after{top:0;bottom:0;left:calc(var(--p) + (100% - var(--p)*2)*.25);right:auto;width:var(--p);height:auto}
+/* nhiệm vụ đang theo dõi: một chip, bấm mở Nhiệm vụ */
+html.lay-portrait .quest{width:auto;min-height:48px;padding:6px 10px;display:flex;align-items:center;gap:8px}
+html.lay-portrait .quest .h{flex:1;min-width:0;align-items:center;gap:8px}
+html.lay-portrait .quest .ic{width:20px;height:20px}
+html.lay-portrait .quest b{font-size:12.5px}
+html.lay-portrait .quest p,html.lay-portrait .quest .f span:last-child{display:none}
+html.lay-portrait .quest .f{margin:0;font-size:11px}
+html.lay-portrait .ptitle{display:block;margin:2px 0 0;font-size:12px;font-weight:800;letter-spacing:.04em;color:var(--muted)}
+html.lay-portrait .meal{display:flex}
+html.lay-portrait .meal[hidden]{display:none}
+/* thẻ hành động xếp dọc, cao từ 60 */
+html.lay-portrait .hotbar{display:block;padding:0;background:none;border:0;box-shadow:none;clip-path:none}
+html.lay-portrait .hb-grp.cards{display:flex;flex-direction:column;gap:8px}
+html.lay-portrait .cd{width:100%;min-height:60px;padding:10px 12px;display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:3px 10px;align-items:center}
+html.lay-portrait .cd .key{display:none}
+html.lay-portrait .cd .cic{display:block;grid-area:1/1/3/2;width:28px;height:28px}
+html.lay-portrait .cd b{grid-area:1/2;font-size:14px;padding:0;line-height:1.2}
+html.lay-portrait .cd .cg{display:block;grid-area:1/3;font-size:18px;color:var(--lantern)}
+html.lay-portrait .cd .pl{grid-area:2/2/3/4;font-size:11px}
+html.lay-portrait .cd .pl .ic{width:14px;height:14px}
+html.lay-portrait .cd .efx{grid-area:3/2/4/4;gap:4px}
+html.lay-portrait .cd .efx span{font-size:11px;line-height:1.5}
+html.lay-portrait .cd .efx span.gain{display:none}
+html.lay-portrait .cd .why,html.lay-portrait .cd .wn{grid-column:2/4;font-size:11px}
+html.lay-portrait .cd .qx{left:4px;top:4px;right:auto;width:16px;height:16px;font-size:12px}
+html.lay-portrait .cd.custom{width:100%;min-height:52px}
+html.lay-portrait .cd.custom .mo{display:inline}
+/* "Tự chọn": các nhóm hành động thành thẻ hai cột */
+html.lay-portrait .hb-grp.hb-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html.lay-portrait .hb.act{width:auto;height:auto;min-height:60px;flex-direction:row;justify-content:flex-start;gap:10px;padding:8px 12px}
+html.lay-portrait .hb.act .ic{width:24px;height:24px}
+html.lay-portrait .hb.act .lb{font-size:13px;color:var(--fg)}
+html.lay-portrait .hb .key{display:none}
+/* thanh công cụ ở đáy */
+html.lay-portrait .toolbar{position:relative;right:auto;top:auto;display:flex;flex-direction:row;justify-content:space-around;align-items:stretch;gap:0;padding:0 var(--sr) var(--sb) var(--sl);border-width:2px 0 0;clip-path:none}
+html.lay-portrait .toolbar .hb{flex:1;width:auto;min-width:52px;height:auto;min-height:52px;background:transparent;box-shadow:none;gap:2px}
+html.lay-portrait .toolbar .hb .ic{width:24px;height:24px}
+html.lay-portrait .toolbar .lb,html.lay-portrait .hb.menu .lb{display:block;font-size:11px}
+html.lay-portrait .hb .bd{font-size:15px}
+html.lay-portrait [data-tip]:hover::after,html.lay-portrait [data-tip]:focus-visible::after{content:none}
+/* menu hành động: ngăn kéo từ dưới lên */
+html.lay-portrait .amenu{left:0;right:0;top:auto;bottom:0;transform:none;width:auto;max-height:75%;display:flex;flex-direction:column;padding:12px 12px calc(12px + var(--sb));z-index:6;font-size:13px}
+html.lay-portrait .amenu[hidden]{display:none}
+html.lay-portrait .amenu h3{font-size:15px}
+html.lay-portrait .amenu h3 .x{display:none}
+html.lay-portrait .amenu h3 .xbtn{min-width:48px;height:48px;font-size:18px}
+html.lay-portrait .rows{max-height:none;flex:1;min-height:0}
+html.lay-portrait .row{min-height:52px;padding:8px 12px}
+html.lay-portrait .row b{font-size:14px}
+html.lay-portrait .row .d,html.lay-portrait .row .why,html.lay-portrait .amenu .efx span{font-size:11px}
+html.lay-portrait .toast{left:50%;right:auto;top:calc(var(--st) + 52px);bottom:auto;max-width:calc(100% - 24px);transform:translateX(-50%);font-size:12px;padding:7px 12px}
+html.lay-portrait .toast.out{transform:translate(-50%,4px)}
+html.lay-portrait .fx{font-size:13px}
+/* trang bìa, tạo nhân vật, chuyển cảnh ngày 1: cảnh ở trên, chữ và nút bên dưới */
+html.lay-portrait :is(.title-screen,.create-screen){top:calc(var(--st) + var(--sh));bottom:0;padding:18px 16px calc(16px + var(--sb));font-size:15px;background:#141832;overflow-y:auto;align-items:flex-start}
+html.lay-portrait .title-box{max-width:none;width:100%}
+html.lay-portrait .title-box h1{font-size:3em}
+html.lay-portrait .title-btns{align-items:stretch}
+html.lay-portrait .title-btns .btn{min-height:48px;justify-content:center}
+html.lay-portrait .eyebrow{font-size:11px}
+html.lay-portrait .create-screen{display:block}
+html.lay-portrait .create-screen[hidden]{display:none}
+html.lay-portrait .cr-card{width:100%;padding:16px;gap:10px}
+html.lay-portrait .cr-ava{width:6em}
+html.lay-portrait .cr-seg label{min-height:48px}
+html.lay-portrait #crName,html.lay-portrait .cr-form .btn.primary{min-height:48px}
+html.lay-portrait .cr-back{min-height:44px}
+html.lay-portrait .cr-help,html.lay-portrait .cr-dtx{font-size:12px}
+html.lay-portrait .intro{font-size:15px}
+html.lay-portrait .in-day{left:16px;right:16px;width:auto;top:calc(var(--st) + var(--sh) + 16px);transform:translateY(.8em)}
+html.lay-portrait .in-day.show{transform:none}
+html.lay-portrait .in-day .btn.primary{min-height:48px}
+html.lay-portrait .in-skip{right:16px;bottom:calc(16px + var(--sb));min-height:48px}
+html.lay-portrait .amenu h3 .xbtn{margin-left:auto}
