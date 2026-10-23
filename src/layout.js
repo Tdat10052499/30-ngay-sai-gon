@@ -30,13 +30,13 @@ let cur=null;const subs=[];
 const size=()=>{const v=typeof window!=='undefined'&&window.visualViewport;
   return v&&v.width?{w:Math.round(v.width),h:Math.round(v.height)}:{w:window.innerWidth,h:window.innerHeight}};
 const is=n=>cur===n,phone=()=>cur==='portrait'||cur==='landscape';
-/* tâm nhân vật theo cảnh; mặc định 0,46 (phòng trọ: nhân vật đứng ở x=148) */
-let focus=.46;
+/* tâm nhân vật theo cảnh (phòng trọ: nhân vật đứng ở x=148); bố cục ngang lệch về trái một chút như design/14 */
+const FOCUS={portrait:.46,landscape:.44};
 function fitScene(){
   const cv=document.getElementById('scene'),host=document.getElementById('scn');if(!cv||!host)return;
   if(!phone()){cv.style.cssText='';return}
   const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
-  const b=box(w,h,focus);
+  const b=box(w,h,FOCUS[cur]);
   cv.style.cssText=`width:${b.w}px;height:${b.h}px;left:${b.left}px;top:${b.top}px`;
 }
 /* đang gõ chữ (bàn phím ảo mở) thì vùng nhìn thấy thấp hẳn đi: máy 360×640 còn khoảng 360×340 và sẽ bị đổi sang
@@ -80,5 +80,5 @@ if(typeof window!=='undefined'&&window.addEventListener&&typeof document!=='unde
   addEventListener('focusout',()=>{if(typing())typedAt=Date.now();setTimeout(apply,HOLD_MS+50)});
   if(typeof ResizeObserver==='function')addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('scn');if(h)new ResizeObserver(fitScene).observe(h)});
 }
-return {pick,box,toScene,apply,on,fitScene,fitStage,is,phone,debug,get cur(){return cur},setFocus(f){if(f!==focus){focus=f;fitScene()}}};
+return {pick,box,toScene,apply,on,fitScene,fitStage,is,phone,debug,get cur(){return cur}};
 })();

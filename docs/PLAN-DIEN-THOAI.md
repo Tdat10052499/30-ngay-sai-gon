@@ -54,11 +54,11 @@ Theo đề bài `CLAUDE-CODE-DIEN-THOAI.md` và bản thiết kế `design/14-gi
 
 ## Giai đoạn 2: bố cục ngang B và xoay máy
 
-- [ ] **2.1 Bố cục ngang** (`src/style.css`, `src/layout.js`)
+- [x] **2.1 Bố cục ngang** (`src/style.css`, `src/layout.js`)
   - Trái: cảnh phủ theo chiều cao, tâm nhân vật (focus 0,44); chip ngày cách vùng an toàn trái; cảnh báo góc dưới trái. Không có nút nào trong vùng tai thỏ.
   - Phải: cột 330px + vùng an toàn phải: tiền + chip nhiệm vụ, 4 chỉ số 2×2, thẻ ăn + thẻ hành động (cuộn), hàng công cụ ở đáy.
   - Đạt: 4 kích thước ngang không cuộn ngang, nút trọn trong vùng an toàn.
-- [ ] **2.2 Đổi hướng giữ trạng thái** (`src/layout.js`, `src/game.js`)
+- [x] **2.2 Đổi hướng giữ trạng thái** (`src/layout.js`, `src/game.js`)
   - Đổi lớp chỉ xếp lại vị trí: không gọi `openWin`/`hideWin`, không dựng lại hộp đang gõ chữ (chỉ đổi lớp CSS; hộp nào cần HTML khác theo hướng thì dựng lại nhưng giữ số chữ đã hiện và focus).
   - Kiểm tra: Playwright đổi 390×844 ↔ 844×390 khi đang mở cửa sổ, hộp `choice`, minigame.
   - Đạt: cùng `win`, `curEvent`, `mgCur`, lựa chọn vẫn bấm được.
