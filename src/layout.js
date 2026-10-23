@@ -18,12 +18,13 @@ function box(w,h,focus=.46){
   const left=Math.min(0,Math.max(w-cw,w*.5-320*focus*k));
   return {k,w:cw,h:ch,left,top:(h-ch)/2};
 }
-/* điểm chạm (tọa độ màn hình) → điểm ảnh cảnh 320×180, dùng khung thật của canvas nên đúng với mọi cách co giãn */
+/* điểm chạm (tọa độ màn hình) → điểm ảnh 320×180 của canvas, theo cách canvas đang co giãn:
+ * fill (kéo đúng khung, gồm cảnh điện thoại do fitScene đặt kích thước) hoặc cover/contain căn giữa (bản đồ trên điện thoại) */
 function toScene(cv,clientX,clientY){
   const r=cv.getBoundingClientRect(),fit=getComputedStyle(cv).objectFit;
-  let k=r.width/320,ox=0,oy=0;
-  if(fit==='cover'||fit==='contain'){k=(fit==='cover'?Math.max:Math.min)(r.width/320,r.height/180);ox=(r.width-320*k)/2;oy=(r.height-180*k)/2}
-  return {x:(clientX-r.left-ox)/k,y:(clientY-r.top-oy)/k};
+  if(fit!=='cover'&&fit!=='contain')return {x:(clientX-r.left)*320/r.width,y:(clientY-r.top)*180/r.height};
+  const k=(fit==='cover'?Math.max:Math.min)(r.width/320,r.height/180);
+  return {x:(clientX-r.left-(r.width-320*k)/2)/k,y:(clientY-r.top-(r.height-180*k)/2)/k};
 }
 
 let cur=null;const subs=[];

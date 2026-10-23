@@ -835,7 +835,7 @@ function toggleWin(name){
 }
 function renderWin(){
   const kind=win==='event'&&curEvent?curEvent.kind||'dlg':null,isDlg=kind==='dlg';
-  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw':isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='warn'?'pn warnc':kind==='mg'?'pn mgw':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
+  const w=$('win');w.className=TAB_WINS.includes(win)||win==='log'||win==='rules'?'pn tw tw-'+win:isDlg?'evhost':kind==='chapter'?'pn chapc':kind==='warn'?'pn warnc':kind==='mg'?'pn mgw':kind==='day'?'pn dayc':win==='end'?'pn endp':win==='phone'?'phw':'win w-'+win;
   w.setAttribute('aria-labelledby',kind==='mg'?'mgT':kind==='warn'?'wnT':kind==='chapter'?'chT':win==='end'?'endT':'');
   const html=win==='bag'?bagHTML():win==='cal'?calHTML():win==='tasks'?tasksHTML():win==='map'?mapHTML()
     :win==='log'?docHead('book','Nhật ký')+`<div class="t-det well t-doc"><ol class="loglist">${s.log.map(l=>`<li><span class="lt">N${l.d} · ${SLOTS[l.sl]}</span><span class="${l.tone}">${l.text}</span></li>`).join('')||'<li><span></span><span class="muted">Chưa có gì.</span></li>'}</ol></div>`
@@ -920,10 +920,10 @@ const TAB_WINS=['bag','cal','tasks'];
 let questSel=null;
 const VERB={food:'Ăn',drink:'Uống',med:'Dùng'};
 /* Nhật ký và Luật chơi: cùng khung, chỉ có tiêu đề và nút đóng */
-const docHead=(ic,title)=>`<div class="t-wh"><h2 class="t-ttl">${icTag(ic)}${title}</h2><span class="sp"></span><button class="t-x" type="button" data-close>Esc ✕</button></div>`;
+const docHead=(ic,title)=>`<div class="t-wh"><h2 class="t-ttl">${icTag(ic)}${title}</h2><span class="sp"></span><button class="t-x" type="button" data-close><span class="dk">Esc ✕</span><span class="mk">Đóng</span></button></div>`;
 function tabHead(extra=''){
   const t=(id,ic,l,k)=>`<button class="t-wt" type="button" role="tab" data-tab="${id}" aria-selected="${win===id}">${icTag(ic)}${l}<kbd>${k}</kbd></button>`;
-  return `<div class="t-wh" role="tablist">${t('bag','bag','Túi đồ','B')}${t('cal','cal','Lịch','L')}${t('tasks','quest','Nhiệm vụ','J')}<span class="sp"></span>${extra}<button class="t-x" type="button" data-close>Esc ✕</button></div>`;
+  return `<div class="t-wh" role="tablist">${t('bag','bag','Túi đồ','B')}${t('cal','cal','Lịch','L')}${t('tasks','quest','Nhiệm vụ','J')}<span class="sp"></span>${extra}<button class="t-x" type="button" data-close><span class="dk">Esc ✕</span><span class="mk">Đóng</span></button></div>`;
 }
 function bagHTML(){
   const st=bagStacks(),cells=[];
@@ -1025,7 +1025,7 @@ function drawMap(t=0){
   Scenes.map.frame(cv.getContext('2d'),t,{animate:!reduceMotion(),slot:s.slot,at:s.loc,sel:mapSel,weekend:isWE(s.day),quests:Object.keys(mapQuests()),broken:s.bikeBroken>0,gender:s.gender});
 }
 $('layer').addEventListener('pointerdown',e=>{
-  if(e.target.id!=='mapCv')return;const r=e.target.getBoundingClientRect(),k=Math.min(r.width/320,r.height/180),x=(e.clientX-r.left)/k,y=(e.clientY-r.top-(r.height-180*k)/2)/k;
+  if(e.target.id!=='mapCv')return;const {x,y}=Layout.toScene(e.target,e.clientX,e.clientY);
   const hit=Scenes.map.PLACES.find(p=>{const [bx,by,bw,bh]=p.box;return x>=bx-3&&x<=bx+bw+3&&y>=by-12&&y<=by+bh+3});if(hit){mapSel=hit.id;renderWin()}
 });
 
@@ -1154,6 +1154,24 @@ function phoneDo(id){
   if(ok&&!win){phoneApp=id==='askparents'?'wallet':'home';if(id==='askparents')openWin('phone')}
 }
 
+/* điện thoại: chi tiết nằm dưới danh sách trong ngăn kéo, chọn xong thì cuộn tới để thấy ngay */
+function showDet(){if(!Layout.phone())return;const d=$('win').querySelector('.t-det');if(d)d.scrollIntoView({block:'nearest',behavior:reduceMotion()?'auto':'smooth'})}
+/* điện thoại dọc: kéo đầu ngăn kéo (thanh kéo, tiêu đề) xuống quá 80px để đóng.
+ * sheetOf() trả ngăn đang mở hoặc null; bấm trượt sau khi kéo không được tính là bấm nút. */
+function swipeDown(host,sheetOf,onClose){
+  let st=null,swallow=false;
+  host.addEventListener('pointerdown',e=>{const sh=sheetOf();if(!sh||!Layout.is('portrait')||!sh.contains(e.target))return;
+    if(e.clientY-sh.getBoundingClientRect().top>56)return;st={y:e.clientY,id:e.pointerId,sh,dy:0}});
+  host.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;st.dy=Math.max(0,e.clientY-st.y);
+    if(st.dy>6){st.sh.style.transition='none';st.sh.style.transform=`translateY(${st.dy}px)`}});
+  const end=e=>{if(!st||e.pointerId!==st.id)return;const {sh,dy}=st;st=null;sh.style.transition='';sh.style.transform='';
+    if(dy>6)swallow=true;if(dy>80)onClose()};
+  host.addEventListener('pointerup',end);host.addEventListener('pointercancel',end);
+  host.addEventListener('click',e=>{if(swallow){swallow=false;e.stopPropagation();e.preventDefault()}},true);
+}
+swipeDown($('layer'),()=>win&&win!=='event'&&win!=='end'?$('win').closest('.tw')||$('win').querySelector('.m-side'):null,closeWin);
+swipeDown($('popMenu'),()=>menuCat?$('popMenu'):null,()=>{closeMenu();renderCmd()});
+
 /* Layer clicks */
 $('layer').addEventListener('click',e=>{
   const t=e.target;
@@ -1165,9 +1183,9 @@ $('layer').addEventListener('click',e=>{
   const use=t.closest('[data-use]');if(use){if(!use.disabled)useItem(use.dataset.use);return}
   const pin=t.closest('[data-pin]');if(pin){s.pin=pin.dataset.pin;refresh();return}
   const tb=t.closest('[data-tab]');if(tb){openWin(tb.dataset.tab);return}
-  const qq=t.closest('[data-q]');if(qq){questSel=qq.dataset.q;renderWin();const f=$('win').querySelector(`[data-q="${questSel}"]`);if(f)f.focus({preventScroll:true});return}
+  const qq=t.closest('[data-q]');if(qq){questSel=qq.dataset.q;renderWin();const f=$('win').querySelector(`[data-q="${questSel}"]`);if(f)f.focus({preventScroll:true});showDet();return}
   const sl=t.closest('[data-slot]');if(sl){bagSel=sl.dataset.slot;renderWin();const u=$('win').querySelector(`[data-slot="${bagSel}"]`);if(u)u.focus({preventScroll:true});return}
-  const day=t.closest('[data-day]');if(day){calSel=+day.dataset.day;renderWin();return}
+  const day=t.closest('[data-day]');if(day){calSel=+day.dataset.day;renderWin();showDet();return}
   const cs=t.closest('[data-chart]');if(cs){endChart=cs.dataset.chart;renderWin();return}
   const ph=t.closest('[data-ph]');if(ph){phoneApp=ph.dataset.ph;if(phoneApp==='chat')sfx('message');renderWin();const f=$('win').querySelector('.ah button,.app,.quick button');if(f)f.focus({preventScroll:true});return}
   const pd=t.closest('[data-phdo]');if(pd){if(!pd.disabled)phoneDo(pd.dataset.phdo);return}

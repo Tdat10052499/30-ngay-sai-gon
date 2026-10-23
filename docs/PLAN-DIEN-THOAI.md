@@ -65,14 +65,14 @@ Theo đề bài `CLAUDE-CODE-DIEN-THOAI.md` và bản thiết kế `design/14-gi
 
 ## Giai đoạn 3: cửa sổ dạng ngăn kéo
 
-- [ ] **3.1 Khung ngăn kéo** (`src/style.css`, `src/game.js` `openWin`/`closeWin`)
+- [x] **3.1 Khung ngăn kéo** (`src/style.css`, `src/game.js` `openWin`/`closeWin`)
   - Dọc: từ dưới lên, cao ~70%, nút Đóng từ 48px, vuốt xuống trên thanh kéo để đóng (pointer events, ngưỡng 80px). Ngang: từ bên phải, phủ cột điều khiển, cảnh trái vẫn thấy.
-- [ ] **3.2 Túi đồ** lưới 4 cột, chi tiết món xuống dưới lưới.
-- [ ] **3.3 Lịch** ô ngày từ 44px, chế độ ăn và chi tiết ngày bên dưới.
-- [ ] **3.4 Nhiệm vụ** mỗi dòng từ 52px, chạm mở chi tiết.
-- [ ] **3.5 Bản đồ** trong ngăn kéo; chạm địa điểm (trên bản đồ hoặc danh sách) hiện nút "Đi đến".
-- [ ] **3.6 Menu, Nhật ký, Luật chơi, Âm thanh, menu hành động "Tự chọn"** dạng ngăn kéo.
-- [ ] **3.7 Các màn còn lại** (không ghi trong đề bài nhưng sẽ vỡ nếu bỏ): thẻ sang ngày, thẻ chương, tổng kết cuối tháng, điện thoại trong game (ví, tin nhắn) — xếp một cột, cuộn bên trong, nút từ 48px.
+- [x] **3.2 Túi đồ** lưới 4 cột, chi tiết món xuống dưới lưới.
+- [x] **3.3 Lịch** ô ngày từ 44px, chế độ ăn và chi tiết ngày bên dưới.
+- [x] **3.4 Nhiệm vụ** mỗi dòng từ 52px, chạm mở chi tiết.
+- [x] **3.5 Bản đồ** trong ngăn kéo; chạm địa điểm (trên bản đồ hoặc danh sách) hiện nút "Đi đến".
+- [x] **3.6 Menu, Nhật ký, Luật chơi, Âm thanh, menu hành động "Tự chọn"** dạng ngăn kéo.
+- [x] **3.7 Các màn còn lại** (không ghi trong đề bài nhưng sẽ vỡ nếu bỏ): thẻ sang ngày, thẻ chương, tổng kết cuối tháng, điện thoại trong game (ví, tin nhắn) — xếp một cột, cuộn bên trong, nút từ 48px.
   - Kiểm tra giai đoạn 3: chụp mỗi cửa sổ ở 390×844 và 844×390.
   - Đạt: không tràn, chữ ≥ 11px, nút ≥ 44px; Esc vẫn đóng trên máy tính.
 

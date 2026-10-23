@@ -864,3 +864,121 @@ html.lay-landscape .dish b{white-space:nowrap;overflow:hidden;text-overflow:elli
 html.lay-landscape .dish .num{font-size:15px}
 html.lay-landscape .dish small{display:none}
 html.lay-landscape .toolbar .hb{min-height:48px}
+
+/* ---------- Cửa sổ trên điện thoại (giai đoạn 3): ngăn kéo ----------
+   Dọc: Túi đồ, Lịch, Nhiệm vụ, Nhật ký, Luật chơi mở từ dưới lên, cao khoảng 70%, kéo đầu ngăn xuống để đóng.
+   Ngang: mở từ bên phải, phủ lên cột điều khiển, cảnh bên trái vẫn thấy. Nội dung xếp một cột, cuộn bên trong.
+   Kích thước tính bằng px (--p:2px cho các khung pixel), chữ nhỏ nhất 11px, nút từ 48px. */
+.t-x .mk{display:none}
+:is(html.lay-portrait,html.lay-landscape) .t-x .dk{display:none}
+:is(html.lay-portrait,html.lay-landscape) .t-x .mk{display:inline}
+:is(html.lay-portrait,html.lay-landscape) .layer .tw{--p:2px;font-size:13px;line-height:1.35;gap:8px;clip-path:none}
+html.lay-portrait .layer .tw{left:0;right:0;top:auto;bottom:0;height:72%;max-height:calc(100% - var(--st) - 8px);padding:16px 12px calc(12px + var(--sb));border-width:2px 0 0;animation:drUp .2s ease-out}
+html.lay-portrait .layer .tw::before{content:"";position:absolute;left:50%;top:5px;width:44px;height:4px;margin-left:-22px;border-radius:2px;background:var(--u-hi)}
+html.lay-portrait :is(.layer .tw .t-wh,.amenu h3,.m-side .m-hd){touch-action:none}
+/* ngăn kéo ngang rộng hơn cột điều khiển (400px) để lịch 7 cột có ô từ 44px; cảnh bên trái vẫn còn thấy */
+html.lay-landscape .layer .tw{left:auto;right:0;top:0;bottom:0;width:min(calc(400px + var(--sr)),calc(100% - var(--sl) - 120px));padding:8px calc(var(--sr) + 10px) calc(var(--sb) + 8px) 10px;border-width:0 0 0 2px;animation:drIn .2s ease-out}
+@keyframes drUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes drIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.layer .tw{animation:none!important}}
+/* đầu ngăn: tab, nút Đóng */
+:is(html.lay-portrait,html.lay-landscape) .tw .t-wh{gap:4px;flex:none}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-wt{min-height:44px;padding:4px 8px;font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-wt kbd,:is(html.lay-portrait,html.lay-landscape) .tw .t-wh .t-tg{display:none}
+html.lay-landscape .tw .t-wt .ic{display:none}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-x{min-width:64px;min-height:48px;font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-ttl{font-size:15px}
+/* thân ngăn: một cột, cuộn bên trong */
+:is(html.lay-portrait,html.lay-landscape) .tw .t-wb{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+:is(html.lay-portrait,html.lay-landscape) .tw :is(.t-main,.t-det,.t-paper,.t-ql,.t-today){flex:none;min-height:auto;overflow:visible}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-det{gap:6px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-det p,:is(html.lay-portrait,html.lay-landscape) .tw .t-det dl{font-size:12px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-det h3{font-size:15px}
+:is(html.lay-portrait,html.lay-landscape) .tw .efx span,:is(html.lay-portrait,html.lay-landscape) .tw .t-ty,:is(html.lay-portrait,html.lay-landscape) .tw .t-why{font-size:11px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-act{min-height:48px;font-size:14px;margin-top:4px}
+/* Nhật ký, Luật chơi: một khối chữ cuộn */
+:is(html.lay-portrait,html.lay-landscape) .tw>.t-doc{flex:1;min-height:0;overflow-y:auto;font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .tw .loglist{font-size:12px}
+:is(html.lay-portrait,html.lay-landscape) .tw .loglist li{grid-template-columns:5.5em minmax(0,1fr)}
+/* túi đồ: lưới 4 cột */
+:is(html.lay-portrait,html.lay-landscape) .tw .t-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px;align-self:stretch}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-slot{width:auto;height:auto;aspect-ratio:1;min-height:56px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-slot i{width:40px;height:40px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-slot .qty{font-size:18px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-slot .ex{font-size:11px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-big{width:64px;height:64px;aspect-ratio:auto;min-height:0}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-big i{width:48px;height:48px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-leg{flex-direction:column;gap:2px;font-size:11px}
+/* lịch: ô ngày từ 44px */
+:is(html.lay-portrait,html.lay-landscape) .tw .t-cal{grid-template-rows:auto;gap:3px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-cal .dw{font-size:11px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-d{min-height:44px;padding:2px 3px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-d .n{font-size:18px}
+:is(html.lay-portrait,html.lay-landscape) .tw :is(.t-d .c,.t-d .nt,.t-paper .hd2){font-size:11px}
+:is(html.lay-portrait,html.lay-landscape) .tw .diet select{min-height:44px;font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .tw .diet{font-size:12px}
+/* nhiệm vụ: mỗi dòng từ 52px */
+:is(html.lay-portrait,html.lay-landscape) .tw .t-today{grid-template-columns:1fr;gap:6px}
+:is(html.lay-portrait,html.lay-landscape) .tw :is(.t-dl,.t-study,.t-qh,.t-lock,.t-q .due,.t-giver small,.t-howto){font-size:11.5px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-q{min-height:52px;grid-template-columns:22px minmax(0,1fr) auto;gap:8px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-q .s{width:20px;height:20px;font-size:12px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-q b{font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-giver img{width:56px;height:56px}
+
+/* bản đồ: dọc thì bản đồ ở trên như cảnh, danh sách địa điểm và nút "Đi đến" ở dưới; ngang thì danh sách ở cột phải */
+:is(html.lay-portrait,html.lay-landscape) .win.w-map{--p:2px;font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .mapcv{object-fit:contain;object-position:center}
+html.lay-portrait .w-map .mapcv{top:var(--st);height:var(--sh)}
+html.lay-landscape .w-map .mapcv{width:auto;right:calc(var(--pw) + var(--sr))}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-side{display:flex;flex-direction:column;gap:8px;overflow:hidden;clip-path:none}
+html.lay-portrait .w-map .m-side{left:0;right:0;top:calc(var(--st) + var(--sh));bottom:0;padding:10px 12px calc(10px + var(--sb));border-width:2px 0 0;animation:drUp .2s ease-out}
+html.lay-landscape .w-map .m-side{left:auto;right:0;top:0;bottom:0;width:calc(var(--pw) + var(--sr));padding:8px calc(var(--sr) + 10px) calc(var(--sb) + 8px) 10px;border-width:0 0 0 2px;animation:drIn .2s ease-out}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-hd{flex:none}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-hd span{font-size:11px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-hd .xbtn{min-width:48px;height:48px;font-size:18px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-pl{min-height:48px;font-size:13px}
+:is(html.lay-portrait,html.lay-landscape) .w-map :is(.m-st,.m-pl .here){font-size:11px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-cost{font-size:16px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-det{flex:none;margin-top:0}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-det p{font-size:12px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-go{min-height:48px;font-size:14px}
+:is(html.lay-portrait,html.lay-landscape) .w-map .m-legend{font-size:11px;padding:3px 8px;clip-path:none}
+html.lay-portrait .w-map .m-legend{left:8px;bottom:auto;top:calc(var(--st) + var(--sh) - 30px)}
+html.lay-landscape .w-map .m-legend{left:calc(var(--sl) + 8px);bottom:calc(var(--sb) + 8px)}
+@media (prefers-reduced-motion:reduce){.w-map .m-side{animation:none!important}}
+
+/* điện thoại cầm dọc: các thẻ còn lại (sang ngày, chương, tổng kết, điện thoại trong game) xếp một cột, cuộn bên trong */
+html.lay-portrait .layer{--p:2px}
+html.lay-portrait .pn.chapc{left:12px;right:12px;top:50%;bottom:auto;transform:translateY(-50%);max-height:calc(100% - var(--st) - var(--sb) - 24px);overflow-y:auto;grid-template-columns:1fr;gap:12px;font-size:13px;clip-path:none}
+html.lay-portrait .chapc .vig{justify-self:center;width:128px;height:96px}
+html.lay-portrait .chapc h2{font-size:28px}
+html.lay-portrait .chapc .qmini span{font-size:11px}
+html.lay-portrait .pn.dayc{left:12px;right:12px;top:calc(var(--st) + 12px);transform:none;width:auto;max-height:calc(100% - var(--st) - var(--sb) - 24px);overflow-y:auto;font-size:13px;clip-path:none}
+html.lay-portrait .dayc :is(h5,.top .ch){font-size:11px}
+html.lay-portrait .pn.endp{left:0;right:0;top:var(--st);bottom:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding:12px 12px calc(12px + var(--sb));font-size:13px;clip-path:none}
+html.lay-portrait .endp>*{flex:none}
+html.lay-portrait .endp .hd3{flex-direction:column;gap:2px}
+html.lay-portrait .endp :is(.scorebox,.chartbox,.ends){overflow:visible}
+html.lay-portrait .endp .achs{grid-template-columns:repeat(3,minmax(0,1fr))}
+html.lay-portrait .endp :is(.fac>div,.ach,.lg,.en,.formula,.hd3 span){font-size:11px}
+html.lay-portrait .endbtns{flex-wrap:wrap}
+html.lay-portrait .endbtns button,html.lay-portrait .chsw button,html.lay-portrait .layer .btnp{min-height:48px}
+/* điện thoại trong game: máy chiếm gần hết màn hình */
+html.lay-portrait .phw{font-size:13px}
+html.lay-portrait .hand{left:12px;right:12px;top:calc(var(--st) + 8px);bottom:calc(var(--sb) + 72px);width:auto;height:auto}
+html.lay-portrait .phx{left:12px;right:12px;bottom:calc(var(--sb) + 12px);min-height:48px}
+html.lay-landscape .hand{top:8px;bottom:calc(var(--sb) + 8px);height:auto;width:260px;right:calc(var(--sr) + 40px)}
+html.lay-landscape .phx{right:auto;left:calc(var(--sl) + 12px);bottom:calc(var(--sb) + 12px);min-height:48px}
+:is(html.lay-portrait,html.lay-landscape) .ph .quick button,:is(html.lay-portrait,html.lay-landscape) .ph .pbtn{min-height:48px}
+:is(html.lay-portrait,html.lay-landscape) .app{min-height:64px}
+:is(html.lay-portrait,html.lay-landscape) .ah button{min-width:48px;min-height:44px}
+/* tạm cho giai đoạn 4, 5: hộp cảnh báo và minigame không tràn bề ngang màn hình dọc */
+html.lay-portrait .pn.warnc,html.lay-portrait .pn.mgw{left:12px;right:12px;width:auto;transform:translateY(-50%);font-size:13px}
+/* lịch trên máy dọc hẹp (360px): bớt lề để 7 cột vẫn có ô từ 44px */
+html.lay-portrait .layer .tw.tw-cal{padding-left:6px;padding-right:6px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-paper{padding:4px 4px 6px}
+:is(html.lay-portrait,html.lay-landscape) .tw .t-cal{gap:2px}
+/* thẻ chương, nút trong tổng kết ở máy ngang thấp */
+html.lay-landscape .pn.chapc{overflow-y:auto;clip-path:none}
+html.lay-landscape .chsw button{min-width:48px;white-space:nowrap}
