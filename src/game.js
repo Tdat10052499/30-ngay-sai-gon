@@ -717,6 +717,7 @@ function renderCmd(){
   const note=$('cmdNote');note.hidden=!t||!!menuCat;note.className='pn note '+cls;$('noteT').textContent=nm(t);$('noteBtn').textContent=btn;$('noteBtn').hidden=!btn;
   renderMeal();
   renderMenu();
+  minFont($('ui'));deskPlace();
 }
 const effSpans=e=>STATS.filter(S=>e[S.k]).map(S=>{const v=e[S.k];return `<span class="${v<0?'neg':''}" style="--c:${SCOL[S.k]}">${S.n} ${v>0?'+':'−'}${Math.abs(v)}</span>`}).join('');
 function menuRow(x){
@@ -780,7 +781,7 @@ function finishCard(c,at){
 }
 $('popMenu').addEventListener('click',e=>{
   if(e.target.closest('[data-pmclose]')){closeMenu();renderCmd();return}
-  if(e.target.closest('#audMute')){audioPref.muted=!audioPref.muted;au('setMuted',audioPref.muted);audioSave();renderMenu();$('audMute').focus();return}
+  if(e.target.closest('#audMute')){audioPref.muted=!audioPref.muted;au('setMuted',audioPref.muted);audioSave();renderMenu();minFont($('popMenu'));$('audMute').focus();return}
   const sy=e.target.closest('[data-sys]');if(sy&&sy.dataset.sys==='audio'){menuCat='audio';renderCmd();const f=$('volM');if(f)f.focus({preventScroll:true});return}
   if(sy){closeMenu();renderCmd();if(sy.dataset.sys==='home')cmd('home');else toggleWin(sy.dataset.sys);return}
   const row=e.target.closest('[data-pa]');if(!row||row.disabled)return;
@@ -799,9 +800,20 @@ function popFx(out,dm){
   items.forEach(([t,c],i)=>setTimeout(()=>{const d=document.createElement('div');d.className='pop '+c;d.textContent=t;
     d.style.left=(50+((i%2)?10:-10)+(Math.random()*4-2))+'%';d.style.marginTop=(i*1.7)+'em';$('fx').appendChild(d);setTimeout(()=>d.remove(),1700)},i*130));
 }
+/* máy tính: nút 44px và chữ 11px làm thanh công cụ bên phải và hàng thẻ cao hơn thiết kế. Đặt thông báo sát bên trái
+ * thanh công cụ, thông báo và menu nổi ngay trên hàng thẻ, thay vì một độ cao cố định, để không che nút nào */
+function deskPlace(){
+  const t=$('toast'),pm=$('popMenu');t.style.bottom=t.style.right=pm.style.bottom='';
+  if(!Layout.is('desktop'))return;
+  const st=$('stage').getBoundingClientRect(),gap=st.width/640*6,hb=$('cmdbar').getBoundingClientRect(),tb=$('toolbar').getBoundingClientRect();
+  if(hb.height)t.style.bottom=pm.style.bottom=Math.max(st.bottom-hb.top+gap,0)+'px';
+  if(tb.width)t.style.right=Math.max(st.right-tb.left+gap,0)+'px';
+}
 function showToast(text,tone){
   if(!s||!s.started)return;
-  const t=$('toast');t.textContent=nm(text);t.className='pn toast '+(tone||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('out'),2800);
+  const t=$('toast');t.textContent=nm(text);t.className='pn toast '+(tone||'');clearTimeout(toastTimer);
+  deskPlace();
+  minFont(t);toastTimer=setTimeout(()=>t.classList.add('out'),2800);
 }
 function refresh(){checkQuests();checkDaily();save();render();Dialog.thinkCheck()}
 function afterChange(){refresh();processQueue()}
@@ -822,13 +834,17 @@ function openWin(name){
   if(kind==='day')sfx('dayStart');else if(D){if(D.st==='msg'||D.st==='call')sfx('message');else if(D.st==='alert')sfx('warn')}else sfx('open');
   const f=$('win').querySelector(TAB_WINS.includes(name)?'[role=tab][aria-selected=true]':'.btnp:not(:disabled),.app,.btn.primary:not(:disabled),[data-close]');if(f)f.focus({preventScroll:true});
 }
-/* điện thoại nằm ngang: các cửa sổ tính kích thước theo chiều cao màn hình nên chữ phụ có thể nhỏ hơn 11 điểm;
- * nâng mọi chữ dưới 11px lên 11px (chữ lớn giữ nguyên), theo DESIGN_SPEC mục 1 và design/12 thẻ 4 */
-const isPhone=()=>Layout.phone();
-function phoneMinFont(root){
-  if(!root||!isPhone()||typeof getComputedStyle!=='function')return;
-  root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11)el.style.fontSize='11px'});
+/* chữ nhỏ nhất 11px ở mọi bố cục (DESIGN_SPEC mục 1). Trên máy tính giao diện co theo bề ngang khung 16:9 nên cửa sổ nhỏ làm
+ * chữ phụ còn 8–10px; nâng mọi chữ dưới 11px lên 11px, chữ lớn giữ nguyên. Lần nâng trước được gỡ ra trước khi đo lại,
+ * để khi phóng to cửa sổ chữ trở về cỡ tự nhiên. Cha được xử lý trước con nên chữ tính theo em vẫn đúng. */
+function minFont(root){
+  if(!root||root.hidden||typeof getComputedStyle!=='function')return;
+  root.querySelectorAll('[data-mf]').forEach(el=>{el.style.fontSize='';delete el.dataset.mf});
+  root.querySelectorAll('*').forEach(el=>{if(el.closest('canvas,svg'))return;const f=parseFloat(getComputedStyle(el).fontSize);if(f&&f<11){el.style.fontSize='11px';el.dataset.mf=1}});
 }
+function minFontAll(){['ui','layer','titleScreen','createScreen','intro'].forEach(id=>minFont($(id)))}
+const phoneMinFont=minFont;
+if(typeof window!=='undefined'&&window.addEventListener){let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{minFontAll();deskPlace()},150)})}
 function hideWin(){win=null;$('layer').hidden=true;$('win').innerHTML=''}
 function closeWin(){hideWin();sfx('close');processQueue()}
 function toggleWin(name){
@@ -1060,7 +1076,7 @@ function rulesHTML(){return `<ul class="rules">
 function chapterHTML(e){
   const C=CHAPTERS[e.n];
   return `<canvas class="vig" id="vig" width="64" height="48" aria-hidden="true"></canvas><div>
-    <div class="eb">Chương ${e.n} / 4</div><h2 id="chT">${C.t}</h2><div class="dd">Ngày ${C.from} – ${C.to}</div><p>${C.txt}</p>
+    <div class="eb">Chương ${e.n} / 4</div><h2 id="chT">${C.t}</h2><div class="cdd">Ngày ${C.from} – ${C.to}</div><p>${C.txt}</p>
     <div class="qmini">${QUESTS.filter(q=>q.ch===e.n).map(q=>`<span>${q.t}</span>`).join('')}</div>
     <button class="btnp" type="button" data-ch="0">${e.n===1?'Bắt đầu tháng mới':'Vào chương '+e.n}</button></div>`;
 }
@@ -1212,7 +1228,7 @@ function renderTitle(){
 }
 /* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
 let mode='title';
-function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game';syncMusic()}
+function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game';syncMusic();minFontAll()}
 function showTitle(){hideWin();closeMenu();showScreen('title');renderTitle();const f=$('titleBtns').querySelector('button');if(f)f.focus({preventScroll:true})}
 function startGame(){hideWin();closeMenu();queue=[];showScreen('game');render();save()}
 /* Ván mới với tên và giới tính đã chọn (trình mô phỏng gọi thẳng hàm này) */
