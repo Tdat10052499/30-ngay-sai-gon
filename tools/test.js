@@ -269,6 +269,24 @@ fresh('thuong');s.loc='home';s.slot=1;s.ateThisSlot=false;s.bag=[{id:'mi',exp:nu
 s.ateThisSlot=true;check('Thẻ ăn: ẩn khi buổi này đã ăn',!mealCard(s).length);
 s.ateThisSlot=false;s.loc='school';s.slot=0;s.bag=[{id:'nguyenlieu',exp:3}];check('Thẻ ăn: không có món không dùng được ở nơi này',!mealCard(s).length);
 s.loc='street';s.slot=1;s.money=45000;s.bag=[];{const mc=mealCard(s);check('Thẻ ăn: bỏ món không đủ tiền',mc.length===1&&mc[0].id==='comtam',JSON.stringify(mc))}
+/* ---------- loại hộp hội thoại (src/dialog.js, bảng trong docs/PLAN-DIEN-THOAI.md) ---------- */
+fresh('thuong');
+{const want={homebox:'msg',scam:'msg',friendhome:'msg'},bad=[];
+ for(const d of DECK){const e=d.mk(s);queue=[];if(!e||!e.choices)continue;const st=Dialog.style(e),exp=want[d.id]||(e.choices.length>1?'choice':'talk');if(st!==exp)bad.push(d.id+'→'+st)}
+ check('Hộp: bộ bài sự kiện đúng loại hộp (tin nhắn là msg, còn lại theo số lựa chọn)',!bad.length,bad.join(' '))}
+newGame({name:'Lan',gender:'nu'});
+{const st=t=>Dialog.style(queue.find(e=>e.title===t));check('Hộp: tin nhắn của mẹ là msg, cô Tư giao chìa khóa là talk',st('Tin nhắn của mẹ')==='msg'&&st('Phòng ghép với Khoa')==='talk')}
+clearEvents();
+const evAt=(d,sl,t)=>{s.day=d;s.slot=sl;queue=[];withRandom(0.99,()=>slotEvents());return queue.find(e=>e.title===t)};
+{const e=evAt(18,3,'Mẹ gọi điện');check('Hộp: mẹ gọi điện ngày 18 là call',e&&Dialog.style(e)==='call')}
+{const e=evAt(11,2,'Ngân nhắn tin');check('Hộp: Ngân rủ đi cà phê là msg',e&&Dialog.style(e)==='msg')}
+{const e=evAt(13,3,'Đêm nhạc chào tân sinh viên');check('Hộp: sự kiện từ 2 lựa chọn là choice',e&&Dialog.style(e)==='choice')}
+{const e=evAt(4,3,'Tiền nhà sắp đến hạn');check('Hộp: cảnh báo tiền nhà là alert',e&&Dialog.style(e)==='alert')}
+check('Hộp: máy tính giữ khung cũ cho talk, choice; hộp mới cho msg, call, alert và mọi hộp trên điện thoại',
+  !Dialog.useNew('talk','desktop')&&!Dialog.useNew('choice','desktop')&&['msg','call','alert'].every(x=>Dialog.useNew(x,'desktop'))&&['talk','choice','msg','call','alert'].every(x=>Dialog.useNew(x,'portrait')&&Dialog.useNew(x,'landscape')));
+s.money=0;{const h=Dialog.html(DECK_BY.lend.mk(s),'choice');check('Hộp: không đủ tiền thì nút mờ và có nhãn Không đủ tiền',/<button class="dd-b" type="button" data-ch="0" disabled>/.test(h)&&h.includes('Không đủ tiền'))}
+{const h=Dialog.html(warnEv('x','Bài kiểm tra giữa kỳ','“Sáng nay là bài kiểm tra giữa kỳ.”',{l:'Đi thi ngay',x:'Trường · 6.000đ'}),'alert');check('Hộp: alert có nút chính kèm dòng phụ và nút phụ Để sau',h.includes('class="dd-pri"')&&h.includes('<small>Trường · 6.000đ</small>')&&/class="dd-sec"[^>]*><b>Để sau/.test(h))}
+queue=[];
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

@@ -33,11 +33,14 @@ const size=()=>{const v=typeof window!=='undefined'&&window.visualViewport;
 const is=n=>cur===n,phone=()=>cur==='portrait'||cur==='landscape';
 /* tâm nhân vật theo cảnh (phòng trọ: nhân vật đứng ở x=148); bố cục ngang lệch về trái một chút như design/14 */
 const FOCUS={portrait:.46,landscape:.44};
+/* vị trí thật của nhân vật (game.js ghi lại lúc vẽ cảnh): căn đúng nhân vật vào giữa vùng cảnh */
+let heroF=null;
+function hero(f){if(f!==heroF){heroF=f;fitScene()}}
 function fitScene(){
   const cv=document.getElementById('scene'),host=document.getElementById('scn');if(!cv||!host)return;
   if(!phone()){cv.style.cssText='';return}
   const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;
-  const b=box(w,h,FOCUS[cur]);
+  const b=box(w,h,heroF!=null?heroF:FOCUS[cur]);
   cv.style.cssText=`width:${b.w}px;height:${b.h}px;left:${b.left}px;top:${b.top}px`;
 }
 /* đang gõ chữ (bàn phím ảo mở) thì vùng nhìn thấy thấp hẳn đi: máy 360×640 còn khoảng 360×340 và sẽ bị đổi sang
@@ -81,5 +84,5 @@ if(typeof window!=='undefined'&&window.addEventListener&&typeof document!=='unde
   addEventListener('focusout',()=>{if(typing())typedAt=Date.now();setTimeout(apply,HOLD_MS+50)});
   if(typeof ResizeObserver==='function')addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('scn');if(h)new ResizeObserver(fitScene).observe(h)});
 }
-return {pick,box,toScene,apply,on,fitScene,fitStage,is,phone,debug,get cur(){return cur}};
+return {pick,box,toScene,apply,on,fitScene,fitStage,is,phone,debug,hero,get cur(){return cur}};
 })();

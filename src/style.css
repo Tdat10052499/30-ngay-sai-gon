@@ -982,3 +982,142 @@ html.lay-portrait .layer .tw.tw-cal{padding-left:6px;padding-right:6px}
 /* thẻ chương, nút trong tổng kết ở máy ngang thấp */
 html.lay-landscape .pn.chapc{overflow-y:auto;clip-path:none}
 html.lay-landscape .chsw button{min-width:48px;white-space:nowrap}
+
+/* ---------- Sáu loại hộp hội thoại (giai đoạn 4, src/dialog.js, design/14 phần "Hộp hội thoại") ----------
+   Một HTML cho cả hai hướng điện thoại, CSS xếp lại khi xoay máy. Máy tính dùng hộp mới cho msg, call, alert, think;
+   talk và choice giữ khung cũ (design/10). Kích thước px cố định; lời thoại 15,5px (dọc), 14,5px (ngang). */
+.ddw{position:absolute;inset:0;color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.35}
+.layer:is(.dlg-talk,.dlg-choice,.dlg-msg){background:linear-gradient(180deg,rgba(8,10,22,.05) 0%,rgba(8,10,22,.15) 30%,rgba(8,10,22,.72) 45%)}
+html.lay-landscape .layer:is(.dlg-talk,.dlg-choice,.dlg-msg),html.lay-desktop .layer.dlg-msg{background:linear-gradient(90deg,rgba(8,10,22,.12) 0,rgba(8,10,22,.12) calc(100% - var(--pw,380px) - var(--sr,32px)),rgba(8,10,22,.75) calc(100% - var(--pw,380px) - var(--sr,32px)))}
+.layer.dlg-alert{background:rgba(8,10,22,.7)}
+.layer.dlg-call{background:none}
+.dd{position:absolute;display:flex;flex-direction:column;box-sizing:border-box}
+.dd .vh{position:absolute}
+/* lựa chọn chỉ hiện (mờ dần) khi đã hiện hết chữ */
+[data-chs]{opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none}
+[data-chs].show{opacity:1;transform:none;pointer-events:auto}
+.dd-say{margin:0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.dd .cur{display:inline-block;width:.5em;height:1em;vertical-align:-.12em;background:var(--lantern);margin-left:.1em;animation:blink .8s steps(2) infinite}
+.dd .e-chips{display:flex;flex-wrap:wrap;gap:4px}
+.dd .e-chips span{font-size:11px;font-weight:800;line-height:1.5;padding:0 6px;box-shadow:none}
+.dd .e-chips span.neg{box-shadow:inset 0 0 0 1.5px var(--c)}
+.dd .e-chips span:is(.money,.gain){font-family:var(--f-num);font-size:15px;font-weight:400;line-height:1.1}
+.dd .e-chips span.money{box-shadow:inset 0 0 0 1.5px #ff6474}
+
+/* talk, choice: hộp trượt lên từ dưới, chân dung khung gỗ nhô lên mép trên, viền trên màu của người nói */
+.dd-sheet{left:8px;right:8px;bottom:calc(var(--sb,0px) + 8px);max-height:calc(100% - var(--st,0px) - var(--sb,0px) - 64px);padding:58px 14px 14px;gap:10px;
+  background:var(--u-fill);border:2px solid var(--u-o);border-top:3px solid var(--acc);box-shadow:inset 2px 2px 0 var(--u-hi),inset -2px -2px 0 var(--u-lo);animation:ddUp .22s ease-out}
+.dd-face{position:absolute;left:12px;top:-46px;width:96px;height:96px;padding:5px;background:var(--wood);box-shadow:0 0 0 2px #0b0c16,inset 0 0 0 2px #8a5a3a,0 4px 0 rgba(0,0,0,.35)}
+.dd-face img{display:block;width:100%;height:100%}
+.dd-head{position:absolute;left:118px;top:-28px;max-width:calc(100% - 128px);display:flex;align-items:baseline;gap:6px;padding:4px 10px;background:var(--lantern);color:#1d1a10;box-shadow:0 0 0 2px #0b0c16;white-space:nowrap;overflow:hidden}
+.dd-name{font-weight:900;font-size:15px}
+.dd-role{font-size:11px;font-weight:700;opacity:.75;overflow:hidden;text-overflow:ellipsis}
+.dd-meta{position:absolute;left:118px;right:14px;top:10px;display:flex;flex-direction:column;gap:2px}
+.dd-meta h2{margin:0;font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--lantern);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-meta .num{font-size:15px;color:var(--muted)}
+.dd-sheet.noface{padding-top:14px}
+.dd-sheet.noface .dd-meta{position:static}
+.dd-sheet .dd-say{flex:0 1 auto;min-height:3em;font-size:15.5px;line-height:1.55;color:#f4efe2}
+.dd-ch{flex:none;display:flex;flex-direction:column;gap:8px}
+.dd-b{position:relative;font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;min-height:56px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:6px;
+  background:var(--u-well);box-shadow:inset 2px 2px 0 #0b0d1c,inset -2px -2px 0 #262c50}
+.dd-b b{font-size:15px;font-weight:800}
+.dd-b:active:not(:disabled){transform:translateY(1px)}
+.dd-b:hover:not(:disabled),.dd-b:focus-visible{background:#20264c;box-shadow:inset 0 0 0 2px var(--lantern)}
+.dd-b:disabled{opacity:.5;cursor:not-allowed}
+.dd-b.cont{flex-direction:row;align-items:center;justify-content:space-between;min-height:48px;background:transparent;box-shadow:inset 0 0 0 2px #3a4170}
+.dd-arrow{font-style:normal;color:var(--lantern);animation:ddBl 1s steps(2) infinite}
+/* ngang: hộp trượt vào từ bên phải thay chỗ cột điều khiển, chân dung 88px nhô sang phía cảnh */
+html.lay-landscape .dd-sheet{left:auto;right:0;top:0;bottom:0;width:calc(var(--pw) + var(--sr));max-height:none;padding:118px calc(var(--sr) + 12px) calc(var(--sb) + 10px) 16px;
+  border-width:0 0 0 3px;border-left-color:var(--acc);animation:lsIn .22s ease-out}
+html.lay-landscape .dd-face{left:-50px;top:14px;width:88px;height:88px}
+html.lay-landscape .dd-head{left:50px;top:16px;max-width:calc(100% - 60px)}
+html.lay-landscape .dd-meta{left:50px;right:14px;top:52px}
+html.lay-landscape .dd-sheet.noface{padding-top:14px}
+html.lay-landscape .dd-sheet .dd-say{flex:1 1 auto;min-height:0;font-size:14.5px}
+html.lay-landscape .dd-ch{margin-top:auto}
+html.lay-landscape .dd-b{min-height:50px}
+
+/* msg: như ứng dụng nhắn tin */
+.dd-msg{top:16px;bottom:16px;right:16px;width:min(380px,calc(100% - 32px));overflow:hidden;background:#eef1f6;color:#1d2136;border-radius:16px;box-shadow:0 0 0 2px #0b0c16,0 -10px 30px rgba(0,0,0,.35);animation:lsIn .22s ease-out}
+.dd-mh{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-bottom:1px solid #d8dce6}
+.dd-mh b{display:block;font-size:15px}
+.dd-mh small{font-size:11.5px;color:#5a6080}
+.dd-av{flex:none;width:40px;height:40px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#d8dce6}
+.dd-av img{width:100%;height:100%}
+.dd-av0{background:#4f7fd0;color:#fff;font-weight:900;font-size:18px}
+.dd-mbadge{margin-left:auto;white-space:nowrap;font-size:11px;font-weight:800;color:#fff;background:#4f7fd0;padding:2px 8px;border-radius:10px}
+.dd-chat{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px;background:#e8ecf4}
+.dd-bub{max-width:86%;padding:10px 12px;background:#fff;border-radius:14px 14px 14px 4px;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.dd-bub .dd-say{overflow:visible;font-size:15px;line-height:1.5}
+.dd-quick{flex:none;display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px 14px;background:#fff}
+.dd-q{font:inherit;text-align:left;cursor:pointer;min-height:48px;padding:8px 16px;display:flex;flex-direction:column;justify-content:center;gap:4px;border:1.5px solid #4f7fd0;color:#2c4a9a;background:#fff;border-radius:22px}
+.dd-q b{font-size:14px;font-weight:700}
+.dd-q:hover:not(:disabled),.dd-q:focus-visible{background:#eef3ff}
+.dd-q:disabled{opacity:.5;cursor:not-allowed}
+.dd-q .e-chips span.x{background:#d8dcef;color:#1d2136}
+.dd-q .e-chips span.money{color:#c8283a}
+html.lay-portrait .dd-msg{left:8px;right:8px;top:auto;bottom:calc(var(--sb) + 8px);width:auto;max-height:calc(100% - var(--st) - var(--sb) - 24px);border-radius:16px 16px 6px 6px;animation:ddUp .22s ease-out}
+html.lay-landscape .dd-msg{top:0;bottom:0;right:0;width:calc(var(--pw) + var(--sr));border-radius:0;padding:0 var(--sr) var(--sb) 0;box-shadow:-2px 0 0 #0b0c16,-12px 0 30px rgba(0,0,0,.35)}
+
+/* call: chiếm cả màn hình như cuộc gọi đến, chân dung tròn có vòng sóng */
+.dd-call{inset:0;align-items:center;gap:14px;padding:calc(var(--st,0px) + 48px) 18px calc(var(--sb,0px) + 24px);color:#fff;animation:ddUp .25s ease-out}
+.dd-cbg{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(26,34,56,.98),rgba(16,20,36,.995))}
+.dd-ctop{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.dd-ctop small{font-size:12px;color:#a4a9c8}
+.dd-ctop b{font-size:22px}
+.dd-ctop>span:last-child{font-size:12px;color:#a4a9c8}
+.dd-ring{width:116px;height:116px;border-radius:50%;overflow:hidden;background:#f4c8d0;box-shadow:0 0 0 4px rgba(255,255,255,.15);animation:ddRing 1.4s infinite}
+.dd-ring img{width:100%;height:100%}
+.dd-cr{flex:1;min-height:0;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px}
+.dd-call .dd-say{flex:0 1 auto;font-size:17px;line-height:1.5;text-align:center}
+.dd-cch{flex:none;margin-top:auto;display:flex;flex-direction:column;gap:10px}
+.dd-cch .dd-b{border-radius:14px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18)}
+html.lay-landscape .dd-call{flex-direction:row;gap:28px;padding:20px calc(var(--sr) + 18px) calc(var(--sb) + 12px) calc(var(--sl) + 18px)}
+html.lay-landscape .dd-ctop{width:200px}
+html.lay-landscape .dd-ring{width:96px;height:96px}
+html.lay-landscape .dd-cr{max-width:none;height:100%;justify-content:center}
+html.lay-landscape .dd-call .dd-say{text-align:left;font-size:15.5px}
+html.lay-landscape .dd-cch{margin-top:0}
+html.lay-landscape .dd-cch .dd-b{min-height:50px}
+
+/* alert: giữa màn hình, viền trên san hô, một nút chính vàng và nút phụ "Để sau" */
+.dd-alert{inset:0;margin:auto;height:-webkit-fit-content;height:fit-content;width:min(460px,calc(100% - 40px));max-height:calc(100% - var(--st,0px) - var(--sb,0px) - 24px);overflow-y:auto;
+  padding:20px 18px 16px;align-items:center;text-align:center;gap:8px;background:#2a2034;border:2px solid #0b0c16;border-top:3px solid var(--coral);box-shadow:inset 2px 2px 0 #7a4a5a,inset -2px -2px 0 #140c18;animation:ddPop .22s ease-out}
+.dd-aic{flex:none;width:44px;height:44px;display:grid;place-items:center;background:var(--coral);color:#1d1a10;font-family:var(--f-num);font-size:34px;box-shadow:0 0 0 2px #0b0c16}
+.dd-alert small.num{font-size:15px;color:#ffb09a}
+.dd-alert h2{margin:0;font-size:19px;font-weight:900}
+.dd-alert .dd-say{flex:none;overflow:visible;margin:0 0 6px;font-size:14px;line-height:1.5;color:#d8d4e4}
+.dd-ab{flex:none;width:100%;display:grid;gap:8px}
+.dd-pri,.dd-sec{font:inherit;width:100%;min-height:52px;border:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.dd-pri{background:var(--lantern);color:#1d1a10;box-shadow:0 3px 0 #a87a1c}
+.dd-pri b{font-size:16px}
+.dd-pri small{font-size:11.5px;color:#5a4a20}
+.dd-pri:disabled{background:#4a4e6a;color:#c8cbe0;box-shadow:none;cursor:not-allowed}
+.dd-pri:disabled small{color:#ffc0b0}
+.dd-sec{min-height:48px;background:transparent;color:var(--muted);font-weight:700}
+.dd-sec:hover,.dd-sec:focus-visible{color:var(--fg)}
+html:is(.lay-landscape,.lay-desktop) .dd-ab.two{grid-template-columns:1fr 1fr}
+html:is(.lay-landscape,.lay-desktop) .dd-ab.two .dd-sec{min-height:52px;box-shadow:inset 0 0 0 2px #4a3a50}
+html.lay-portrait .dd-alert{width:auto;left:20px;right:20px}
+html.lay-landscape .dd-alert{padding-top:16px}
+
+/* think: bong bóng tự nhủ cạnh nhân vật, chữ nghiêng, không chặn thao tác */
+.dd-think{position:absolute;z-index:12;max-width:210px;padding:10px 12px;background:#f4efe2;color:#2a2730;border-radius:16px;box-shadow:0 0 0 2px #0b0c16,0 4px 0 rgba(0,0,0,.3);font-style:italic;transition:opacity .4s;animation:ddPop .22s ease-out}
+#think{pointer-events:none!important}
+.dd-think p{margin:0;font-size:13.5px;line-height:1.45}
+.dd-think i{position:absolute;background:#f4efe2;border-radius:50%;box-shadow:0 0 0 2px #0b0c16}
+.dd-think i:nth-of-type(1){width:12px;height:12px;left:var(--tx,26px);bottom:-16px}
+.dd-think i:nth-of-type(2){width:7px;height:7px;left:calc(var(--tx,26px) - 6px);bottom:-26px}
+.dd-think.out{opacity:0}
+
+@keyframes ddUp{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes lsIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+@keyframes ddPop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+@keyframes ddRing{50%{box-shadow:0 0 0 12px rgba(114,222,144,.18)}}
+@keyframes ddBl{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.dd,.dd-think,.dd-ring,.dd-arrow,.dd .cur{animation:none!important}[data-chs],.dd-think{transition:none}}
+
+/* ?debug=dialog */
+#dbgDlg{position:fixed;left:4px;top:4px;z-index:999;display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:4px;background:rgba(0,0,0,.75);font:12px/1 ui-monospace,monospace;color:#3cff7a}
+#dbgDlg button{font:inherit;color:#3cff7a;background:#102;border:1px solid #3cff7a;padding:6px 8px;cursor:pointer}

@@ -78,16 +78,16 @@ Theo đề bài `CLAUDE-CODE-DIEN-THOAI.md` và bản thiết kế `design/14-gi
 
 ## Giai đoạn 4: sáu loại hộp hội thoại
 
-- [ ] **4.1 `evStyle` và bảng gắn loại hộp** (`src/dialog.js`, `src/events.js`, `src/game.js`, `tools/test.js`)
+- [x] **4.1 `evStyle` và bảng gắn loại hộp** (`src/dialog.js`, `src/events.js`, `src/game.js`, `tools/test.js`)
   - Thêm trường `style` cho các sự kiện ở bảng dưới; không khai báo thì 1 lựa chọn → `talk`, từ 2 → `choice`; `warnEv` → `alert`.
   - Đạt: test duyệt mọi sự kiện trong `DECK` và sự kiện cốt truyện, đúng bảng.
-- [ ] **4.2 `talk` và `choice`** dọc (trượt lên, chân dung 96px khung gỗ nhô lên, bảng tên vàng, tiêu đề + ngày giờ, nút tiếp tục viền mảnh có mũi tên; lựa chọn cao từ 56px, giá và nhãn trong nút, "Không đủ tiền") và ngang (trượt vào từ phải, chân dung 88px nhô sang cảnh, lựa chọn từ 50px). Viền theo `Portraits.CH[who].bg[1]`. Sự kiện không có người nói: bỏ chân dung, tiêu đề lên đầu hộp.
-- [ ] **4.3 `msg`** dọc: ảnh tròn, tên, giờ (`PH_TIME`), "1 tin mới", bong bóng trắng, nút trả lời nhanh bo tròn. Ngang: cột trắng bên phải.
-- [ ] **4.4 `call`** dọc: toàn màn hình, chân dung tròn 116px có vòng sóng, tên, nơi ở (vai trò trong `Portraits.CH`). Ngang: chia hai.
-- [ ] **4.5 `alert`** giữa màn hình, viền trên san hô, "!", ngày giờ, tiêu đề, nội dung, nút chính vàng có dòng phụ (`x`), nút phụ "Để sau"; ngang hai nút cạnh nhau. Thay `.warnc` trên mọi bố cục.
-- [ ] **4.6 `think`** bong bóng chữ nghiêng cạnh nhân vật (vị trí tính từ `sceneBox`), tự ẩn sau 3 giây, không chặn thao tác, `role="status"`. Kích hoạt khi một trạng thái trong bảng dưới mới bắt đầu, mỗi trạng thái tối đa 1 lần mỗi buổi.
-- [ ] **4.7 Quy tắc chung**: chữ hiện dần ~45 ký tự/giây, chạm hiện hết, lựa chọn hiện mờ dần sau khi hết chữ; tiếng `text` tối đa 1 lần mỗi 3 chữ; `msg`/`call` phát `message`, `alert` phát `warn`; chuyển động 0,2 giây, tắt khi `prefers-reduced-motion`; lời dài cuộn trong hộp, nút luôn trong màn hình; `role="dialog"`/`alertdialog` + `aria-labelledby`, focus vào lựa chọn đầu; Esc chỉ đóng `talk`/`think`; phím 1, 2 vẫn chọn trên máy tính.
-- [ ] **4.8 `?debug=dialog`** (`src/dialog.js`): hàng nút bật từng loại hộp với lời mẫu (lấy từ design/14) và một lời dài 400 ký tự.
+- [x] **4.2 `talk` và `choice`** dọc (trượt lên, chân dung 96px khung gỗ nhô lên, bảng tên vàng, tiêu đề + ngày giờ, nút tiếp tục viền mảnh có mũi tên; lựa chọn cao từ 56px, giá và nhãn trong nút, "Không đủ tiền") và ngang (trượt vào từ phải, chân dung 88px nhô sang cảnh, lựa chọn từ 50px). Viền theo `Portraits.CH[who].bg[1]`. Sự kiện không có người nói: bỏ chân dung, tiêu đề lên đầu hộp.
+- [x] **4.3 `msg`** dọc: ảnh tròn, tên, giờ (`PH_TIME`), "1 tin mới", bong bóng trắng, nút trả lời nhanh bo tròn. Ngang: cột trắng bên phải.
+- [x] **4.4 `call`** dọc: toàn màn hình, chân dung tròn 116px có vòng sóng, tên, nơi ở (vai trò trong `Portraits.CH`). Ngang: chia hai.
+- [x] **4.5 `alert`** giữa màn hình, viền trên san hô, "!", ngày giờ, tiêu đề, nội dung, nút chính vàng có dòng phụ (`x`), nút phụ "Để sau"; ngang hai nút cạnh nhau. Thay `.warnc` trên mọi bố cục.
+- [x] **4.6 `think`** bong bóng chữ nghiêng cạnh nhân vật (vị trí tính từ `sceneBox`), tự ẩn sau 3 giây, không chặn thao tác, `role="status"`. Kích hoạt khi một trạng thái trong bảng dưới mới bắt đầu, mỗi trạng thái tối đa 1 lần mỗi buổi.
+- [x] **4.7 Quy tắc chung**: chữ hiện dần ~45 ký tự/giây, chạm hiện hết, lựa chọn hiện mờ dần sau khi hết chữ; tiếng `text` tối đa 1 lần mỗi 3 chữ; `msg`/`call` phát `message`, `alert` phát `warn`; chuyển động 0,2 giây, tắt khi `prefers-reduced-motion`; lời dài cuộn trong hộp, nút luôn trong màn hình; `role="dialog"`/`alertdialog` + `aria-labelledby`, focus vào lựa chọn đầu; Esc chỉ đóng `talk`/`think`; phím 1, 2 vẫn chọn trên máy tính.
+- [x] **4.8 `?debug=dialog`** (`src/dialog.js`): hàng nút bật từng loại hộp với lời mẫu (lấy từ design/14) và một lời dài 400 ký tự.
   - Kiểm tra giai đoạn 4: chụp 6 loại × 9 kích thước; đo hộp nằm trong vùng an toàn với lời 400 ký tự.
 
 ### Bảng loại hộp (cần duyệt)
