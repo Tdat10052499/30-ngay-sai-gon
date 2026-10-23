@@ -257,6 +257,46 @@ MG.off=true;
  renderTitle();check('Lưu: bản lưu cũ thì trang bìa báo bắt đầu tháng mới',$('titleBtns').innerHTML.includes('Bản lưu cũ không dùng được với phiên bản mới')&&!$('titleBtns').innerHTML.includes('Chơi tiếp'));
  newGame({name:'Lan',gender:'nu'});clearEvents();check('Lưu: bắt đầu tháng mới thì xóa bản lưu cũ',!mem['ba-muoi-ngay-sg-v5']&&!!mem[KEY]);
  globalThis.localStorage=LS}
+/* ---------- giao diện điện thoại (CLAUDE-CODE-DIEN-THOAI.md) ---------- */
+{const cases=[[390,844,'portrait'],[375,667,'portrait'],[360,780,'portrait'],[430,932,'portrait'],[600,601,'portrait'],[844,390,'landscape'],[667,375,'landscape'],[780,360,'landscape'],[932,430,'landscape'],
+   [1280,720,'desktop'],[601,900,'desktop'],[1024,768,'desktop'],[900,501,'desktop'],[600,600,'desktop']];
+ const bad=cases.filter(([w,h,n])=>Layout.pick(w,h)!==n);check('Bố cục: chọn đúng lớp cho '+cases.length+' kích thước',!bad.length,JSON.stringify(bad))}
+{const b=Layout.box(390,219);check('Cảnh dọc: phủ kín bề ngang, không lộ mép',b.w>=390&&b.h>=219&&b.left<=0&&b.left+b.w>=390&&b.top<=0,JSON.stringify(b))}
+{const W=844-330-47,H=390,b=Layout.box(W,H,.46),cx=b.left+320*.46*b.k;check('Cảnh ngang: phủ kín chiều cao, nhân vật giữa vùng cảnh',b.h>=H&&b.left<=0&&b.left+b.w>=W&&Math.abs(cx-W/2)<1,JSON.stringify(b))}
+{const b=Layout.box(300,400,.98);check('Cảnh: nhân vật sát mép thì dừng ở mép cảnh, không lộ nền',b.left<=0&&b.left+b.w>=300-1e-6,JSON.stringify(b))}
+{const gcs=globalThis.getComputedStyle,cv=fit=>({getBoundingClientRect:()=>({left:10,top:20,width:640,height:480}),fit});globalThis.getComputedStyle=el=>({objectFit:el.fit});
+ const near=(a,x,y)=>Math.abs(a.x-x)<1e-6&&Math.abs(a.y-y)<1e-6;
+ /* fill: kéo đúng khung 640×480 → x nhân 0,5, y nhân 0,375 */
+ const f=Layout.toScene(cv('fill'),10+320,20+240);
+ /* contain: 640×480 thu cảnh theo bề ngang (k=2), dư 60px trên và dưới */
+ const c=Layout.toScene(cv('contain'),10+320,20+60+180),c0=Layout.toScene(cv('contain'),10,20+60);
+ /* cover: phủ theo chiều cao (k=480/180), cắt hai bên */
+ const k=480/180,v=Layout.toScene(cv('cover'),10+320,20+240);
+ check('Chạm: đổi tọa độ màn hình về điểm ảnh cảnh 320×180 (fill, contain, cover)',near(f,160,90)&&near(c,160,90)&&near(c0,0,0)&&near(v,160,90)&&near(Layout.toScene(cv('cover'),10+320+k*10,20),170,0),JSON.stringify({f,c,c0,v}));
+ globalThis.getComputedStyle=gcs}
+fresh('thuong');s.loc='home';s.slot=1;s.ateThisSlot=false;s.bag=[{id:'mi',exp:null},{id:'nguyenlieu',exp:3},{id:'banhmi',exp:1}];
+{const mc=mealCard(s);check('Thẻ ăn: tối đa 3 món, món sắp hỏng trước, chừa chỗ món gọi tại chỗ',mc.length===3&&mc[0].id==='banhmi'&&mc[1].id==='nguyenlieu'&&mc[2].id==='ship',JSON.stringify(mc.map(d=>d.id)))}
+s.ateThisSlot=true;check('Thẻ ăn: ẩn khi buổi này đã ăn',!mealCard(s).length);
+s.ateThisSlot=false;s.loc='school';s.slot=0;s.bag=[{id:'nguyenlieu',exp:3}];check('Thẻ ăn: không có món không dùng được ở nơi này',!mealCard(s).length);
+s.loc='street';s.slot=1;s.money=45000;s.bag=[];{const mc=mealCard(s);check('Thẻ ăn: bỏ món không đủ tiền',mc.length===1&&mc[0].id==='comtam',JSON.stringify(mc))}
+/* ---------- loại hộp hội thoại (src/dialog.js, bảng trong docs/PLAN-DIEN-THOAI.md) ---------- */
+fresh('thuong');
+{const want={homebox:'msg',scam:'msg',friendhome:'msg'},bad=[];
+ for(const d of DECK){const e=d.mk(s);queue=[];if(!e||!e.choices)continue;const st=Dialog.style(e),exp=want[d.id]||(e.choices.length>1?'choice':'talk');if(st!==exp)bad.push(d.id+'→'+st)}
+ check('Hộp: bộ bài sự kiện đúng loại hộp (tin nhắn là msg, còn lại theo số lựa chọn)',!bad.length,bad.join(' '))}
+newGame({name:'Lan',gender:'nu'});
+{const st=t=>Dialog.style(queue.find(e=>e.title===t));check('Hộp: tin nhắn của mẹ là msg, cô Tư giao chìa khóa là talk',st('Tin nhắn của mẹ')==='msg'&&st('Phòng ghép với Khoa')==='talk')}
+clearEvents();
+const evAt=(d,sl,t)=>{s.day=d;s.slot=sl;queue=[];withRandom(0.99,()=>slotEvents());return queue.find(e=>e.title===t)};
+{const e=evAt(18,3,'Mẹ gọi điện');check('Hộp: mẹ gọi điện ngày 18 là call',e&&Dialog.style(e)==='call')}
+{const e=evAt(11,2,'Ngân nhắn tin');check('Hộp: Ngân rủ đi cà phê là msg',e&&Dialog.style(e)==='msg')}
+{const e=evAt(13,3,'Đêm nhạc chào tân sinh viên');check('Hộp: sự kiện từ 2 lựa chọn là choice',e&&Dialog.style(e)==='choice')}
+{const e=evAt(4,3,'Tiền nhà sắp đến hạn');check('Hộp: cảnh báo tiền nhà là alert',e&&Dialog.style(e)==='alert')}
+check('Hộp: máy tính giữ khung cũ cho talk, choice; hộp mới cho msg, call, alert và mọi hộp trên điện thoại',
+  !Dialog.useNew('talk','desktop')&&!Dialog.useNew('choice','desktop')&&['msg','call','alert'].every(x=>Dialog.useNew(x,'desktop'))&&['talk','choice','msg','call','alert'].every(x=>Dialog.useNew(x,'portrait')&&Dialog.useNew(x,'landscape')));
+s.money=0;{const h=Dialog.html(DECK_BY.lend.mk(s),'choice');check('Hộp: không đủ tiền thì nút mờ và có nhãn Không đủ tiền',/<button class="dd-b" type="button" data-ch="0" disabled>/.test(h)&&h.includes('Không đủ tiền'))}
+{const h=Dialog.html(warnEv('x','Bài kiểm tra giữa kỳ','“Sáng nay là bài kiểm tra giữa kỳ.”',{l:'Đi thi ngay',x:'Trường · 6.000đ'}),'alert');check('Hộp: alert có nút chính kèm dòng phụ và nút phụ Để sau',h.includes('class="dd-pri"')&&h.includes('<small>Trường · 6.000đ</small>')&&/class="dd-sec"[^>]*><b>Để sau/.test(h))}
+queue=[];
 const fails=RESULTS.filter(r=>!r.ok);
 RESULTS.forEach(r=>console.log((r.ok?'  đạt   ':'  HỎNG  ')+r.name+(r.detail?' · '+r.detail:'')));
 console.log(fails.length?'\\n'+fails.length+' test hỏng.':'\\nTất cả '+RESULTS.length+' test đạt.');

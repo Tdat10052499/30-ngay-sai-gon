@@ -35,6 +35,23 @@ function autoMeal(s){
   return null;
 }
 
+/* thẻ ăn (giao diện điện thoại, CLAUDE-CODE-DIEN-THOAI.md mục 3): tối đa 3 món ăn được ngay ở nơi đang đứng.
+ * Đồ ăn trong túi trước (sắp hỏng trước), chừa một chỗ cho món gọi tại chỗ rẻ nhất. Bấm món thì game.js gọi đúng
+ * hành động hoặc món trong túi như khi tự chọn, nên số liệu không đổi. Trả mảng rỗng khi buổi này đã ăn. */
+const MEAL_MAX=3;
+function mealCard(s){
+  if(s.over||s.ateThisSlot)return [];
+  const bag=[],seen=new Set();
+  for(const x of [...s.bag].sort((a,b)=>(a.exp==null?999:a.exp)-(b.exp==null?999:b.exp))){
+    const it=ITEMS[x.id];if(it.type!=='food'||seen.has(x.id))continue;seen.add(x.id);
+    if(it.where&&!it.where.includes(s.loc))continue;
+    bag.push({kind:'item',id:x.id,n:it.verb||it.n,cost:0,no:effOf(it).no||0});
+  }
+  const acts=A[s.loc].filter(a=>a.k==='meal'&&(!a.show||a.show(s))&&!reasonAt(s,s.loc,a))
+    .sort((a,b)=>(a.cost||0)-(b.cost||0)).map(a=>({kind:'act',id:a.id,n:a.n,cost:a.cost||0,no:effOf(a).no||0}));
+  return bag.slice(0,acts.length?MEAL_MAX-1:MEAL_MAX).concat(acts).slice(0,MEAL_MAX);
+}
+
 /* ---------- thẻ hành động theo buổi (mục 3.1) ---------- */
 /* hành động gắn với nhiệm vụ chính: thẻ có dấu chấm than khi nhiệm vụ đang làm */
 const QUEST_ACT={q1_class:'class',q2_class:'class',q1_job:'interview',q2_shift:'shift',q3_study:'library',q3_khoa:'khoa',q4_exam:'exam',q4_gift:'gift'};

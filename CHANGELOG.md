@@ -2,6 +2,43 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), đánh số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [0.5.0] - 2026-10-23
+
+Giao diện điện thoại làm lại và sáu loại hộp hội thoại, theo bản thiết kế `design/14-giao-dien-dien-thoai.html`. Kế hoạch và từng giai đoạn: `docs/PLAN-DIEN-THOAI.md`. Luật chơi, số liệu, lời thoại và hình vẽ cảnh không đổi.
+
+### Thêm mới
+
+- **Chơi được khi cầm dọc.** Game chọn một trong ba bố cục theo kích thước vùng nhìn thấy (`src/layout.js`), không dựa vào `(pointer:coarse)` vì trình duyệt trong Zalo, Messenger báo sai:
+  - **dọc** (rộng ≤ 600, rộng < cao): cảnh 16:9 phủ bề ngang, có chip ngày và dải cảnh báo; bên dưới là bảng trạng thái (tiền, lương chờ, 4 thanh chỉ số, nhiệm vụ đang theo dõi), thẻ ăn, thẻ hành động xếp dọc; thanh công cụ ở đáy;
+  - **ngang** (cao ≤ 500, rộng > cao): cảnh bên trái, cột điều khiển 330px bên phải;
+  - **máy tính**: khung 16:9 như cũ.
+- Xoay máy giữa chừng giữ nguyên hộp hội thoại, cửa sổ, menu, minigame và chữ đang hiện dần.
+- Cảnh "phủ kín và giữ tâm": nhân vật luôn nằm giữa vùng cảnh, chạm vào cảnh đổi đúng tọa độ.
+- **Thẻ ăn** trên điện thoại: 3 món đặt cạnh nhau (đồ trong túi, món tại chỗ), bấm là ăn ngay. Chỉ là giao diện, gọi lại hành động ăn sẵn có.
+- **Cửa sổ dạng ngăn kéo** trên điện thoại: từ dưới lên khi cầm dọc (kéo xuống để đóng), từ bên phải khi nằm ngang (rộng 400px). Túi đồ lưới 4 cột, ô lịch từ 44px, dòng nhiệm vụ từ 52px, bản đồ chạm địa điểm thì hiện nút "Đi đến".
+- **Sáu loại hộp hội thoại** (`src/dialog.js`):
+  - `talk`, `choice`: hộp trượt lên có chân dung khung gỗ, bảng tên vàng; lựa chọn là nút to có giá và nhãn hiệu ứng, "Không đủ tiền" thì mờ đi;
+  - `msg`: kiểu ứng dụng nhắn tin (tin nhắn của mẹ, Ngân, thùng đồ quê, tin nhắn trúng thưởng, bạn cùng quê);
+  - `call`: cuộc gọi đến toàn màn hình (mẹ gọi ngày 18);
+  - `alert`: hộp cảnh báo giữa màn hình, nút chính vàng có dòng phụ và nút "Để sau";
+  - `think`: bong bóng tự nhủ cạnh nhân vật khi đói, kiệt sức, sắp ốm, buồn, phòng bừa; tự ẩn sau 3 giây, không chặn thao tác.
+- Hộp hội thoại: viền theo màu chân dung người nói; chữ hiện dần khoảng 45 ký tự/giây, chạm để hiện hết; lựa chọn mờ dần hiện ra khi hết chữ; tiếng `message` cho `msg` và `call`, `warn` cho `alert`; `role="dialog"`/`alertdialog`, focus vào lựa chọn đầu, Esc chỉ đóng `talk` và `think`; tắt hiệu ứng khi máy bật giảm chuyển động. Máy tính giữ khung hội thoại cũ cho `talk` và `choice`.
+- **Minigame toàn màn hình** trên điện thoại ở cả hai hướng, nút từ 48px, nút "Bỏ qua" ở góc trên phải trong vùng an toàn.
+- Trang gỡ lỗi `?debug=layout` (viền các vùng, kích thước, vùng an toàn) và `?debug=dialog` (bật nhanh từng loại hộp, lời mẫu 400 ký tự).
+- **Bộ kiểm tra giao diện** `npm run test:ui` (`tools/ui-test.js`, Playwright chromium, webkit, firefox × 9 kích thước): chụp ảnh và kiểm cuộn ngang, nút trong vùng an toàn, nút từ 44px, chữ từ 11px, hộp lời dài, lỗi console, xoay máy, số lần bấm, tạo nhân vật khi bàn phím mở, hành vi hộp hội thoại, bản đồ, ngăn kéo. `npm run serve` dùng máy chủ Node (`tools/serve.js`), không cần python. `tools/test.js` có 172 test.
+
+### Thay đổi
+
+- Bỏ màn hình nhắc xoay ngang và bố cục điện thoại nằm ngang của v0.4.0 (thay bằng bố cục ngang mới).
+- Trên điện thoại, mọi kích thước tính bằng px cố định: nút từ 48px, thẻ hành động cao từ 60px, chữ nhỏ nhất 11px, lời thoại 15,5px (dọc) và 14,5px (ngang); chừa vùng an toàn bằng `env(safe-area-inset-*)`.
+- Máy tính giữ nguyên bố cục và hình ảnh, nhưng chữ nhỏ nhất 11px và mọi nút từ 44×44px ở mọi cỡ cửa sổ. Thông báo nổi và menu nổi đặt ngay trên hàng thẻ; danh sách địa điểm trên bản đồ cuộn bên trong để nút "Đi đến" luôn hiện; nhãn ngày trong Lịch xuống dòng thay vì bị cắt.
+- Một ngày thường ở bản dọc (đi học, ăn trưa, ngủ trưa, ca chiều, ăn tối, ca tối) mất 8 lần bấm.
+- Số phiên bản trong đường dẫn script và CSS: `?v=0.5.0`.
+
+### Sửa lỗi
+
+- Màn tạo nhân vật trên máy nhỏ: luôn cuộn được tới nút "Tạo nhân vật"; khi bàn phím ảo mở, game không đổi bố cục giữa lúc bấm nên cú bấm không bị trượt.
+
 ## [0.4.0] - 2026-10-22
 
 Bản chơi thử thứ 2 theo góp ý vòng 2: ít thao tác hơn, khó hơn và có chiều sâu hơn. Kế hoạch và từng giai đoạn: `docs/PLAN-BAN-THU-2.md`.

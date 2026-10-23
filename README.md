@@ -6,7 +6,7 @@
 
 **Game mô phỏng chi tiêu có cốt truyện.** Giúp một tân sinh viên vừa học vừa làm thêm, sống qua tháng đầu tiên ở Sài Gòn: học đủ, làm đủ, còn tiền, còn khỏe, còn vui.
 
-Pixel art · Chơi trên trình duyệt (máy tính, điện thoại nằm ngang) · Tiếng Việt · Phiên bản `0.4.0`
+Pixel art · Chơi trên trình duyệt (máy tính, điện thoại dọc hoặc ngang) · Tiếng Việt · Phiên bản `0.5.0`
 
 </div>
 
@@ -19,7 +19,7 @@ Người chơi đặt tên, chọn Nam hoặc Nữ cho nhân vật 18 tuổi r�
 - **4 chương** theo 4 tuần: Tân sinh viên · Vừa học vừa làm · Lương part-time đầu tiên · Về đích
 - **14 nhiệm vụ chính** và 2 việc nhỏ mỗi ngày dẫn dắt người chơi
 - **Học và làm**: lên lớp mỗi sáng, ca part-time trưa, chiều, tối, điểm học tập và bài kiểm tra giữa kỳ
-- **Thẻ hành động** theo buổi, một ngày thường chỉ khoảng 5 lần bấm; **chế độ ăn** tự ăn khi đói (Tự nấu, Bình dân, Thoải mái, Tự chọn bữa)
+- **Thẻ hành động** theo buổi, một ngày thường khoảng 5 lần bấm trên máy tính và 8 lần trên điện thoại; **chế độ ăn** tự ăn khi đói (Tự nấu, Bình dân, Thoải mái, Tự chọn bữa)
 - **Hai độ khó**: Thường (hao hụt và hình phạt tăng dần theo chương) và Dễ
 - **Bộ bài sự kiện** 20 sự kiện ngẫu nhiên có giới hạn số lần và thời gian chờ; hộp cảnh báo cho việc quan trọng
 - **Minigame** Thối tiền khi làm ca và Canh lửa khi nấu cơm
@@ -35,7 +35,10 @@ Người chơi đặt tên, chọn Nam hoặc Nữ cho nhân vật 18 tuổi r�
 | ![Minigame Thối tiền](docs/images/v0.4/thoi-tien.png) | ![Ngân nhắn tin rủ đi cà phê](docs/images/v0.4/ngan.png) |
 | ![Bản đồ khu phố](docs/images/v0.3/ban-do.png) | ![Hội thoại](docs/images/v0.3/hoi-thoai.png) |
 
-![Điện thoại nằm ngang](docs/images/v0.4/dien-thoai-ngang.png)
+| ![Thẻ ăn trên điện thoại](docs/images/v0.5/doc-the-an.png) | ![Lựa chọn trong hội thoại trên điện thoại](docs/images/v0.5/doc-lua-chon.png) |
+| ![Cuộc gọi trên điện thoại](docs/images/v0.5/doc-goi-dien.png) | ![Tin nhắn trên điện thoại nằm ngang](docs/images/v0.5/ngang-tin-nhan.png) |
+
+![Màn chơi trên điện thoại nằm ngang](docs/images/v0.5/ngang-man-choi.png)
 
 ![Vòng lặp chơi](docs/images/game-loop.svg)
 
@@ -51,7 +54,7 @@ Tải repo về, bấm đúp vào `index.html`.
 **Cách 2: chạy qua máy chủ cục bộ** (khuyên dùng khi phát triển)
 
 ```bash
-python3 -m http.server 8080
+npm run serve
 # mở http://localhost:8080
 ```
 
@@ -71,7 +74,7 @@ Font chữ (Be Vietnam Pro, VT323) tải từ Google Fonts. Khi không có mạn
 | `Space` | Hiện hết lời thoại đang chạy; Canh lửa: dừng vạch |
 | `Esc` | Đóng cửa sổ hoặc menu; quay lại thẻ gợi ý; bỏ qua minigame |
 
-Mọi thao tác khác đều bấm chuột hoặc chạm. Trên điện thoại, xoay ngang màn hình để chơi.
+Mọi thao tác khác đều bấm chuột hoặc chạm. Bố cục tự đổi theo kích thước và hướng màn hình: điện thoại chơi được cả dọc lẫn ngang.
 
 ## Cấu trúc thư mục
 
@@ -82,10 +85,12 @@ Mọi thao tác khác đều bấm chuột hoặc chạm. Trên điện thoại,
 │   ├── rules.js            Luật theo độ khó Thường và Dễ, công thức điểm
 │   ├── events.js           Bộ bài sự kiện ngẫu nhiên
 │   ├── cards.js            Chọn thẻ hành động, chế độ ăn
+│   ├── layout.js           Chọn bố cục, vùng cảnh và tọa độ chạm
+│   ├── dialog.js           Sáu kiểu hộp hội thoại
 │   ├── minigames.js        Minigame Thối tiền và Canh lửa
 │   ├── audio.js            Nhạc nền và hiệu ứng (Web Audio)
 │   ├── game.js             Logic game: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện, chọn cảnh
-│   ├── style.css           Giao diện: HUD, cửa sổ, màn mở đầu, bố cục điện thoại nằm ngang
+│   ├── style.css           Giao diện: HUD, cửa sổ, màn mở đầu, bố cục máy tính và điện thoại
 │   └── gfx/                Đồ họa canvas, gom từ design/
 │       ├── core.js         Công cụ vẽ chung: dither, viền tối, font pixel có dấu, phủ màu theo buổi
 │       ├── characters.js   Nhân vật chính (trang phục, biểu cảm, bong bóng) và nhân vật phụ
@@ -95,19 +100,22 @@ Mọi thao tác khác đều bấm chuột hoặc chạm. Trên điện thoại,
 │       └── scenes/         Từng cảnh: trang bìa, phòng trọ, trường, cửa hàng, quán ăn và chợ, cà phê/công viên/TTTM, bản đồ, tranh thẻ chương
 ├── assets/
 │   └── favicon.svg         Biểu tượng tab trình duyệt
-├── design/                 Bộ thiết kế v0.3: 12 trang HTML tự chạy
+├── design/                 Bộ thiết kế: 14 trang HTML tự chạy
 ├── docs/
 │   ├── GAME_DESIGN.md      Tài liệu thiết kế: cơ chế, nội dung, cân bằng
 │   ├── DESIGN_SPEC.md      Đặc tả thiết kế: hình ảnh, màn hình, thay đổi luật
 │   ├── PLAN-BAN-THU-2.md   Kế hoạch bản chơi thử thứ 2 (v0.4.0)
+│   ├── PLAN-DIEN-THOAI.md  Kế hoạch giao diện điện thoại (v0.5.0)
 │   └── images/             Sơ đồ và ảnh chụp màn hình
 ├── tools/
 │   ├── harness.js          Chạy game trong Node với DOM giả
 │   ├── test.js             Test cố định
-│   └── simulate.js         Mô phỏng cân bằng: cho bot chơi hàng trăm ván
+│   ├── simulate.js         Mô phỏng cân bằng: cho bot chơi hàng trăm ván
+│   ├── serve.js            Máy chủ cục bộ
+│   └── ui-test.js          Kiểm thử giao diện bằng Playwright
 ├── .github/                CI và mẫu báo lỗi / góp ý
 ├── CHANGELOG.md            Lịch sử phiên bản
-└── package.json            Lệnh kiểm tra (không có thư viện phụ thuộc)
+└── package.json            Lệnh kiểm tra (Playwright chỉ dùng khi kiểm thử giao diện)
 ```
 
 ### Bản đồ mã nguồn
@@ -123,12 +131,16 @@ Mọi thao tác khác đều bấm chuột hoặc chạm. Trên điện thoại,
 
 ## Phát triển
 
-Cần Node.js 18 trở lên, không cần cài gói nào.
+Cần Node.js 18 trở lên. Game không cần thư viện phía trình duyệt; để chạy bộ kiểm thử giao diện cần cài dependencies một lần.
 
 ```bash
+npm install
 npm test          # kiểm tra cú pháp + test cố định + mô phỏng 40 ván mỗi kiểu chơi
 npm run sim       # mô phỏng đầy đủ 300 ván, in tỉ lệ hoàn thành từng nhiệm vụ
+npm run test:ui   # kiểm thử giao diện với Chromium, WebKit và Firefox
 ```
+
+Playwright cần các trình duyệt tương ứng được cài bằng `npx playwright install`. Ảnh kiểm thử được lưu trong `test-results/ui/`.
 
 Trình mô phỏng nạp mọi script theo thứ tự trong `index.html` và chạy logic thật của game với bốn bot, ăn theo chế độ Bình dân như người chơi, minigame lấy kết quả trung bình: **Thận trọng** (lên lớp đủ, làm ca vừa phải, dọn phòng khi bừa, từ chối chi tiêu bốc đồng), **Chỉ lo làm ca** (lấy mọi ca), **Ví trống ngày 5** (cố tình tiêu sạch ví trước ngày đóng tiền nhà) và **Ngẫu nhiên**. Nó báo lỗi nếu có ván bị kẹt, nên hãy chạy lại sau mỗi lần chỉnh số liệu cân bằng (`src/rules.js`).
 
@@ -144,7 +156,7 @@ Kết quả hiện tại (300 ván mỗi bot, độ khó Thường):
 
 ## Thiết kế
 
-Thư mục `design/` chứa bộ thiết kế hình ảnh cho bản `0.3.0`. Mỗi file là một trang HTML tự chạy: bấm đúp để mở bằng trình duyệt, không cần máy chủ. Mã vẽ canvas trong từng trang là nguồn khi đưa đồ họa vào game. Quy tắc hình ảnh, bảng màu và các thay đổi luật đi kèm nằm trong [Đặc tả thiết kế v0.3](docs/DESIGN_SPEC.md).
+Thư mục `design/` chứa bộ thiết kế hình ảnh. Mỗi file là một trang HTML tự chạy: bấm đúp để mở bằng trình duyệt, không cần máy chủ. Mã vẽ canvas trong từng trang là nguồn khi đưa đồ họa vào game. Quy tắc hình ảnh, bảng màu và các thay đổi luật đi kèm nằm trong [Đặc tả thiết kế](docs/DESIGN_SPEC.md).
 
 | File | Nội dung |
 | --- | --- |
@@ -159,13 +171,16 @@ Thư mục `design/` chứa bộ thiết kế hình ảnh cho bản `0.3.0`. M�
 | [`09-ban-do-khu-pho.html`](design/09-ban-do-khu-pho.html) | Bản đồ khu phố |
 | [`10-hoi-thoai-chan-dung.html`](design/10-hoi-thoai-chan-dung.html) | Khung hội thoại và 7 chân dung |
 | [`11-tui-do-lich-nhiem-vu.html`](design/11-tui-do-lich-nhiem-vu.html) | Túi đồ, Lịch, Nhiệm vụ |
-| [`12-hoan-thien-giao-dien.html`](design/12-hoan-thien-giao-dien.html) | Tổng kết, thẻ chương, biến thể nhân vật, bố cục điện thoại |
+| [`12-hoan-thien-giao-dien.html`](design/12-hoan-thien-giao-dien.html) | Tổng kết, thẻ chương, biến thể nhân vật |
+| [`13-nhac-nen-va-am-thanh.html`](design/13-nhac-nen-va-am-thanh.html) | Trang nghe thử nhạc nền và hiệu ứng |
+| [`14-giao-dien-dien-thoai.html`](design/14-giao-dien-dien-thoai.html) | Bố cục điện thoại và sáu kiểu hộp hội thoại |
 
 ## Tài liệu
 
 - [Tài liệu thiết kế trò chơi](docs/GAME_DESIGN.md)
 - [Đặc tả thiết kế](docs/DESIGN_SPEC.md)
 - [Kế hoạch bản chơi thử thứ 2](docs/PLAN-BAN-THU-2.md)
+- [Kế hoạch giao diện điện thoại](docs/PLAN-DIEN-THOAI.md)
 - [Lịch sử phiên bản](CHANGELOG.md)
 
 ## Lộ trình
@@ -175,6 +190,7 @@ Thư mục `design/` chứa bộ thiết kế hình ảnh cho bản `0.3.0`. M�
 - [x] `0.3.0` Đồ họa và giao diện mới theo bộ thiết kế; đặt tên và chọn giới tính; độ bừa bộn phòng; bỏ vay và nợ; bố cục điện thoại nằm ngang
 - [x] Âm thanh và nhạc nền
 - [x] `0.4.0` Bản chơi thử thứ 2: thẻ hành động, chế độ ăn, độ khó, hình phạt mới, bộ bài sự kiện, Ngân, sinh nhật mẹ ở TTTM, minigame
+- [x] `0.5.0` Giao diện điện thoại dọc/ngang, sáu kiểu hộp hội thoại, minigame toàn màn hình, kiểm thử Playwright
 - [ ] Thử nghiệm với người chơi thật để tinh chỉnh cân bằng
 - [ ] Trả giá ở chợ
 

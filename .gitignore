@@ -14,3 +14,6 @@ npm-debug.log*
 # Bản xuất tạm
 *.pdf
 dist/
+
+# Ảnh chụp của bộ kiểm tra giao diện
+test-results/

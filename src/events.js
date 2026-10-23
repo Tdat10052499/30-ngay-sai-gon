@@ -28,16 +28,16 @@ const DECK=[
   /* ---------- sự kiện mới (mục 5.2) ---------- */
   {id:'scam',loai:'tien',max:1,w:1.5,when:s=>s.day>=9&&s.day<=25,mk:()=>ev('Tin nhắn trúng thưởng','Tin nhắn báo bạn trúng một chiếc điện thoại, chỉ cần chuyển 200.000đ “phí nhận quà”.',[
     {l:'Chuyển tiền',cost:200000,eff:{tt:-10},run:()=>queue.unshift(ev('Bị lừa rồi','Chuyển tiền xong thì số kia chặn liên lạc. Đó là tin nhắn lừa đảo.',[{l:'Đành chịu'}]))},
-    {l:'Chặn số, bỏ qua',eff:{tt:2},x:'Tin nhắn lừa đảo'}])},
+    {l:'Chặn số, bỏ qua',eff:{tt:2},x:'Tin nhắn lừa đảo'}],null,{style:'msg',from:'Số lạ'})},
   {id:'wallet',loai:'vui',max:1,w:1.5,tags:{loc:['park']},mk:()=>ev('Nhặt được ví','Một chiếc ví rơi dưới ghế đá, trong có giấy tờ và ít tiền.',[
     {l:'Nộp cho bảo vệ công viên',eff:{tt:6}},
     {l:'Tự đi tìm chủ',eff:{tt:10},gain:50000,x:'Hết buổi · chủ ví gửi cảm ơn 50.000đ',run:()=>skipSlot('Đi tìm chủ chiếc ví nhặt được')}])},
   {id:'homebox',loai:'vui',max:1,w:2,tags:{loc:['home']},when:s=>s.day>=10&&s.day<=20,mk:()=>ev('Thùng đồ quê','“Mẹ gửi con ít đồ ăn ở quê, nhớ nấu ăn cho đàng hoàng nghe con.” Trong thùng có rau, trứng và mấy gói mì.',[
-    {l:'Dạ, con cảm ơn mẹ',eff:{tt:6},x:'+2 nguyên liệu, +3 gói mì',run:()=>{bagAddFit('nguyenlieu',2);bagAddFit('mi',3)}}],'me')},
+    {l:'Dạ, con cảm ơn mẹ',eff:{tt:6},x:'+2 nguyên liệu, +3 gói mì',run:()=>{bagAddFit('nguyenlieu',2);bagAddFit('mi',3)}}],'me',{style:'msg'})},
   {id:'tufood',loai:'vui',max:1,w:2,tags:{loc:['home'],slot:[3]},mk:()=>ev('Tô canh của cô Tư','“Cô nấu dư nồi canh chua, con lấy một tô ăn cho ấm bụng nè.”',[
     {l:'Dạ, con cảm ơn cô',eff:{no:30,tt:4}}],'tu')},
   {id:'friendhome',loai:'ban',max:1,w:2,when:s=>isWE(s.day),mk:()=>ev('Bạn cùng quê rủ đi ăn','Một người bạn cùng quê mới vào Sài Gòn nhắn: “Tối nay rảnh hông, đi ăn với tao một bữa nha!”',[
-    {l:'Đi ăn',cost:60000,eff:{tt:10,nl:-4}},{l:'Hẹn dịp khác',eff:{tt:-2}}])},
+    {l:'Đi ăn',cost:60000,eff:{tt:10,nl:-4}},{l:'Hẹn dịp khác',eff:{tt:-2}}],null,{style:'msg',from:'Bạn cùng quê'})},
   {id:'charger',loai:'tien',max:1,w:1,mk:()=>ev('Hỏng sạc laptop','Sạc laptop bỗng tắt ngúm, đèn không sáng nữa.',[
     {l:'Mua sạc mới',cost:150000},{l:'Mượn của bạn',x:'Không học thư viện được 2 ngày',run:s=>{s.flags.noLibUntil=s.day+1}}])},
   {id:'blackout',loai:'batngo',max:1,w:1.5,tags:{loc:['home'],slot:[3]},mk:s=>{s.flags.blackout=s.day*10+s.slot;return ev('Cúp điện','Cả xóm trọ tối om, quạt cũng đứng. Tối nay không lướt mạng được.',[{l:'Đành vậy'}])}},
