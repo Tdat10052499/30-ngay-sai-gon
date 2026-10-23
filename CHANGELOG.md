@@ -2,6 +2,12 @@
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), đánh số phiên bản theo [Semantic Versioning](https://semver.org/lang/vi/).
 
+## [Chưa phát hành]
+
+### Thêm mới
+
+- Hướng dẫn tương tác Ngày 0 cho người chơi mới; cho phép bỏ qua, xem lại từ trang bìa và hoàn tất hướng dẫn mà không làm thay đổi bản lưu hoặc tiến độ tháng chơi thật.
+
 ## [0.5.0] - 2026-10-23
 
 Giao diện điện thoại làm lại và sáu loại hộp hội thoại, theo bản thiết kế `design/14-giao-dien-dien-thoai.html`. Kế hoạch và từng giai đoạn: `docs/PLAN-DIEN-THOAI.md`. Luật chơi, số liệu, lời thoại và hình vẽ cảnh không đổi.

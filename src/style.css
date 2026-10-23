@@ -255,12 +255,28 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .in-month i{display:block;aspect-ratio:1/1.6;background:#2b3050;border-radius:1px}
 .in-month i:first-child{background:var(--lantern);box-shadow:0 0 .4em rgba(255,201,77,.7)}
 .in-month i:nth-child(7n){background:#3a3460}
+.in-month.tutorial-month i:first-child{background:#2b3050;box-shadow:none}
 .in-chap{margin:0;font-weight:800;font-size:1.05em}
 .in-lead{margin:.15em auto 0;color:var(--muted);max-width:22em;font-size:.9em;line-height:1.45}
 .in-lead b{color:var(--fg)}
 .in-day .btn.primary{margin-top:.6em;font-size:.95em;opacity:0;transition:opacity .4s}
 .in-day.ready .btn.primary{opacity:1}
 @media (prefers-reduced-motion:reduce){.in-day,.in-day.show,.in-day .btn.primary,.cr-field,.cr-seg label{transition:none}}
+
+/* ---------- Ngày 0: hướng dẫn thao tác ---------- */
+.tutorial{position:absolute;inset:0;z-index:30;pointer-events:none}
+.tutorial[hidden]{display:none}
+.tutorial-card{position:absolute;top:calc(var(--st,0px) + 12px);left:calc(50% + (var(--sl,0px) - var(--sr,0px))/2);transform:translateX(-50%);width:min(440px,calc(100% - var(--sl,0px) - var(--sr,0px) - 24px));padding:14px 16px;background:#171b38;border:2px solid var(--lantern);box-shadow:0 8px 28px rgba(0,0,0,.55);color:var(--fg);font-size:14px;line-height:1.4;pointer-events:none}
+.tutorial-card button{pointer-events:auto}
+.tutorial-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--lantern);font-size:12px;font-weight:800}
+.tutorial-skip{min-width:48px;min-height:44px;padding:5px 10px;border:1px solid var(--glass-line);background:#222747;color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
+.tutorial-card h2{margin:8px 0 4px;font-size:19px;line-height:1.2}
+.tutorial-card p{margin:0;color:#d5d8eb}
+.tutorial-card .tutorial-action{margin-top:8px;color:var(--lantern);font-weight:700}
+.tutorial-next{width:100%;min-height:48px;margin-top:12px;justify-content:center}
+.tutorial-spot{outline:3px solid var(--lantern)!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(255,201,77,.25)!important}
+@media (max-width:420px){.tutorial-card{padding:10px 12px;font-size:13px}.tutorial-card h2{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.tutorial-card{scroll-behavior:auto}}
 
 /* ---------- Windows ---------- */
 .layer{position:absolute;inset:0;z-index:20;font-size:clamp(11px,1.3cqw,17px);display:grid;place-items:center;padding:3cqh 3cqw;background:rgba(6,7,16,.6)}
