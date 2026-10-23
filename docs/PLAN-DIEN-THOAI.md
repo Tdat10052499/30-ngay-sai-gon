@@ -141,7 +141,7 @@ Dải cảnh báo đói và kiệt sức (mục 3.2) lấy câu trong design/14 
 
 ## Giai đoạn 5: minigame trên điện thoại
 
-- [ ] **5.1 Thối tiền, Canh lửa toàn màn hình** (`src/style.css`, `src/minigames.js` chỉ phần HTML)
+- [x] **5.1 Thối tiền, Canh lửa toàn màn hình** (`src/style.css`, `src/minigames.js` chỉ phần HTML)
   - Cả hai hướng; nút từ 48px; tờ tiền ô chạm từ 48×64px (dọc: lưới 4×2); "Bỏ qua" cố định góc trên phải trong vùng an toàn.
   - Đạt: chụp 2 minigame × 8 kích thước điện thoại; không cuộn ngang; đổi hướng giữa chừng giữ thời gian và lượt.
 
