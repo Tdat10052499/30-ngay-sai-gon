@@ -187,9 +187,9 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 @keyframes rise{0%{transform:translate(-50%,.5em);opacity:0}15%{opacity:1;transform:translate(-50%,0)}100%{transform:translate(-50%,-3em);opacity:0}}
 
 /* ---------- Title (design/01): chữ bên trái, cảnh cổng trường lúc hoàng hôn phía sau ---------- */
-.title-screen{position:absolute;inset:0;z-index:15;font-size:clamp(7px,1.3cqw,17px);display:flex;align-items:center;padding:0 6cqw;
+.title-screen{position:absolute;inset:0;z-index:15;font-size:clamp(7px,1.3cqw,17px);display:flex;overflow-y:auto;padding:0 6cqw;
   background:linear-gradient(90deg,rgba(10,12,26,.92) 0%,rgba(10,12,26,.74) 34%,rgba(10,12,26,.28) 54%,rgba(10,12,26,0) 68%)}
-.title-box{max-width:42cqw;display:flex;flex-direction:column;gap:.7em}
+.title-box{margin:auto 0;max-width:42cqw;display:flex;flex-direction:column;gap:.7em}
 .eyebrow{margin:0;font-size:.74em;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lantern)}
 .title-box h1{margin:0;font-weight:900;font-size:4.2em;line-height:.95;letter-spacing:-.015em;text-shadow:.06em .06em 0 var(--coral),.12em .12em 0 rgba(0,0,0,.45)}
 .title-box h1 .num{font-size:1.35em;color:var(--lantern);text-shadow:.05em .05em 0 #8a5a12;display:inline-block;margin-right:.08em}
@@ -205,9 +205,10 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .btn.primary:disabled{opacity:1;background:#4a4e6a;color:#9ca0bc;box-shadow:0 .22em 0 #2c2f46}
 
 /* ---------- Tạo nhân vật (design/02) ---------- */
-.create-screen{position:absolute;inset:0;z-index:16;display:grid;place-items:center;font-size:clamp(8px,1.25cqw,16px);
+/* luôn cuộn được: máy nhỏ hoặc bàn phím đang mở vẫn với tới ô tên và nút Tạo nhân vật (margin:auto giữ thẻ ở giữa khi đủ chỗ mà không cắt mép trên) */
+.create-screen{position:absolute;inset:0;z-index:16;display:flex;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;font-size:clamp(8px,1.25cqw,16px);
   background:radial-gradient(60% 80% at 50% 50%,rgba(10,12,26,.55),rgba(10,12,26,.88))}
-.cr-card{width:min(30em,92cqw);background:rgba(17,19,35,.86);border:1px solid var(--glass-line);border-radius:.9em;padding:1.4em 1.8em 1.2em;
+.cr-card{margin:auto;flex:none;width:min(30em,92cqw);background:rgba(17,19,35,.86);border:1px solid var(--glass-line);border-radius:.9em;padding:1.4em 1.8em 1.2em;
   display:flex;flex-direction:column;align-items:center;gap:.8em;box-shadow:0 1.2em 3em -1em rgba(0,0,0,.6)}
 .cr-card h2{margin:0;font-size:1.45em;font-weight:900;letter-spacing:-.01em;text-align:center}
 .cr-card .sub{margin:-.4em 0 0;color:var(--muted);text-align:center;font-size:.92em;max-width:26em}
@@ -909,3 +910,6 @@ html.lay-portrait .in-day.show{transform:none}
 html.lay-portrait .in-day .btn.primary{min-height:48px}
 html.lay-portrait .in-skip{right:16px;bottom:calc(16px + var(--sb));min-height:48px}
 html.lay-portrait .amenu h3 .xbtn{margin-left:auto}
+/* đã bấm vào ô tên trên màn hình thấp (bàn phím ảo mở): màn tạo nhân vật phủ lên cảnh để còn đủ chỗ cho ô tên và nút.
+   Lớp .tall giữ tới khi rời màn này, không bỏ khi ô tên mất focus, để nút không dời chỗ ngay lúc đang bấm. */
+html.lay-portrait .create-screen.tall{top:var(--st)}

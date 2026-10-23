@@ -1211,10 +1211,15 @@ function crCheck(){
   $('crPlate').textContent=name||'Chưa có tên';$('crPlate').classList.toggle('empty',!name);
   return err?null:name||null;
 }
-function openCreate(){hideWin();showScreen('create');crCheck();$('crName').focus({preventScroll:true})}
+function openCreate(){hideWin();$('createScreen').classList.remove('tall');showScreen('create');crCheck();$('crName').focus({preventScroll:true})}
 ['nam','nu'].forEach(gd=>{const c=document.createElement('canvas');c.width=c.height=48;Scenes.cover.bust(c.getContext('2d'),0,false,gd);
   $(gd==='nam'?'icNam':'icNu').style.backgroundImage='url('+c.toDataURL()+')'});
 $('crName').addEventListener('input',crCheck);
+/* điện thoại: bàn phím mở xong (đo bằng visualViewport vì Safari không đổi innerHeight) thì màn hình thấp được phủ lên cảnh,
+ * rồi cuộn để thấy cả ô tên lẫn nút Tạo nhân vật */
+$('crName').addEventListener('focus',()=>{if(!Layout.phone())return;setTimeout(()=>{
+  const vh=window.visualViewport&&window.visualViewport.height||innerHeight;if(vh<=520)$('createScreen').classList.add('tall');
+  $('crCreate').scrollIntoView({block:'nearest'})},350)});
 document.querySelectorAll('input[name="gender"]').forEach(r=>r.addEventListener('change',()=>{crGender=r.value;$('crAva').setAttribute('aria-label',CR_LABEL[crGender])}));
 $('crForm').addEventListener('submit',e=>{e.preventDefault();const name=crCheck();if(!name)return;const dv=document.querySelector('input[name="diff"]:checked');pendingChar={name,gender:crGender,diff:dv?dv.value:'thuong'};startIntro()});
 $('crBack').addEventListener('click',showTitle);

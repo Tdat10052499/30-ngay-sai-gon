@@ -151,6 +151,7 @@ Dải cảnh báo đói và kiệt sức (mục 3.2) lấy câu trong design/14 
 - [ ] **6.2 `npm run test:ui`** (`tools/ui-test.js`, `package.json`): Playwright chromium, webkit, firefox × 9 kích thước. Phục vụ trang bằng server tĩnh viết bằng Node (không cần python). Chụp: màn chơi (phòng trọ, sáng ngày thường), thẻ ăn, một cửa sổ, 6 loại hộp, một minigame → `test-results/ui/<máy>/<kích thước>/*.png` (thêm vào `.gitignore`).
   - Kiểm tự động: không cuộn ngang; mọi nút hiện trọn trong vùng nhìn thấy trừ vùng an toàn giả lập (47/34 dọc, 47 hai bên + 21 đáy ngang); nút nhỏ nhất ≥ 44×44; chữ nhỏ nhất ≥ 11px; hộp không tràn với lời 400 ký tự; không lỗi console.
   - Kịch bản xoay máy: `choice` mở ở 390×844 → 844×390, cùng lời thoại, bấm được lựa chọn.
+  - Kịch bản tạo nhân vật trên máy nhỏ: 320×480, 360×640, 375×667, 390×844, 568×320, 667×375, 844×390, 800×450, 1280×720, có giả lập bàn phím ảo (vùng nhìn thấy còn 340/380/180px). Người chơi tự cuộn tới nút "Tạo nhân vật" rồi bấm, không để Playwright tự cuộn hộ. Đạt khi vào được ngày 1 và bố cục không đổi giữa lúc gõ tên.
   - Kịch bản số lần bấm: một ngày thường ở 390×844 (đi học, ăn trưa, ca chiều, ăn tối, ca tối) ≤ 8 lần bấm.
   - In bảng kết quả theo kích thước, đánh dấu ô chưa đạt.
 

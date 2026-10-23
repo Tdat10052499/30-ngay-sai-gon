@@ -39,8 +39,14 @@ function fitScene(){
   const b=box(w,h,focus);
   cv.style.cssText=`width:${b.w}px;height:${b.h}px;left:${b.left}px;top:${b.top}px`;
 }
+/* đang gõ chữ (bàn phím ảo mở) thì vùng nhìn thấy thấp hẳn đi: máy 360×640 còn khoảng 360×340 và sẽ bị đổi sang
+ * bố cục ngang giữa lúc nhập tên. Giữ nguyên bố cục khi đang gõ và thêm HOLD_MS sau khi rời ô nhập: bấm nút Tạo nhân vật làm ô tên
+ * mất focus trong lúc bàn phím chưa kịp đóng, đổi bố cục lúc đó sẽ dời nút đi và cú bấm bị trượt. */
+const HOLD_MS=700;let typedAt=-1e9;
+const typing=()=>{const a=document.activeElement;return !!a&&(a.tagName==='INPUT'&&!/^(radio|checkbox|range|button|submit)$/.test(a.type)||a.tagName==='TEXTAREA'||a.isContentEditable)};
 function apply(){
-  const {w,h}=size(),n=pick(w,h),root=document.documentElement;
+  const now=Date.now();if(typing())typedAt=now;
+  const {w,h}=size(),root=document.documentElement,n=cur&&now-typedAt<HOLD_MS?cur:pick(w,h);
   if(n!==cur){NAMES.forEach(x=>root.classList.toggle('lay-'+x,x===n));const old=cur;cur=n;subs.forEach(f=>{try{f(n,old)}catch(e){console.error(e)}})}
   fitScene();debugInfo();
 }
@@ -70,6 +76,8 @@ if(typeof window!=='undefined'&&window.addEventListener&&typeof document!=='unde
   addEventListener('resize',apply);addEventListener('orientationchange',apply);
   if(window.visualViewport&&window.visualViewport.addEventListener)window.visualViewport.addEventListener('resize',apply);
   addEventListener('resize',fitStage);
+  addEventListener('focusin',()=>{if(typing())typedAt=Date.now()});
+  addEventListener('focusout',()=>{if(typing())typedAt=Date.now();setTimeout(apply,HOLD_MS+50)});
   if(typeof ResizeObserver==='function')addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('scn');if(h)new ResizeObserver(fitScene).observe(h)});
 }
 return {pick,box,toScene,apply,on,fitScene,fitStage,is,phone,debug,get cur(){return cur},setFocus(f){if(f!==focus){focus=f;fitScene()}}};
