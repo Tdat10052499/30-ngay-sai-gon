@@ -264,6 +264,98 @@ async function createChecks(b) {
   return out;
 }
 
+/* ---------- 4.5 hướng dẫn Ngày 0, bỏ qua an toàn và vào tháng chơi thật ---------- */
+async function tutorialChecks(b, w, h) {
+  const p = await newPage(b, w, h, { reducedMotion: 'reduce' });
+  p.setDefaultTimeout(8000);
+  let detail = '';
+  try {
+    await p.evaluate(() => cmd('new'));
+    await p.fill('#crName', 'Lan');
+    await p.click('#crCreate');
+    await p.waitForFunction(() => mode === 'intro' && introKind === 'tutorial');
+    await p.waitForFunction(() => !document.getElementById('inGo').disabled);
+    await p.click('#inGo');
+    await p.waitForFunction(() => tutorialActive && !document.getElementById('tutorial').hidden);
+    const safe = safeArea(w, h);
+    const cardSafe = await p.evaluate(sa => {
+      const stage = document.getElementById('stage');
+      for (const [key, value] of Object.entries({ st: sa.st, sb: sa.sb, sl: sa.sl, sr: sa.sr })) stage.style.setProperty('--' + key, value + 'px');
+      const card = document.querySelector('.tutorial-card').getBoundingClientRect();
+      const controls = [...document.querySelectorAll('#tutorial button')].map(b => b.getBoundingClientRect());
+      return card.top >= sa.st - .5 && card.left >= sa.sl - .5 && card.right <= innerWidth - sa.sr + .5
+        && controls.every(r => r.top >= sa.st - .5 && r.bottom <= innerHeight - sa.sb + .5
+          && r.left >= sa.sl - .5 && r.right <= innerWidth - sa.sr + .5);
+    }, safe);
+    await p.click('#tutorialNext');
+    await p.click('#tutorialNext');
+    await p.locator('#cmdbar .cd:not(.custom)').first().click();
+    await p.waitForFunction(() => tutorialStep === 3);
+    await p.locator('#tracker').click();
+    await p.waitForFunction(() => win === 'tasks' && tutorialStep === 4);
+    await p.click('#tutorialNext');
+    await p.locator('#toolbar [data-tool="map"]').click();
+    await p.waitForFunction(() => win === 'map' && tutorialStep === 6);
+    await p.locator('#win [data-msel]').first().click();
+    const mapSelectionWorks = await p.evaluate(() => !!mapSel);
+    const noSaveDuringTutorial = await p.evaluate(() => !localStorage.getItem(KEY));
+    await p.click('#tutorialSkip');
+    await p.waitForFunction(() => mode === 'intro' && introKind === 'day1' && !tutorialActive);
+    await p.waitForFunction(() => !document.getElementById('inGo').disabled);
+    await p.click('#inGo');
+    await p.waitForFunction(() => mode === 'game' && s.started && s.day === 1 && !tutorialActive);
+    const doneFlag = await p.evaluate(() => localStorage.getItem(TUTORIAL_KEY) === '1');
+    await p.evaluate(() => cmd('home'));
+    const savedBeforeReplay = await p.evaluate(() => localStorage.getItem(KEY));
+    await p.evaluate(() => cmd('guide'));
+    await p.waitForFunction(() => tutorialActive && tutorialReturn === 'title');
+    await p.click('#tutorialSkip');
+    await p.waitForFunction(() => mode === 'title' && !tutorialActive);
+    const replayPreservesSave = await p.evaluate(saved => localStorage.getItem(KEY) === saved, savedBeforeReplay);
+    await p.evaluate(() => cmd('guide'));
+    await p.waitForFunction(() => tutorialActive && tutorialReturn === 'title');
+    const nextStep = async () => {
+      const before = await p.evaluate(() => tutorialStep);
+      await p.click('#tutorialNext');
+      await p.waitForFunction(i => !tutorialActive || tutorialStep === i + 1, before);
+    };
+    const tapStepTarget = async selector => {
+      const before = await p.evaluate(() => tutorialStep);
+      const target = p.locator(selector);
+      await (selector === '#cmdbar .cd:not(.custom)' ? target.first() : target).click();
+      await p.waitForFunction(i => !tutorialActive || tutorialStep === i + 1, before);
+    };
+    await nextStep(); await nextStep();
+    await tapStepTarget('#cmdbar .cd:not(.custom)');
+    await tapStepTarget('#tracker');
+    await nextStep();
+    await tapStepTarget('#toolbar [data-tool="map"]');
+    await p.locator('#win [data-msel]').first().click();
+    await nextStep();
+    await tapStepTarget('#toolbar [data-tool="bag"]');
+    await nextStep();
+    await tapStepTarget('#toolbar [data-tool="cal"]');
+    await nextStep();
+    await tapStepTarget('#cmdbar .cd.custom');
+    await tapStepTarget('#cmdbar [data-cat="eat"]');
+    await nextStep();
+    await tapStepTarget('#toolbar [data-tool="sys"]');
+    await tapStepTarget('#popMenu [data-sys="rules"]');
+    await nextStep(); await nextStep(); await nextStep(); await nextStep();
+    await p.waitForFunction(() => mode === 'title' && !tutorialActive);
+    const fullTourWorks = await p.evaluate(() => localStorage.getItem(TUTORIAL_KEY) === '1');
+    detail = `ngày 0, vùng an toàn, nhiệm vụ/bản đồ tương tác, bản lưu không đổi, bỏ qua → ngày 1; xem lại và hoàn tất đủ bước → trang bìa${cardSafe && mapSelectionWorks && noSaveDuringTutorial && doneFlag && replayPreservesSave && fullTourWorks ? '' : ' · kiểm tra thất bại'}`;
+    const ok = cardSafe && mapSelectionWorks && noSaveDuringTutorial && doneFlag && replayPreservesSave && fullTourWorks && !p.errs.length;
+    await p.done();
+    return { name: 'tour tương tác và bỏ qua', ok, detail: detail + (p.errs.length ? ' · ' + p.errs.join('|') : '') };
+  } catch (e) {
+    let state = '';
+    try { state = JSON.stringify(await p.evaluate(() => ({ mode, tutorialStep, tutorialTitle: document.getElementById('tutorialTitle').textContent, win, menuCat }))); } catch {}
+    await p.done();
+    return { name: 'tour tương tác và bỏ qua', ok: false, detail: `${detail} · LỖI ${e.message}${state ? ` · trạng thái ${state}` : ''}` };
+  }
+}
+
 /* ---------- 5. hành vi hộp hội thoại ---------- */
 function fakeAudio() {
   window.__snd = [];
@@ -371,6 +463,9 @@ async function mapChecks(b, w, h) {
     (await rotateChecks(b)).forEach(r => scen.push({ eng, group: 'Xoay máy 390×844 ↔ 844×390', ...r }));
     { const r = await tapChecks(b); scen.push({ eng, group: 'Số lần bấm (390×844, ≤ 8)', name: 'một ngày thường', ...r }); }
     (await createChecks(b)).forEach(r => scen.push({ eng, group: 'Tạo nhân vật trên máy nhỏ', ...r }));
+    for (const [w, h] of [[390, 844], [844, 390], [1280, 720]]) {
+      scen.push({ eng, group: 'Hướng dẫn Ngày 0', ...await tutorialChecks(b, w, h) });
+    }
     for (const [w, h] of [[390, 844], [844, 390], [1280, 720]]) {
       (await dialogChecks(b, w, h)).forEach(r => scen.push({ eng, group: `Hộp hội thoại ${w}×${h}`, ...r }));
       (await mapChecks(b, w, h)).forEach(r => scen.push({ eng, group: `Bản đồ, ngăn kéo ${w}×${h}`, ...r }));

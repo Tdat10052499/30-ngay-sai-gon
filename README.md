@@ -23,6 +23,7 @@ Người chơi đặt tên, chọn Nam hoặc Nữ cho nhân vật 18 tuổi r�
 - **Hai độ khó**: Thường (hao hụt và hình phạt tăng dần theo chương) và Dễ
 - **Bộ bài sự kiện** 20 sự kiện ngẫu nhiên có giới hạn số lần và thời gian chờ; hộp cảnh báo cho việc quan trọng
 - **Minigame** Thối tiền khi làm ca và Canh lửa khi nấu cơm
+- **Ngày 0 hướng dẫn tương tác** cho người chơi mới: làm quen với HUD, thẻ hành động, bản đồ, túi đồ, lịch và menu; có thể bỏ qua hoặc mở lại từ trang bìa
 - **8 địa điểm** pixel 320×180, đổi theo sáng, trưa, chiều, tối và theo tiến độ; lên lớp, làm ca, ăn ở quán, ngồi cà phê có cảnh hành động riêng
 - **Nhân vật** đổi trang phục và biểu cảm theo chỉ số; 8 chân dung có biểu cảm trong hội thoại, gồm Ngân, bạn cùng lớp hay rủ đi cà phê
 - **Túi đồ** 9 vật phẩm có hạn dùng, **lịch tháng**, **bản đồ**, **nhật ký**, **điện thoại** trong phòng trọ

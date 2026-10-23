@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=VT323&display=swap">
-<link rel="stylesheet" href="src/style.css?v=0.5.0">
+<link rel="stylesheet" href="src/style.css?v=0.5.1">
 </head>
 <body>
 <div class="screen">
@@ -94,10 +94,10 @@
     <div class="intro" id="intro" hidden>
       <div class="in-day" id="inDay" role="status" aria-live="polite">
         <p class="in-dow">Thứ Hai</p>
-        <h2>Ngày<span class="num">1</span></h2>
+        <h2>Ngày<span class="num" id="inDayNumber">1</span></h2>
         <div class="in-month" id="inMonth" aria-label="Ngày 1 trên 30 ngày"></div>
         <p class="in-chap">Chương 1: Tân sinh viên</p>
-        <p class="in-lead">Ngày đầu tiên của <b id="inName">Minh</b> ở Sài Gòn. Sáng nay có buổi học đầu tiên.</p>
+        <p class="in-lead" id="inLead">Ngày đầu tiên của <b id="inName">Minh</b> ở Sài Gòn. Sáng nay có buổi học đầu tiên.</p>
         <button class="btn primary" id="inGo" type="button" disabled>Bắt đầu ngày 1</button>
       </div>
       <button class="in-skip" id="inSkip" type="button">Bỏ qua</button>
@@ -105,6 +105,15 @@
     </div>
 
     <div class="layer" id="layer" hidden><div class="win" id="win" role="dialog" aria-modal="true"></div></div>
+    <div class="tutorial" id="tutorial" hidden>
+      <section class="tutorial-card" role="dialog" aria-modal="false" aria-labelledby="tutorialTitle" aria-describedby="tutorialText">
+        <div class="tutorial-head"><span id="tutorialProgress"></span><button class="tutorial-skip" id="tutorialSkip" type="button">Bỏ qua</button></div>
+        <h2 id="tutorialTitle"></h2>
+        <p id="tutorialText"></p>
+        <p class="tutorial-action" id="tutorialAction" role="status" aria-live="polite"></p>
+        <button class="btn primary tutorial-next" id="tutorialNext" type="button">Tiếp tục</button>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -129,6 +138,6 @@
 <script src="src/gfx/scenes/map.js?v=0.5.0"></script>
 <script src="src/gfx/scenes/cards.js?v=0.5.0"></script>
 <script src="src/audio.js?v=0.5.0"></script>
-<script src="src/game.js?v=0.5.0"></script>
+<script src="src/game.js?v=0.5.1"></script>
 </body>
 </html>

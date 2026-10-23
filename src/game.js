@@ -151,6 +151,10 @@ function newState(){return{started:false,over:false,day:1,slot:0,loc:'home',mone
   bag:[{id:'mi',exp:null},{id:'mi',exp:null},{id:'mi',exp:null},{id:'nguyenlieu',exp:3},{id:'caphe',exp:null}]}}
 /* Mọi chữ người chơi đọc đi qua nm() để thay tên mặc định bằng tên người chơi */
 const nm=t=>s&&s.name&&s.name!=='Minh'?String(t).replace(/Minh/g,s.name):t;
+const TUTORIAL_KEY='ba-muoi-ngay-sg-tutorial-v1';
+let tutorialActive=false,tutorialReturn='intro',tutorialStep=0,introKind='day1',tutorialSeenSession=false;
+function tutorialSeen(){if(tutorialSeenSession)return true;try{return localStorage.getItem(TUTORIAL_KEY)==='1'}catch(e){return false}}
+function markTutorialSeen(){tutorialSeenSession=true;try{localStorage.setItem(TUTORIAL_KEY,'1')}catch(e){}}
 /* Độ bừa bộn phòng: 0 gọn gàng (0–33), 1 hơi bừa (34–66), 2 bừa bộn (67–100) */
 const MESS_LV=['Gọn gàng','Hơi bừa','Bừa bộn'];
 const lvOf=m=>m>=67?2:m>=34?1:0,messLv=()=>lvOf(s.mess);
@@ -629,9 +633,9 @@ const icTag=k=>`<i class="ic" style="--i:url(${icURL(k)})"></i>`;
 const SLOT_IC=['dawn','noon','dusk','night'];
 function render(){syncMusic();renderTop();renderTracker();renderCmd();if(win&&win!=='event'&&win!=='end')renderWin()}
 function renderTop(){
-  $('dayNum').textContent=s.day;
-  $('dow').textContent=DOW[dowOf(s.day)];
-  $('chap').textContent=`Chương ${chOf(s.day)}`;
+  $('dayNum').textContent=tutorialActive?'0':s.day;
+  $('dow').textContent=tutorialActive?'Làm quen':DOW[dowOf(s.day)];
+  $('chap').textContent=tutorialActive?'Hướng dẫn':`Chương ${chOf(s.day)}`;
   $('slots').innerHTML=SLOT_IC.map((ic,i)=>`<span class="s${i===s.slot?' on':i<s.slot?' past':''}" title="Buổi ${SLOTS[i].toLowerCase()}"${i===s.slot?' aria-current="true"':''}>${icTag(ic)}</span>`).join('')+`<span class="nm">${SLOTS[s.slot]}</span>`;
   $('mstats').innerHTML=STATS.map(S=>{const v=s[S.k];return `<div class="st${v<25?' low':''}" title="${S.n}: ${v}/100" role="img" aria-label="${S.n} ${v}" style="--c:${SCOL[S.k]}"><span class="num v" style="color:${v<25?'':SCOL[S.k]}">${v}</span><span class="sbar well"><i style="--v:${v/100}"></i></span>${icTag(S.k)}</div>`}).join('');
   $('money').textContent=fmt(s.money);
@@ -641,7 +645,7 @@ function renderTop(){
   $('placeShut').innerHTML=cl?'<span class="shut">Đang đóng cửa</span>':'';
   const rs=$('roomState');rs.hidden=s.loc!=='home';rs.dataset.l=messLv();$('roomName').textContent=MESS_LV[messLv()];
   /* điện thoại: chip ngày và buổi trên cảnh, tiêu đề danh sách thẻ */
-  $('dchip').innerHTML=`${icTag(SLOT_IC[s.slot])}<span>${DOW[dowOf(s.day)]} · <b class="num">Ngày ${s.day}</b>/30 · ${SLOTS[s.slot]}</span>`;
+  $('dchip').innerHTML=`${icTag(SLOT_IC[s.slot])}<span>${tutorialActive?'LÀM QUEN · NGÀY 0':`${DOW[dowOf(s.day)]} · <b class="num">Ngày ${s.day}</b>/30 · ${SLOTS[s.slot]}`}</span>`;
   $('ptitle').textContent=`${L.short.toUpperCase()} · BẠN SẼ LÀM GÌ?`;
 }
 function dailyRow(d){const D=DAILY[d.id],[c,m]=D.prog(s);const lbl=D.label?D.label(s):`${c}/${m}`;
@@ -1223,9 +1227,80 @@ function renderTitle(){
   const st=loadSaved(),cont=st&&st.started&&!st.over;
   $('titleBtns').innerHTML=`<button class="btn primary lg" type="button" data-m="new">Bắt đầu câu chuyện</button>`+
     (cont?`<button class="btn" type="button" data-m="cont">Chơi tiếp · ngày ${st.day}, chương ${chOf(st.day)}</button>`:'')+
+    `<button class="btn" type="button" data-m="guide">Hướng dẫn chơi</button>`+
     `<button class="btn" type="button" data-m="rules">Luật chơi</button>`+
     (!st&&hasOldSave()?'<p class="title-old" role="status">“Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”</p>':'');
 }
+const TUTORIAL_STEPS=[
+  {title:'Chào mừng đến Ngày 0',text:'Đây là buổi làm quen an toàn. Hãy thử các nút và cửa sổ; hướng dẫn không trừ tiền, không đổi chỉ số và không tính vào 30 ngày.',next:'Bắt đầu'},
+  {title:'Theo dõi cuộc sống',text:'Tiền, lương chờ, bốn chỉ số và nhiệm vụ đang theo dõi luôn nằm trên màn hình. Chỉ số thấp sẽ chuyển đỏ; hãy cân bằng sức khỏe, tinh thần, năng lượng và độ no.'},
+  {title:'Thử một thẻ hành động',text:'Các thẻ gợi ý gom việc thường làm. Chạm thẻ được viền để xem cách chọn; trong hướng dẫn này hành động chỉ được minh họa, không thực thi.',target:'#cmdbar .cd:not(.custom)',intercept:true},
+  {title:'Mở Nhiệm vụ',text:'Nhiệm vụ dài hạn cho biết mục tiêu và hạn chót. Chạm chip nhiệm vụ để xem danh sách thật.',target:'#tracker'},
+  {title:'Đọc mục tiêu',text:'Đây là danh sách nhiệm vụ. Khi chơi thật, mở lại bất cứ lúc nào để xem tiến độ; bấm Tiếp tục để đóng.',closeWindow:true},
+  {title:'Dùng Bản đồ',text:'Bản đồ cho biết các địa điểm và chi phí di chuyển. Mở bản đồ ở thanh công cụ.',target:'#toolbar [data-tool="map"]'},
+  {title:'Chọn nơi muốn đến',text:'Thử chạm một địa điểm để xem thông tin và nút “Đi đến”. Trong ngày 0, đừng đi thật; bấm Tiếp tục khi đã xem xong.',allow:['#win [data-msel]'],closeWindow:true},
+  {title:'Xem Túi đồ',text:'Vật phẩm và thức ăn đang mang theo ở đây. Một số món có hạn dùng hoặc chỉ dùng được tại địa điểm phù hợp.',target:'#toolbar [data-tool="bag"]'},
+  {title:'Kiểm tra vật phẩm',text:'Chọn một ô để đọc thông tin món đồ. Dùng món trong ván thật sẽ thay đổi trạng thái; ngày 0 chỉ xem thử.',closeWindow:true},
+  {title:'Mở Lịch',text:'Lịch cho biết các khoản đến hạn và cho phép chỉnh chế độ ăn. Chạm nút Lịch để xem.',target:'#toolbar [data-tool="cal"]'},
+  {title:'Lịch và chế độ ăn',text:'Xem ngày đóng tiền nhà, hóa đơn và các sự kiện. Chế độ ăn quyết định cách nhân vật tự ăn khi đói.',closeWindow:true},
+  {title:'Tự chọn việc',text:'Khi muốn tự quyết, chạm thẻ “Tự chọn việc khác” để xem các nhóm hành động.',target:'#cmdbar .cd.custom'},
+  {title:'Nhóm Ăn uống',text:'Chọn nhóm Ăn uống để xem các món có thể ăn tại nơi đang đứng. Trên điện thoại, thẻ món ăn cũng xuất hiện nhanh khi phù hợp.',target:'#cmdbar [data-cat="eat"]'},
+  {title:'Xem các món ăn',text:'Danh sách cho biết món ăn, giá và tác động. Trong ván thật, chọn món sẽ dùng tiền hoặc vật phẩm; bấm Tiếp tục để đóng danh sách.',closeWindow:true},
+  {title:'Menu công cụ',text:'Menu có Nhật ký, Luật chơi và cài đặt âm thanh. Mở Menu ở thanh công cụ.',target:'#toolbar [data-tool="sys"]'},
+  {title:'Xem Luật chơi',text:'Chạm Luật chơi trong menu để xem hướng dẫn tra cứu ngay trong ván.',target:'#popMenu [data-sys="rules"]'},
+  {title:'Đọc Luật chơi',text:'Cửa sổ này giải thích các quy tắc. Khi gặp sự kiện, đọc kỹ lựa chọn và ảnh hưởng trước khi quyết định.',closeWindow:true},
+  {title:'Tin nhắn và lựa chọn',text:'Hội thoại có thể là lời kể, tin nhắn, cuộc gọi hoặc cảnh báo. Đọc nội dung rồi chọn; lựa chọn có thể ảnh hưởng đến tiền, chỉ số và nhiệm vụ.'},
+  {title:'Ca làm và minigame',text:'Đi làm có thể mở minigame thối tiền; nấu ăn có thể mở minigame canh lửa. Đọc hướng dẫn trên màn và dùng nút Bỏ qua nếu không muốn chơi.'},
+  {title:'Sẵn sàng cho ngày 1',text:'Một ngày có bốn buổi. Thẻ hành động giúp làm nhanh; Bản đồ và Tự chọn cho bạn linh hoạt. Giữ tiền cho hóa đơn và đừng để các chỉ số xuống quá thấp.',next:'Vào ngày 1'}
+];
+function renderTutorial(){
+  const el=$('tutorial'),step=TUTORIAL_STEPS[tutorialStep];
+  document.querySelectorAll('.tutorial-spot').forEach(x=>x.classList.remove('tutorial-spot'));
+  if(!step){finishTutorial();return}
+  $('tutorialProgress').textContent=`NGÀY 0 · ${tutorialStep+1}/${TUTORIAL_STEPS.length}`;
+  $('tutorialTitle').textContent=step.title;
+  $('tutorialText').textContent=step.text;
+  $('tutorialAction').textContent=step.target?'Chạm vào nút được viền để tiếp tục.':'';
+  $('tutorialNext').textContent=step.next||'Tiếp tục';
+  $('tutorialNext').hidden=!!step.target;
+  el.hidden=false;
+  if(step.target){
+    const target=document.querySelector(step.target);
+    if(target){target.classList.add('tutorial-spot');target.scrollIntoView({block:'nearest',inline:'nearest'})}
+  }
+}
+function finishTutorial(){
+  markTutorialSeen();tutorialActive=false;$('tutorial').hidden=true;
+  document.querySelectorAll('.tutorial-spot').forEach(x=>x.classList.remove('tutorial-spot'));
+  hideWin();closeMenu();
+  if(tutorialReturn==='title'){showTitle();return}
+  startIntro();
+}
+function startTutorial(replay=false){
+  tutorialReturn=replay?'title':'intro';tutorialActive=true;tutorialStep=0;
+  s=newState();s.name=pendingChar.name;s.gender=pendingChar.gender;s.diff=DIFFS[pendingChar.diff]?pendingChar.diff:'thuong';s.started=true;
+  QUESTS.filter(q=>q.ch===1).forEach(q=>{s.q[q.id]='active'});
+  genDaily();txAdd('Tiền làm quen',START_MONEY);
+  queue=[];curEvent=null;hideWin();closeMenu();showScreen('game');render();renderTutorial();
+}
+function advanceTutorial(){
+  const step=TUTORIAL_STEPS[tutorialStep];
+  if(step.closeWindow){hideWin();closeMenu();renderCmd()}
+  tutorialStep++;renderTutorial();
+}
+function handleTutorialClick(e){
+  if(!tutorialActive||e.target.closest('#tutorial'))return;
+  const step=TUTORIAL_STEPS[tutorialStep],matched=step.target&&e.target.closest(step.target);
+  if(matched){
+    if(step.intercept){e.preventDefault();e.stopImmediatePropagation();setTimeout(advanceTutorial,0);return}
+    const current=tutorialStep;setTimeout(()=>{if(tutorialActive&&tutorialStep===current){tutorialStep++;renderTutorial()}},0);return;
+  }
+  if(step.allow&&step.allow.some(selector=>e.target.closest(selector)))return;
+  e.preventDefault();e.stopImmediatePropagation();
+}
+document.addEventListener('click',handleTutorialClick,true);
+$('tutorialNext').addEventListener('click',advanceTutorial);
+$('tutorialSkip').addEventListener('click',finishTutorial);
 /* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
 let mode='title';
 function showScreen(m){mode=m;$('titleScreen').hidden=m!=='title';$('createScreen').hidden=m!=='create';$('intro').hidden=m!=='intro';$('ui').hidden=m!=='game';syncMusic();minFontAll()}
@@ -1276,7 +1351,16 @@ let introStart=0;
 $('inMonth').innerHTML='<i></i>'.repeat(30);
 function startIntro(){
   au('stop');au('sting','dawn');
-  showScreen('intro');$('inName').textContent=pendingChar.name;$('inDay').classList.remove('show','ready');$('inGo').disabled=true;$('inSkip').hidden=false;
+  introKind=tutorialSeen()?'day1':'tutorial';
+  showScreen('intro');
+  $('inDayNumber').textContent=introKind==='tutorial'?'0':'1';
+  $('inDay').querySelector('.in-dow').textContent=introKind==='tutorial'?'Ngày làm quen':'Thứ Hai';
+  $('inDay').querySelector('.in-chap').textContent=introKind==='tutorial'?'Ngày 0 · Làm quen':'Chương 1: Tân sinh viên';
+  $('inLead').textContent=introKind==='tutorial'?`Cùng ${pendingChar.name} làm quen với các thao tác trước khi bắt đầu tháng đầu tiên.`:`Ngày đầu tiên của ${pendingChar.name} ở Sài Gòn. Sáng nay có buổi học đầu tiên.`;
+  $('inMonth').setAttribute('aria-label',introKind==='tutorial'?'Ngày hướng dẫn, chưa bắt đầu lịch 30 ngày':'Ngày 1 trên 30 ngày');
+  $('inMonth').classList.toggle('tutorial-month',introKind==='tutorial');
+  $('inGo').textContent=introKind==='tutorial'?'Bắt đầu hướng dẫn':'Bắt đầu ngày 1';
+  $('inDay').classList.remove('show','ready');$('inGo').disabled=true;$('inSkip').hidden=false;
   introStart=performance.now()-(reduceMotion()?IN_T.ready*1000:0);
 }
 function introUI(ts){
@@ -1286,17 +1370,19 @@ function introUI(ts){
   if(ready&&!d.classList.contains('ready')){d.classList.add('ready');$('inGo').disabled=false;$('inGo').focus({preventScroll:true})}
 }
 $('inSkip').addEventListener('click',()=>{introStart=performance.now()-IN_T.ready*1000});
-$('inGo').addEventListener('click',()=>{if(pendingChar)newGame(pendingChar)});
+$('inGo').addEventListener('click',()=>{if(!pendingChar)return;if(introKind==='tutorial')startTutorial();else newGame(pendingChar)});
 
 function cmd(k){
   if(k==='new'){audioStart();openCreate()}
   else if(k==='cont'){audioStart();const st=loadSaved();if(!st)return;s=st;startGame();processQueue()}
+  else if(k==='guide'){audioStart();const st=loadSaved();pendingChar={name:st&&st.name||'Minh',gender:st&&st.gender||'nam',diff:st&&DIFFS[st.diff]?st.diff:'thuong'};startTutorial(true)}
   else if(k==='rules'){win=null;openWin('rules')}
   else if(k==='home'){save();showTitle()}
 }
 $('titleBtns').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b)cmd(b.dataset.m)});
 
 document.addEventListener('keydown',e=>{
+  if(tutorialActive)return;
   if(e.ctrlKey||e.metaKey||e.altKey)return;
   if(win==='event'&&curEvent&&curEvent.kind==='mg'){mgKey(e);return}
   if(e.key==='Escape'&&mode==='create'&&!win){showTitle();return}
