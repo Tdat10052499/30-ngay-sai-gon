@@ -1,4 +1,4 @@
-/* 30 Ngày Sài Gòn · v0.4.0
+/* 30 Ngày Sài Gòn · v0.5.0
  * Toàn bộ logic game: trạng thái, cốt truyện, nhiệm vụ, sự kiện, giao diện và cảnh pixel. */
 /* ============ Helpers ============ */
 const $=id=>document.getElementById(id);

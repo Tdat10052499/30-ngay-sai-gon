@@ -159,7 +159,11 @@ Dải cảnh báo đói và kiệt sức (mục 3.2) lấy câu trong design/14 
 
 ## Giai đoạn 7: tài liệu và phát hành
 
-- [ ] **7.1** `docs/DESIGN_SPEC.md` (bố cục điện thoại, hộp hội thoại), README, CHANGELOG (v0.5.0), số phiên bản trong `?v=`.
+- [x] **7.1** `docs/DESIGN_SPEC.md` (bố cục điện thoại, hộp hội thoại), README, CHANGELOG (v0.5.0), số phiên bản trong `?v=`.
 - [ ] **7.2** Hỏi rồi mở PR vào `main`.
 - [ ] **7.3** Sau khi merge: kiểm trang Pages ở 390×844 và 844×390, báo link.
-- [ ] **7.4** Danh sách thử trên máy thật: Safari iPhone, Chrome Android, Samsung Internet, mở trong Zalo và Messenger, cả hai hướng máy.
+- [ ] **7.4** Thử trên máy thật (chưa thực hiện; cần thiết bị thật). Checklist:
+  - [ ] Safari trên iPhone: dọc/ngang, vùng an toàn, bàn phím ảo khi tạo nhân vật, xoay khi đang mở hộp thoại/cửa sổ/minigame.
+  - [ ] Chrome Android và Samsung Internet: dọc/ngang, vùng an toàn, chạm cảnh, thẻ ăn, thao tác ngăn kéo và minigame.
+  - [ ] WebView trong Zalo và Messenger: dọc/ngang, đổi hướng không làm đổi trạng thái, nút nằm ngoài tai thỏ và thanh hệ thống.
+  - [ ] Ghi nhận thiết bị, trình duyệt/phiên bản, kích thước, kết quả và lỗi console nếu có.
