@@ -160,7 +160,8 @@ const MESS_LV=['Gọn gàng','Hơi bừa','Bừa bộn'];
 const lvOf=m=>m>=67?2:m>=34?1:0,messLv=()=>lvOf(s.mess);
 const addMess=n=>{s.mess=clamp(s.mess+n)};
 function addLog(text,tone=''){text=nm(text);s.log.unshift({d:s.day,sl:s.slot,text,tone});if(s.log.length>50)s.log.length=50;showToast(text,tone)}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+/* Ngày 0 dùng một ván tạm, không ghi đè bản lưu thật (kể cả khi đổi chế độ ăn trong Lịch) */
+function save(){if(tutorialActive)return;try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 function loadSaved(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
 
 /* ============ Âm thanh (src/audio.js, DESIGN_SPEC mục 6) ============
@@ -1231,48 +1232,103 @@ function renderTitle(){
     `<button class="btn" type="button" data-m="rules">Luật chơi</button>`+
     (!st&&hasOldSave()?'<p class="title-old" role="status">“Bản lưu cũ không dùng được với phiên bản mới. Hãy bắt đầu một tháng mới.”</p>':'');
 }
+/* Ngày 0: target là nút phải chạm để sang bước sau, spot là vùng được khoanh (mặc định là target), allow là vùng được bấm thử,
+ * closeWindow đóng cửa sổ và menu khi bấm Tiếp tục, enter dựng cảnh riêng cho bước, after chạy khi rời bước */
 const TUTORIAL_STEPS=[
-  {title:'Chào mừng đến Ngày 0',text:'Đây là buổi làm quen an toàn. Hãy thử các nút và cửa sổ; hướng dẫn không trừ tiền, không đổi chỉ số và không tính vào 30 ngày.',next:'Bắt đầu'},
-  {title:'Theo dõi cuộc sống',text:'Tiền, lương chờ, bốn chỉ số và nhiệm vụ đang theo dõi luôn nằm trên màn hình. Chỉ số thấp sẽ chuyển đỏ; hãy cân bằng sức khỏe, tinh thần, năng lượng và độ no.'},
-  {title:'Thử một thẻ hành động',text:'Các thẻ gợi ý gom việc thường làm. Chạm thẻ được viền để xem cách chọn; trong hướng dẫn này hành động chỉ được minh họa, không thực thi.',target:'#cmdbar .cd:not(.custom)',intercept:true},
-  {title:'Mở Nhiệm vụ',text:'Nhiệm vụ dài hạn cho biết mục tiêu và hạn chót. Chạm chip nhiệm vụ để xem danh sách thật.',target:'#tracker'},
-  {title:'Đọc mục tiêu',text:'Đây là danh sách nhiệm vụ. Khi chơi thật, mở lại bất cứ lúc nào để xem tiến độ; bấm Tiếp tục để đóng.',closeWindow:true},
-  {title:'Dùng Bản đồ',text:'Bản đồ cho biết các địa điểm và chi phí di chuyển. Mở bản đồ ở thanh công cụ.',target:'#toolbar [data-tool="map"]'},
-  {title:'Chọn nơi muốn đến',text:'Thử chạm một địa điểm để xem thông tin và nút “Đi đến”. Trong ngày 0, đừng đi thật; bấm Tiếp tục khi đã xem xong.',allow:['#win [data-msel]'],closeWindow:true},
-  {title:'Xem Túi đồ',text:'Vật phẩm và thức ăn đang mang theo ở đây. Một số món có hạn dùng hoặc chỉ dùng được tại địa điểm phù hợp.',target:'#toolbar [data-tool="bag"]'},
-  {title:'Kiểm tra vật phẩm',text:'Chọn một ô để đọc thông tin món đồ. Dùng món trong ván thật sẽ thay đổi trạng thái; ngày 0 chỉ xem thử.',closeWindow:true},
-  {title:'Mở Lịch',text:'Lịch cho biết các khoản đến hạn và cho phép chỉnh chế độ ăn. Chạm nút Lịch để xem.',target:'#toolbar [data-tool="cal"]'},
-  {title:'Lịch và chế độ ăn',text:'Xem ngày đóng tiền nhà, hóa đơn và các sự kiện. Chế độ ăn quyết định cách nhân vật tự ăn khi đói.',closeWindow:true},
-  {title:'Tự chọn việc',text:'Khi muốn tự quyết, chạm thẻ “Tự chọn việc khác” để xem các nhóm hành động.',target:'#cmdbar .cd.custom'},
-  {title:'Nhóm Ăn uống',text:'Chọn nhóm Ăn uống để xem các món có thể ăn tại nơi đang đứng. Trên điện thoại, thẻ món ăn cũng xuất hiện nhanh khi phù hợp.',target:'#cmdbar [data-cat="eat"]'},
-  {title:'Xem các món ăn',text:'Danh sách cho biết món ăn, giá và tác động. Trong ván thật, chọn món sẽ dùng tiền hoặc vật phẩm; bấm Tiếp tục để đóng danh sách.',closeWindow:true},
-  {title:'Menu công cụ',text:'Menu có Nhật ký, Luật chơi và cài đặt âm thanh. Mở Menu ở thanh công cụ.',target:'#toolbar [data-tool="sys"]'},
-  {title:'Xem Luật chơi',text:'Chạm Luật chơi trong menu để xem hướng dẫn tra cứu ngay trong ván.',target:'#popMenu [data-sys="rules"]'},
-  {title:'Đọc Luật chơi',text:'Cửa sổ này giải thích các quy tắc. Khi gặp sự kiện, đọc kỹ lựa chọn và ảnh hưởng trước khi quyết định.',closeWindow:true},
-  {title:'Tin nhắn và lựa chọn',text:'Hội thoại có thể là lời kể, tin nhắn, cuộc gọi hoặc cảnh báo. Đọc nội dung rồi chọn; lựa chọn có thể ảnh hưởng đến tiền, chỉ số và nhiệm vụ.'},
-  {title:'Ca làm và minigame',text:'Đi làm có thể mở minigame thối tiền; nấu ăn có thể mở minigame canh lửa. Đọc hướng dẫn trên màn và dùng nút Bỏ qua nếu không muốn chơi.'},
-  {title:'Sẵn sàng cho ngày 1',text:'Một ngày có bốn buổi. Thẻ hành động giúp làm nhanh; Bản đồ và Tự chọn cho bạn linh hoạt. Giữ tiền cho hóa đơn và đừng để các chỉ số xuống quá thấp.',next:'Vào ngày 1'}
+  {title:'Chào mừng đến Ngày 0',text:'Ngày 0 là buổi tập: bạn bấm thử các nút thật nhưng không mất tiền, không đổi chỉ số và không tính vào 30 ngày. Vùng có viền vàng nhấp nháy là chỗ cần xem hoặc cần chạm.',act:'Muốn vào thẳng ngày 1, bấm “Bỏ qua” ở góc trên.',next:'Bắt đầu'},
+  {title:'Ví tiền',text:'Số lớn là tiền đang có, dòng nhỏ bên dưới là lương còn chờ nhận. Mọi khoản chi, kể cả tiền xe, đều trừ vào đây. Nhớ giữ đủ tiền nhà cho ngày 5.',spot:'.wallet'},
+  {title:'Bốn chỉ số',text:'Độ no, Năng lượng, Tinh thần và Sức khỏe, mỗi chỉ số tối đa 100. Chỉ số dưới 25 chuyển đỏ và bắt đầu gây hại, nên đừng để chỉ số nào tụt quá thấp.',spot:'#mstats'},
+  {title:'Thẻ hành động',text:'Mỗi buổi có vài thẻ gợi ý. Mỗi thẻ ghi tên việc, nơi làm, tiền thu chi và các chỉ số sẽ tăng giảm.',act:'Chạm thẻ đang có viền vàng để thử.',target:'#cmdbar .cd:not(.custom)',intercept:true},
+  {title:'Một chạm là xong việc',text:'Khi chơi thật, chạm thẻ là nhân vật tự đi tới nơi, làm việc đó rồi chuyển sang buổi sau. Ở Ngày 0 thẻ chỉ để xem nên không chạy thật.',spot:'#cmdbar .cd:not(.custom)'},
+  {title:'Nhiệm vụ đang theo dõi',text:'Ô này ghi nhiệm vụ cần làm, hạn chót và số việc hôm nay đã xong.',act:'Chạm ô nhiệm vụ đang có viền vàng để mở danh sách.',target:'#tracker'},
+  {title:'Danh sách nhiệm vụ',text:'Nhiệm vụ xếp theo chương. Chạm một nhiệm vụ để xem cách làm, hạn và phần thưởng.',spot:'#win .t-ql',allow:['#win [data-q]'],closeWindow:true,next:'Đóng và tiếp tục'},
+  {title:'Bản đồ',text:'Muốn đến nơi khác thì mở Bản đồ.',act:'Chạm nút Bản đồ đang có viền vàng.',target:'#toolbar [data-tool="map"]'},
+  {title:'Chọn nơi muốn đến',text:'Danh sách ghi nơi nào đang mở và tiền xe để tới. Chạm một địa điểm để xem làm được gì ở đó. Ở Ngày 0 nút “Đi đến” không hoạt động.',spot:'#win .m-list',allow:['#win [data-msel]','#mapCv'],closeWindow:true,next:'Đóng và tiếp tục'},
+  {title:'Túi đồ',text:'Túi đồ chứa thức ăn, đồ uống và thuốc đang mang theo.',act:'Chạm nút Túi đồ đang có viền vàng.',target:'#toolbar [data-tool="bag"]'},
+  {title:'Xem từng món',text:'Chạm một ô để đọc công dụng, hạn dùng và nơi dùng được. Đồ hết hạn bị bỏ vào cuối ngày.',spot:'#win .t-grid',allow:['#win [data-slot]'],closeWindow:true,next:'Đóng và tiếp tục'},
+  {title:'Lịch',text:'Lịch cho biết ngày phải đóng tiền và các sự kiện sắp tới.',act:'Chạm nút Lịch đang có viền vàng.',target:'#toolbar [data-tool="cal"]'},
+  {title:'Ngày cần nhớ',text:'Ô có nhãn màu là ngày có việc: tiền nhà ngày 5, điện nước ngày 10, giáo trình ngày 20. Chạm một ngày để xem chi tiết.',spot:'#win .t-cal',allow:['#win [data-day]']},
+  {title:'Chế độ ăn',text:'Chế độ ăn quyết định nhân vật tự ăn thế nào khi đói và tốn khoảng bao nhiêu mỗi ngày. Khi chơi thật, đổi ở ô này.',spot:'#win .diet',closeWindow:true,next:'Đóng và tiếp tục'},
+  {title:'Tự chọn việc',text:'Khi không muốn theo thẻ gợi ý, thẻ “Tự chọn” mở mọi việc làm được ở nơi đang đứng, chia theo nhóm.',act:'Chạm thẻ Tự chọn đang có viền vàng.',target:'#cmdbar .cd.custom'},
+  {title:'Nhóm Ăn uống',text:'Mỗi nút là một nhóm việc. Thử mở nhóm Ăn uống.',act:'Chạm nút Ăn uống đang có viền vàng.',target:'#cmdbar [data-cat="eat"]'},
+  {title:'Danh sách món',text:'Mỗi dòng ghi giá, chỉ số tăng giảm và lý do nếu chưa làm được. Ở Ngày 0 chạm vào không có tác dụng.',spot:'#popMenu .rows',closeWindow:true,after:()=>{cardMode=true},next:'Đóng và tiếp tục'},
+  {title:'Menu',text:'Menu chứa Nhật ký, Luật chơi, Âm thanh và nút về trang bìa. Tiến trình luôn tự lưu.',act:'Chạm nút Menu đang có viền vàng.',target:'#toolbar [data-tool="sys"]'},
+  {title:'Luật chơi',text:'Luật chơi có thể mở lại bất cứ lúc nào từ Menu.',act:'Chạm dòng Luật chơi đang có viền vàng.',target:'#popMenu [data-sys="rules"]'},
+  {title:'Đọc luật khi cần',text:'Toàn bộ luật, công thức tính điểm và phím tắt nằm trong cửa sổ này. Có thể cuộn để đọc tiếp.',closeWindow:true,next:'Đóng và tiếp tục'},
+  {title:'Sự kiện và lựa chọn',text:'Sự kiện hiện ra như thế này. Mỗi lựa chọn ghi rõ tiền và chỉ số bị ảnh hưởng; đọc kỹ rồi mới chọn. Đây chỉ là ví dụ nên không chọn được.',spot:'#win [data-chs],#win .e-chs',closeWindow:true,next:'Đóng và tiếp tục',
+    enter:()=>{curEvent=ev('Khoa hỏi mượn tiền','“Cho tao mượn 300k, cuối tháng trả nha. Tháng này nhà tao gửi tiền trễ.”',[{l:'Cho mượn',cost:300000,eff:{tt:3},x:'Hẹn trả ngày 28'},{l:'Từ chối',eff:{tt:-6}}],'khoa');openWin('event');finishType()}},
+  {title:'Ca làm và minigame',text:'Làm ca ở cửa hàng có minigame thối tiền, nấu cơm có minigame canh lửa. Hướng dẫn hiện ngay trên màn; không muốn chơi thì bấm Bỏ qua.'},
+  {title:()=>tutorialReturn==='title'?'Xong phần hướng dẫn':'Sẵn sàng cho ngày 1',text:'Một ngày có bốn buổi: sáng, trưa, chiều, tối. Thẻ gợi ý giúp làm nhanh, Bản đồ và Tự chọn cho bạn tự quyết. Giữ tiền cho hóa đơn và đừng để chỉ số nào xuống dưới 25.',next:()=>tutorialReturn==='title'?'Về trang bìa':'Vào ngày 1'}
 ];
-function renderTutorial(){
-  const el=$('tutorial'),step=TUTORIAL_STEPS[tutorialStep];
-  document.querySelectorAll('.tutorial-spot').forEach(x=>x.classList.remove('tutorial-spot'));
-  if(!step){finishTutorial();return}
-  $('tutorialProgress').textContent=`NGÀY 0 · ${tutorialStep+1}/${TUTORIAL_STEPS.length}`;
-  $('tutorialTitle').textContent=step.title;
-  $('tutorialText').textContent=step.text;
-  $('tutorialAction').textContent=step.target?'Chạm vào nút được viền để tiếp tục.':'';
-  $('tutorialNext').textContent=step.next||'Tiếp tục';
-  $('tutorialNext').hidden=!!step.target;
-  el.hidden=false;
-  if(step.target){
-    const target=document.querySelector(step.target);
-    if(target){target.classList.add('tutorial-spot');target.scrollIntoView({block:'nearest',inline:'nearest'})}
+const tutStep=()=>TUTORIAL_STEPS[tutorialStep];
+const tutText=v=>typeof v==='function'?v():v;
+/* phần tử đầu tiên khớp bộ chọn và đang hiện trên màn hình */
+function tutEl(sel){const el=sel&&document.querySelector(sel);if(!el)return null;const r=el.getBoundingClientRect();return r.width>0&&r.height>0?el:null}
+/* khung nhìn thấy được của phần tử: cắt theo các khung cuộn bao ngoài và khung cảnh */
+function tutRect(el){
+  const r=el.getBoundingClientRect();let l=r.left,t=r.top,rr=r.right,b=r.bottom;
+  for(let a=el.parentElement;a;a=a.parentElement){
+    const c=getComputedStyle(a);
+    if(a.id==='stage'||c.display!=='contents'&&(c.overflowX!=='visible'||c.overflowY!=='visible')){const p=a.getBoundingClientRect();l=Math.max(l,p.left);t=Math.max(t,p.top);rr=Math.min(rr,p.right);b=Math.min(b,p.bottom)}
+    if(a.id==='stage')break}
+  return rr>l&&b>t?{l,t,r:rr,b}:null;
+}
+/* cuộn khung cuộn gần nhất cho thấy phần tử. Không dùng scrollIntoView: nó cuộn cả #stage (overflow:hidden) làm lệch toàn bộ giao diện */
+function tutScroll(el){
+  for(let a=el.parentElement;a&&a.id!=='stage';a=a.parentElement){
+    const c=getComputedStyle(a);if(!/(auto|scroll)/.test(c.overflowY)||a.scrollHeight<=a.clientHeight+1)continue;
+    const p=a.getBoundingClientRect(),r=el.getBoundingClientRect();
+    if(r.top<p.top)a.scrollTop-=p.top-r.top;else if(r.bottom>p.bottom)a.scrollTop+=Math.min(r.bottom-p.bottom,r.top-p.top);
+    return}
+}
+/* viền vàng vẽ trên lớp riêng (không bị clip-path của khung cắt mất, không mất khi thanh thẻ dựng lại) và làm tối phần còn lại.
+ * Thẻ hướng dẫn thử trên/dưới × giữa/trái/phải, lấy chỗ không che vùng khoanh; không có chỗ thì thu hẹp thẻ vào khoảng trống
+ * bên trái hoặc phải vùng khoanh, nếu vẫn không đủ thì lấy chỗ che ít nhất. Bước không khoanh mà có cửa sổ mở thì thẻ nằm dưới.
+ * Gọi mỗi khung hình trong loop() */
+let tutKey='';
+function placeTutorial(){
+  const step=tutStep();if(!step||$('tutorial').hidden)return;
+  const stage=$('stage'),st=stage.getBoundingClientRect(),cs=getComputedStyle(stage),inset=k=>parseFloat(cs.getPropertyValue('--'+k))||0;
+  const el=tutEl(step.spot||step.target),rc=el&&tutRect(el),P=4;
+  const r=rc&&{l:rc.l-st.left-P,t:rc.t-st.top-P,r:rc.r-st.left+P,b:rc.b-st.top+P};
+  const key=[tutorialStep,st.width,st.height,inset('st'),inset('sb'),inset('sl'),inset('sr'),win?1:0].concat(r?[r.l,r.t,r.r,r.b]:[]).map(Math.round).join();
+  if(key===tutKey)return;tutKey=key;
+  const ring=$('tutorialSpot');ring.hidden=!r;
+  if(r)Object.assign(ring.style,{left:r.l+'px',top:r.t+'px',width:r.r-r.l+'px',height:r.b-r.t+'px'});
+  const card=$('tutorial').querySelector('.tutorial-card');card.style.width='';
+  let cw=card.offsetWidth,ch=card.offsetHeight;
+  const M=12,G=8,X0=inset('sl')+M,X1=st.width-inset('sr')-M,T=inset('st')+M,B=st.height-inset('sb')-M-ch,L=X0,R=X1-cw;
+  const hit=(x,y)=>r?Math.max(0,Math.min(x+cw,r.r)-Math.max(x,r.l))*Math.max(0,Math.min(y+ch,r.b)-Math.max(y,r.t)):0;
+  let best=null;
+  for(const [x,y] of !r&&win?[[(L+R)/2,B]]:[[(L+R)/2,T],[(L+R)/2,B],[L,T],[R,T],[L,B],[R,B]]){
+    const o=hit(x,y);if(!best||o<best.o)best={x,y,o};if(!o)break}
+  if(best.o){
+    const left=r.l-G-X0,right=X1-r.r-G,sp=Math.max(left,right);
+    if(sp>=240){card.style.width=Math.min(cw,sp)+'px';cw=card.offsetWidth;ch=card.offsetHeight;
+      best={x:left>=right?X0:X1-cw,y:Math.max(T,Math.min(r.t,st.height-inset('sb')-M-ch))}}
   }
+  card.style.left=Math.max(X0,best.x)+'px';card.style.top=Math.max(T,best.y)+'px';
+}
+function renderTutorial(){
+  const step=tutStep();
+  if(!step){finishTutorial();return}
+  if(step.enter)step.enter();
+  const need=!!step.target&&!!tutEl(step.target),el=tutEl(step.spot||step.target);
+  $('tutorialProgress').textContent=`NGÀY 0 · BƯỚC ${tutorialStep+1}/${TUTORIAL_STEPS.length}`;
+  $('tutorialTitle').textContent=tutText(step.title);
+  $('tutorialText').textContent=tutText(step.text);
+  /* nút cần chạm chưa hiện (ví dụ nơi đang đứng không có nhóm Ăn uống) thì cho bấm Tiếp tục, không để kẹt */
+  $('tutorialAction').textContent=need?step.act||'Chạm vùng có viền vàng để tiếp tục.':step.target?'Phần này chưa hiện ở đây. Bấm Tiếp tục để xem bước sau.':step.act||'';
+  $('tutorialNext').textContent=tutText(step.next)||'Tiếp tục';
+  $('tutorialNext').hidden=need;
+  $('tutorial').hidden=false;
+  if(el)tutScroll(el);
+  tutKey='';placeTutorial();
+  if(!need)$('tutorialNext').focus({preventScroll:true});
 }
 function finishTutorial(){
-  markTutorialSeen();tutorialActive=false;$('tutorial').hidden=true;
-  document.querySelectorAll('.tutorial-spot').forEach(x=>x.classList.remove('tutorial-spot'));
-  hideWin();closeMenu();
+  markTutorialSeen();tutorialActive=false;$('tutorial').hidden=true;$('tutorialSpot').hidden=true;
+  hideWin();closeMenu();curEvent=null;cardMode=true;cardKey=-1;
   if(tutorialReturn==='title'){showTitle();return}
   startIntro();
 }
@@ -1281,24 +1337,36 @@ function startTutorial(replay=false){
   s=newState();s.name=pendingChar.name;s.gender=pendingChar.gender;s.diff=DIFFS[pendingChar.diff]?pendingChar.diff:'thuong';s.started=true;
   QUESTS.filter(q=>q.ch===1).forEach(q=>{s.q[q.id]='active'});
   genDaily();txAdd('Tiền làm quen',START_MONEY);
-  queue=[];curEvent=null;hideWin();closeMenu();showScreen('game');render();renderTutorial();
+  queue=[];curEvent=null;cardMode=true;cardKey=-1;hideWin();closeMenu();showScreen('game');render();renderTutorial();
 }
 function advanceTutorial(){
-  const step=TUTORIAL_STEPS[tutorialStep];
-  if(step.closeWindow){hideWin();closeMenu();renderCmd()}
+  const step=tutStep();
+  if(step&&step.closeWindow){hideWin();curEvent=null;closeMenu()}
+  if(step&&step.after)step.after();
+  if(step&&(step.closeWindow||step.after))renderCmd();
   tutorialStep++;renderTutorial();
 }
+/* chỉ nút đang khoanh (đúng phần tử đó, không phải nút cùng loại) và vùng allow nhận được bấm; mọi chỗ khác bị chặn.
+ * Chặn cả pointerdown vì #stage đóng menu khi chạm ra ngoài, làm mất nút của bước đang chờ */
+const tutAllowed=(step,t)=>step.allow&&step.allow.some(q=>t.closest(q));
 function handleTutorialClick(e){
   if(!tutorialActive||e.target.closest('#tutorial'))return;
-  const step=TUTORIAL_STEPS[tutorialStep],matched=step.target&&e.target.closest(step.target);
-  if(matched){
-    if(step.intercept){e.preventDefault();e.stopImmediatePropagation();setTimeout(advanceTutorial,0);return}
-    const current=tutorialStep;setTimeout(()=>{if(tutorialActive&&tutorialStep===current){tutorialStep++;renderTutorial()}},0);return;
-  }
-  if(step.allow&&step.allow.some(selector=>e.target.closest(selector)))return;
+  const step=tutStep(),hit=step.target&&e.target.closest(step.target);
+  if(hit&&hit===tutEl(step.target)){
+    if(step.intercept){e.preventDefault();e.stopImmediatePropagation()}
+    const at=tutorialStep;setTimeout(()=>{if(tutorialActive&&tutorialStep===at)advanceTutorial()},0);return}
+  if(tutAllowed(step,e.target))return;
   e.preventDefault();e.stopImmediatePropagation();
 }
+function handleTutorialDown(e){
+  if(!tutorialActive)return;
+  if(e.target.closest('#tutorial')){e.stopImmediatePropagation();return}
+  const step=tutStep();
+  if(step.target&&e.target.closest(step.target)||tutAllowed(step,e.target))return;
+  e.stopImmediatePropagation();
+}
 document.addEventListener('click',handleTutorialClick,true);
+document.addEventListener('pointerdown',handleTutorialDown,true);
 $('tutorialNext').addEventListener('click',advanceTutorial);
 $('tutorialSkip').addEventListener('click',finishTutorial);
 /* Màn hình đang hiện: title (trang bìa), create (tạo nhân vật), intro (chuyển cảnh ngày 1), game */
@@ -1474,7 +1542,7 @@ function drawHero(c,cx,feet,t){
   if(bub)c.drawImage(Chars.BUB[bub],x+16,y-18-(Math.floor(t/400)%2));
 }
 let lastDraw=0;
-function loop(t){if(t-lastDraw>66){lastDraw=t;try{drawScene(t);if(win==='map')drawMap(t)}catch(e){console.error(e)}}requestAnimationFrame(loop)}
+function loop(t){if(t-lastDraw>66){lastDraw=t;try{drawScene(t);if(win==='map')drawMap(t);if(tutorialActive)placeTutorial()}catch(e){console.error(e)}}requestAnimationFrame(loop)}
 
 /* ============ Boot ============ */
 function boot(data){

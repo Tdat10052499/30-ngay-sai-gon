@@ -195,6 +195,8 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 .title-box h1 .num{font-size:1.35em;color:var(--lantern);text-shadow:.05em .05em 0 #8a5a12;display:inline-block;margin-right:.08em}
 .tagline{margin:0;color:var(--muted);max-width:32em}
 .title-btns{display:flex;flex-direction:column;align-items:flex-start;gap:.5em;margin-top:.5em}
+.credit{margin:.4em 0 0;font-size:.78em;color:var(--muted);letter-spacing:.02em}
+.credit b{color:var(--fg);font-weight:700}
 .btn{font-weight:700;border-radius:.6em;border:1px solid var(--line);background:var(--panel2);padding:.6em 1.1em;cursor:pointer;display:inline-flex;align-items:center;gap:.5em}
 .btn:hover:not(:disabled){border-color:var(--lantern)}
 .btn.primary{background:var(--lantern);color:var(--lantern-ink);border-color:transparent;box-shadow:0 .22em 0 #a87a1c}
@@ -266,17 +268,24 @@ img.px{image-rendering:pixelated;image-rendering:crisp-edges}
 /* ---------- Ngày 0: hướng dẫn thao tác ---------- */
 .tutorial{position:absolute;inset:0;z-index:30;pointer-events:none}
 .tutorial[hidden]{display:none}
-.tutorial-card{position:absolute;top:calc(var(--st,0px) + 12px);left:calc(50% + (var(--sl,0px) - var(--sr,0px))/2);transform:translateX(-50%);width:min(440px,calc(100% - var(--sl,0px) - var(--sr,0px) - 24px));padding:14px 16px;background:#171b38;border:2px solid var(--lantern);box-shadow:0 8px 28px rgba(0,0,0,.55);color:var(--fg);font-size:14px;line-height:1.4;pointer-events:none}
+/* vị trí thẻ do placeTutorial() đặt để không che vùng đang khoanh */
+.tutorial-card{position:absolute;top:calc(var(--st,0px) + 12px);left:calc(var(--sl,0px) + 12px);width:min(440px,calc(100% - var(--sl,0px) - var(--sr,0px) - 24px));padding:14px 16px;background:#171b38;border:2px solid var(--lantern);box-shadow:0 8px 28px rgba(0,0,0,.55);color:var(--fg);font-size:14px;line-height:1.4;pointer-events:none}
 .tutorial-card button{pointer-events:auto}
 .tutorial-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--lantern);font-size:12px;font-weight:800}
 .tutorial-skip{min-width:48px;min-height:44px;padding:5px 10px;border:1px solid var(--glass-line);background:#222747;color:var(--fg);font:inherit;font-weight:700;cursor:pointer}
 .tutorial-card h2{margin:8px 0 4px;font-size:19px;line-height:1.2}
 .tutorial-card p{margin:0;color:#d5d8eb}
 .tutorial-card .tutorial-action{margin-top:8px;color:var(--lantern);font-weight:700}
+.tutorial-card .tutorial-action:empty{display:none}
 .tutorial-next{width:100%;min-height:48px;margin-top:12px;justify-content:center}
-.tutorial-spot{outline:3px solid var(--lantern)!important;outline-offset:3px!important;box-shadow:0 0 0 5px rgba(255,201,77,.25)!important}
+.tutorial-next[hidden]{display:none}
+/* vùng đang khoanh: viền vàng nhấp nháy, phần còn lại tối đi. Lớp riêng nên không bị clip-path của khung cắt mất */
+.tutorial-ring{position:absolute;border:3px solid var(--lantern);border-radius:6px;box-shadow:0 0 0 9999px rgba(6,7,16,.55),0 0 14px 3px rgba(255,201,77,.6);pointer-events:none;animation:tutPulse 1.3s ease-in-out infinite}
+.tutorial-ring[hidden]{display:none}
+@keyframes tutPulse{50%{border-color:#fff1bf;box-shadow:0 0 0 9999px rgba(6,7,16,.55),0 0 24px 7px rgba(255,201,77,.9)}}
 @media (max-width:420px){.tutorial-card{padding:10px 12px;font-size:13px}.tutorial-card h2{font-size:17px}}
-@media (prefers-reduced-motion:reduce){.tutorial-card{scroll-behavior:auto}}
+@media (max-height:500px){.tutorial-card{padding:8px 12px;font-size:13px;width:min(400px,calc(100% - var(--sl,0px) - var(--sr,0px) - 24px))}.tutorial-card h2{margin:4px 0 2px;font-size:16px}.tutorial-card .tutorial-action{margin-top:4px}.tutorial-next{min-height:44px;margin-top:8px}}
+@media (prefers-reduced-motion:reduce){.tutorial-ring{animation:none}}
 
 /* ---------- Windows ---------- */
 .layer{position:absolute;inset:0;z-index:20;font-size:clamp(11px,1.3cqw,17px);display:grid;place-items:center;padding:3cqh 3cqw;background:rgba(6,7,16,.6)}

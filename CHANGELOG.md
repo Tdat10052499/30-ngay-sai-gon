@@ -7,6 +7,16 @@
 ### Thêm mới
 
 - Hướng dẫn tương tác Ngày 0 cho người chơi mới; cho phép bỏ qua, xem lại từ trang bìa và hoàn tất hướng dẫn mà không làm thay đổi bản lưu hoặc tiến độ tháng chơi thật.
+- Trang bìa ghi tên nhóm phát triển: “Xây dựng bởi Team Freshmen Finagement”.
+
+### Sửa lỗi
+
+- Ngày 0: viền khoanh vẽ trên lớp riêng, nhấp nháy và làm tối phần còn lại; trước đây viền bị khung có góc pixel cắt mất, mất khi thanh thẻ dựng lại và không khoanh gì ở các bước chỉ đọc.
+- Ngày 0: thẻ hướng dẫn tự đổi chỗ (trên, dưới, trái, phải, hoặc thu hẹp) để không che vùng đang khoanh; không còn làm trượt cả khung game khi cuộn tới nút.
+- Ngày 0: lời hướng dẫn viết lại rõ từng bước, mỗi bước nói đúng nút cần chạm; thêm bước Ví tiền, Bốn chỉ số, Chế độ ăn và một sự kiện mẫu có lựa chọn.
+- Ngày 0: chọn ô trong Túi đồ, ngày trong Lịch, nhiệm vụ và bấm trên bản đồ được như lời hướng dẫn; chạm ra ngoài không còn đóng menu làm kẹt bước; nút cần chạm không có thì hiện Tiếp tục.
+- Ngày 0: chỉ thẻ đang khoanh mới tính là chạm đúng; xong hướng dẫn, ngày 1 hiện lại thẻ gợi ý thay vì nhóm Tự chọn; xem lại từ trang bìa thì bước cuối ghi “Về trang bìa”.
+- Ngày 0 không ghi đè bản lưu thật, kể cả khi đổi chế độ ăn trong Lịch.
 
 ## [0.5.0] - 2026-10-23
 
