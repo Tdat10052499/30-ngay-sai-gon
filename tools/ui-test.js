@@ -281,30 +281,44 @@ async function tutorialChecks(b, w, h) {
     const cardSafe = await p.evaluate(sa => {
       const stage = document.getElementById('stage');
       for (const [key, value] of Object.entries({ st: sa.st, sb: sa.sb, sl: sa.sl, sr: sa.sr })) stage.style.setProperty('--' + key, value + 'px');
+      placeTutorial();
       const card = document.querySelector('.tutorial-card').getBoundingClientRect();
       const controls = [...document.querySelectorAll('#tutorial button')].map(b => b.getBoundingClientRect());
       return card.top >= sa.st - .5 && card.left >= sa.sl - .5 && card.right <= innerWidth - sa.sr + .5
         && controls.every(r => r.top >= sa.st - .5 && r.bottom <= innerHeight - sa.sb + .5
           && r.left >= sa.sl - .5 && r.right <= innerWidth - sa.sr + .5);
     }, safe);
-    await p.click('#tutorialNext');
-    await p.click('#tutorialNext');
-    await p.locator('#cmdbar .cd:not(.custom)').first().click();
-    await p.waitForFunction(() => tutorialStep === 3);
-    await p.locator('#tracker').click();
-    await p.waitForFunction(() => win === 'tasks' && tutorialStep === 4);
-    await p.click('#tutorialNext');
-    await p.locator('#toolbar [data-tool="map"]').click();
-    await p.waitForFunction(() => win === 'map' && tutorialStep === 6);
-    await p.locator('#win [data-msel]').first().click();
-    const mapSelectionWorks = await p.evaluate(() => !!mapSel);
+    /* một bước: chạm đúng nút đang khoanh, hoặc bấm Tiếp tục. Ghi lại bước có vùng khoanh mà viền không hiện,
+     * nút cần chạm không có, hoặc thẻ hướng dẫn che lên vùng khoanh */
+    const bad = [];
+    const advance = async () => {
+      await p.evaluate(() => placeTutorial());
+      const st = await p.evaluate(() => {
+        const step = TUTORIAL_STEPS[tutorialStep], sel = step.spot || step.target, ring = document.getElementById('tutorialSpot');
+        const c = document.querySelector('.tutorial-card').getBoundingClientRect(), r = ring.getBoundingClientRect();
+        const over = !ring.hidden && c.left < r.right - 6 && r.left + 6 < c.right && c.top < r.bottom - 6 && r.top + 6 < c.bottom;
+        return { i: tutorialStep, title: document.getElementById('tutorialTitle').textContent, next: !document.getElementById('tutorialNext').hidden,
+          target: step.target || null, noRing: !!sel && ring.hidden, over };
+      });
+      if (st.noRing) bad.push(`${st.i + 1} không khoanh`);
+      else if (st.over) bad.push(`${st.i + 1} thẻ che vùng khoanh`);
+      if (st.target && st.next) bad.push(`${st.i + 1} thiếu nút cần chạm`);
+      if (st.next) await p.click('#tutorialNext'); else await p.locator(st.target).first().click();
+      await p.waitForFunction(i => !tutorialActive || tutorialStep === i + 1, st.i);
+    };
+    while (!await p.evaluate(() => (TUTORIAL_STEPS[tutorialStep].allow || []).includes('#win [data-msel]'))) await advance();
+    const mapOpen = await p.evaluate(() => win === 'map');
+    /* chạm ra ngoài vùng cho phép không được đóng bản đồ hay làm gì khác */
+    await p.mouse.click(2, Math.round(h / 2));
+    await p.locator('#win [data-msel]').nth(1).click();
+    const mapSelectionWorks = mapOpen && await p.evaluate(() => win === 'map' && mapSel === document.querySelectorAll('#win [data-msel]')[1].dataset.msel);
     const noSaveDuringTutorial = await p.evaluate(() => !localStorage.getItem(KEY));
     await p.click('#tutorialSkip');
     await p.waitForFunction(() => mode === 'intro' && introKind === 'day1' && !tutorialActive);
     await p.waitForFunction(() => !document.getElementById('inGo').disabled);
     await p.click('#inGo');
     await p.waitForFunction(() => mode === 'game' && s.started && s.day === 1 && !tutorialActive);
-    const doneFlag = await p.evaluate(() => localStorage.getItem(TUTORIAL_KEY) === '1');
+    const doneFlag = await p.evaluate(() => localStorage.getItem(TUTORIAL_KEY) === '1' && cardMode && !!document.querySelector('#cmdbar .cd'));
     await p.evaluate(() => cmd('home'));
     const savedBeforeReplay = await p.evaluate(() => localStorage.getItem(KEY));
     await p.evaluate(() => cmd('guide'));
@@ -314,37 +328,11 @@ async function tutorialChecks(b, w, h) {
     const replayPreservesSave = await p.evaluate(saved => localStorage.getItem(KEY) === saved, savedBeforeReplay);
     await p.evaluate(() => cmd('guide'));
     await p.waitForFunction(() => tutorialActive && tutorialReturn === 'title');
-    const nextStep = async () => {
-      const before = await p.evaluate(() => tutorialStep);
-      await p.click('#tutorialNext');
-      await p.waitForFunction(i => !tutorialActive || tutorialStep === i + 1, before);
-    };
-    const tapStepTarget = async selector => {
-      const before = await p.evaluate(() => tutorialStep);
-      const target = p.locator(selector);
-      await (selector === '#cmdbar .cd:not(.custom)' ? target.first() : target).click();
-      await p.waitForFunction(i => !tutorialActive || tutorialStep === i + 1, before);
-    };
-    await nextStep(); await nextStep();
-    await tapStepTarget('#cmdbar .cd:not(.custom)');
-    await tapStepTarget('#tracker');
-    await nextStep();
-    await tapStepTarget('#toolbar [data-tool="map"]');
-    await p.locator('#win [data-msel]').first().click();
-    await nextStep();
-    await tapStepTarget('#toolbar [data-tool="bag"]');
-    await nextStep();
-    await tapStepTarget('#toolbar [data-tool="cal"]');
-    await nextStep();
-    await tapStepTarget('#cmdbar .cd.custom');
-    await tapStepTarget('#cmdbar [data-cat="eat"]');
-    await nextStep();
-    await tapStepTarget('#toolbar [data-tool="sys"]');
-    await tapStepTarget('#popMenu [data-sys="rules"]');
-    await nextStep(); await nextStep(); await nextStep(); await nextStep();
+    bad.length = 0;
+    for (let g = 0; g < 60 && await p.evaluate(() => tutorialActive); g++) await advance();
     await p.waitForFunction(() => mode === 'title' && !tutorialActive);
-    const fullTourWorks = await p.evaluate(() => localStorage.getItem(TUTORIAL_KEY) === '1');
-    detail = `ngày 0, vùng an toàn, nhiệm vụ/bản đồ tương tác, bản lưu không đổi, bỏ qua → ngày 1; xem lại và hoàn tất đủ bước → trang bìa${cardSafe && mapSelectionWorks && noSaveDuringTutorial && doneFlag && replayPreservesSave && fullTourWorks ? '' : ' · kiểm tra thất bại'}`;
+    const fullTourWorks = !bad.length && await p.evaluate(saved => localStorage.getItem(TUTORIAL_KEY) === '1' && localStorage.getItem(KEY) === saved, savedBeforeReplay);
+    detail = `ngày 0, vùng an toàn, nhiệm vụ/bản đồ tương tác, bản lưu không đổi, bỏ qua → ngày 1; xem lại, khoanh đúng và hoàn tất đủ bước → trang bìa${cardSafe && mapSelectionWorks && noSaveDuringTutorial && doneFlag && replayPreservesSave && fullTourWorks ? '' : ' · kiểm tra thất bại'}${bad.length ? ' · ' + bad.join(', ') : ''}`;
     const ok = cardSafe && mapSelectionWorks && noSaveDuringTutorial && doneFlag && replayPreservesSave && fullTourWorks && !p.errs.length;
     await p.done();
     return { name: 'tour tương tác và bỏ qua', ok, detail: detail + (p.errs.length ? ' · ' + p.errs.join('|') : '') };
